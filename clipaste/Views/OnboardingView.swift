@@ -283,7 +283,7 @@ private struct PreferencesView: View {
 
                     Picker("历史记录容量", selection: $historyLimit) {
                         ForEach(HistoryLimit.allCases) { limit in
-                            Text(limit.rawValue).tag(limit)
+                            Text(limit.displayName).tag(limit)
                         }
                     }
                     .labelsHidden()

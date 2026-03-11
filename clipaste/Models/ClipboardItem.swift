@@ -29,6 +29,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
     let imagePath: String?
     let thumbnailURL: URL?
     let fileURL: String?
+    var groupId: String? // 所属分组 ID，nil 表示未分组
 
     init(
         id: UUID = UUID(),
@@ -43,7 +44,8 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         rawText: String? = nil,
         imagePath: String? = nil,
         thumbnailURL: URL? = nil,
-        fileURL: String? = nil
+        fileURL: String? = nil,
+        groupId: String? = nil
     ) {
         self.id = id
         self.contentType = contentType
@@ -58,6 +60,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         self.imagePath = imagePath
         self.thumbnailURL = thumbnailURL
         self.fileURL = fileURL
+        self.groupId = groupId
     }
 }
 
@@ -74,7 +77,8 @@ extension ClipboardItem {
         lhs.rawText == rhs.rawText &&
         lhs.imagePath == rhs.imagePath &&
         lhs.thumbnailURL == rhs.thumbnailURL &&
-        lhs.fileURL == rhs.fileURL
+        lhs.fileURL == rhs.fileURL &&
+        lhs.groupId == rhs.groupId
     }
 
     func hash(into hasher: inout Hasher) {
@@ -90,6 +94,7 @@ extension ClipboardItem {
         hasher.combine(imagePath)
         hasher.combine(thumbnailURL)
         hasher.combine(fileURL)
+        hasher.combine(groupId)
     }
 }
 

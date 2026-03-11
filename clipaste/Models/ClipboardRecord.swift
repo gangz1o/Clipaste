@@ -12,6 +12,7 @@ final class ClipboardRecord {
     var originalFilePath: String?
     var appBundleID: String?
     var appLocalizedName: String?
+    var groupId: String? // 所属分组 ID
 
     init(
         id: UUID = UUID(),
@@ -22,7 +23,8 @@ final class ClipboardRecord {
         thumbnailPath: String? = nil,
         originalFilePath: String? = nil,
         appBundleID: String? = nil,
-        appLocalizedName: String? = nil
+        appLocalizedName: String? = nil,
+        groupId: String? = nil
     ) {
         self.id = id
         self.timestamp = timestamp
@@ -33,5 +35,6 @@ final class ClipboardRecord {
         self.originalFilePath = originalFilePath
         self.appBundleID = appBundleID
         self.appLocalizedName = appLocalizedName
+        self.groupId = groupId
     }
 }

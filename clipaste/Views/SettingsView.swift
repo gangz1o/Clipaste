@@ -1,133 +1,71 @@
 import SwiftUI
 import KeyboardShortcuts
 
-struct SettingsView: View {
-    @StateObject private var viewModel = SettingsViewModel()
+enum SettingsTab: String, CaseIterable, Identifiable {
+    case general = "通用"
+    case shortcuts = "快捷键"
+    case advanced = "高级"
+    case about = "关于"
     
-    @AppStorage("launchAtLogin") private var launchAtLogin: Bool = false
-    @AppStorage("playSound") private var playSound: Bool = true
-    @AppStorage("clipboardLayout") private var layoutMode: AppLayoutMode = .horizontal
-    @AppStorage("pasteBehavior") private var pasteBehavior: PasteBehavior = .direct
-    @AppStorage("pasteAsPlainText") private var pasteAsPlainText: Bool = false
-    @AppStorage("historyLimit") private var historyLimit: HistoryLimit = .month
-
-    var body: some View {
-        TabView {
-            generalTab
-                .tabItem {
-                    Label("通用", systemImage: "gearshape")
-                }
-            pasteTab
-                .tabItem {
-                    Label("粘贴", systemImage: "doc.on.clipboard")
-                }
-            
-            shortcutsTab
-                .tabItem {
-                    Label("快捷键", systemImage: "keyboard")
-                }
-            
-            dataTab
-                .tabItem {
-                    Label("数据", systemImage: "clock")
-                }
-        }
-        .frame(width: 450, height: 300)
-    }
+    var id: String { self.rawValue }
     
-    private var generalTab: some View {
-        Form {
-            Section {
-                Toggle("登录时打开", isOn: $launchAtLogin)
-                    .onChange(of: launchAtLogin) { _, newValue in
-                        viewModel.toggleLaunchAtLogin(enabled: newValue)
-                    }
-                
-                Toggle("播放音效", isOn: $playSound)
-                
-                Picker("剪贴板布局", selection: $layoutMode) {
-                    ForEach(AppLayoutMode.allCases) { mode in
-                        Text(mode.rawValue).tag(mode)
-                    }
-                }
-                .pickerStyle(.radioGroup)
-            }
+    var iconName: String {
+        switch self {
+        case .general: return "gearshape"
+        case .shortcuts: return "keyboard"
+        case .advanced: return "slider.horizontal.3"
+        case .about: return "info.circle"
         }
-        .padding(20)
-    }
-
-    private var pasteTab: some View {
-        Form {
-            Section {
-                Picker("粘贴动作", selection: $pasteBehavior) {
-                    ForEach(PasteBehavior.allCases) { behavior in
-                        Text(behavior.rawValue).tag(behavior)
-                    }
-                }
-                
-                if pasteBehavior == .direct {
-                    HStack {
-                        Spacer()
-                        VStack(alignment: .trailing, spacing: 6) {
-                            Text("直接粘贴需要开启“辅助功能”权限")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                            Button("检查权限状态") {
-                                viewModel.requestAccessibilityPermission()
-                            }
-                            .buttonStyle(.link)
-                            .font(.caption)
-                        }
-                    }
-                }
-                
-                Toggle("始终以纯文本粘贴", isOn: $pasteAsPlainText)
-            }
-        }
-        .padding(20)
-    }
-    
-    private var shortcutsTab: some View {
-        Form {
-            Section(header: Text("全局唤醒")) {
-                HStack {
-                    Text("唤醒剪贴板:")
-                    Spacer()
-                    KeyboardShortcuts.Recorder(for: .toggleClipboardPanel)
-                }
-                
-                Text("在任何应用中按下此快捷键，即可呼出 clipaste 历史面板。")
-                    .foregroundColor(.secondary)
-                    .font(.caption)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 4)
-            }
-        }
-        .padding(20)
-    }
-
-    private var dataTab: some View {
-        Form {
-            Section(header: Text("历史记录保留时间")) {
-                Picker("", selection: $historyLimit) {
-                    ForEach(HistoryLimit.allCases) { limit in
-                        Text(limit.rawValue).tag(limit)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                
-                Text("超出时间的记录将被自动清理以释放存储空间。该功能目前仍在测试中。")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, 4)
-            }
-        }
-        .padding(20)
     }
 }
 
-#Preview {
-    SettingsView()
+struct SettingsView: View {
+    @State private var selectedTab: SettingsTab = .general
+    
+    var body: some View {
+        NavigationSplitView {
+            List(SettingsTab.allCases, selection: $selectedTab) { tab in
+                NavigationLink(value: tab) {
+                    Label(tab.rawValue, systemImage: tab.iconName)
+                }
+            }
+            .navigationSplitViewColumnWidth(180)
+            .listStyle(.sidebar)
+            .toolbar(removing: .sidebarToggle)
+        } detail: {
+            switch selectedTab {
+            case .general:
+                GeneralSettingsView()
+                    .navigationTitle("通用")
+            case .shortcuts:
+                Form {
+                    Section {
+                        HStack {
+                            Text("呼出 / 隐藏剪贴板面板")
+                            Spacer()
+                            KeyboardShortcuts.Recorder(for: .toggleClipboardPanel)
+                        }
+                    }
+                    Section {
+                        Text("提示：如果快捷键无法生效，请在\u{201C}系统设置 → 隐私与安全性 → 辅助功能\u{201D}中允许 clipaste 控制你的电脑。")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .formStyle(.grouped)
+                .padding()
+                .navigationTitle("快捷键")
+                .frame(minWidth: 400, idealWidth: 450, maxWidth: .infinity,
+                       minHeight: 300, alignment: .top)
+            case .advanced:
+                AdvancedSettingsView()
+                    .navigationTitle("高级")
+            case .about:
+                Text("关于预留区")
+                    .navigationTitle("关于")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .frame(width: 600, height: 420)
+    }
 }

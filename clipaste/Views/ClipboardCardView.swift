@@ -3,6 +3,7 @@ import SwiftUI
 struct ClipboardCardView: View {
   let item: ClipboardItem
   var onSelect: () -> Void = {}
+  var viewModel: ClipboardViewModel? = nil
 
   @State private var isHovered = false
   @State private var isHovering = false
@@ -40,6 +41,27 @@ struct ClipboardCardView: View {
 
   var body: some View {
     ZStack {
+      // 水印层：复用 appIcon，位于最底层
+      if let icon = item.appIcon {
+        Image(nsImage: icon)
+          .resizable()
+          .aspectRatio(contentMode: .fit)
+          // 1. 黄金尺寸与裁剪：放大图标，使其占据绝大部分卡片，并稍微超出边界
+          .frame(width: 220, height: 220)
+          // 2. 灰度化：强制将图标去色，消除色彩噪音
+          .saturation(0)
+          // 3. 黄金透明度：设定极其克制的透明度，绝不喧宾夺主
+          .opacity(0.06)
+          // 4. 景深：应用轻微模糊，消除过锐的轮廓，营造“氛围”感
+          .blur(radius: 5)
+          // 5. 抽象对齐：将巨大的图标稍微向右下角偏移，营造高级的裁剪感
+          .offset(x: 30, y: 30)
+          // 6. 物理约束：确保超出卡片的部分被彻底 clipped 掉
+          .clipped()
+          // 7. 交互隔离：确保这个装饰层完全忽略鼠标事件
+          .allowsHitTesting(false)
+      }
+
       VStack(alignment: .leading, spacing: 8) {
         // Header: App icon, name
         HStack(spacing: 8) {
@@ -81,13 +103,6 @@ struct ClipboardCardView: View {
         Spacer(minLength: 0)
       }
       .padding(12)
-
-      Button("") {
-        onSelect()
-      }
-      .buttonStyle(.plain)
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .focused($isFocused)
     }
     .frame(width: 240, height: 240)
     // Background: 固定不随 hover 变化，避免 hover 动画
@@ -116,7 +131,14 @@ struct ClipboardCardView: View {
           .allowsHitTesting(false)
       }
     }
-    // 取消 hover 动画，仅在点击获得焦点时显示蓝色边框
+    .clipboardContextMenu(for: item, viewModel: viewModel)
+    .onDrag {
+      NSItemProvider(object: item.id.uuidString as NSString)
+    } preview: {
+      ClipboardDragPreview(item: item)
+    }
+    // Single-click select, double-click paste
+    .modifier(ClipboardCardActionModifier(item: item, onSelect: onSelect, viewModel: viewModel))
   }
 
   @ViewBuilder
@@ -136,41 +158,25 @@ struct ClipboardCardView: View {
   }
 
   private var codePreview: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      Text(item.textPreview)
-        .font(.system(size: 12, design: .monospaced))
-        .lineLimit(4)
-        .lineSpacing(2)
-        .multilineTextAlignment(.leading)
-        .foregroundColor(.primary.opacity(0.85))
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-    }
-    .padding(10)
-    .background(Color.primary.opacity(0.04))
-    .cornerRadius(8)
-    .overlay(
-      RoundedRectangle(cornerRadius: 8)
-        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-    )
+    Text(item.textPreview)
+      .font(.system(size: 12, design: .monospaced))
+      .lineLimit(6)
+      .lineSpacing(2)
+      .multilineTextAlignment(.leading)
+      .foregroundColor(.primary.opacity(0.85))
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+      .padding(.top, 4)
   }
 
   private var webPreview: some View {
-    VStack(alignment: .leading, spacing: 6) {
-      Text(item.textPreview)
-        .font(.system(size: 12))
-        .lineSpacing(4)
-        .lineLimit(4)
-        .multilineTextAlignment(.leading)
-        .foregroundColor(.primary.opacity(0.85))
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-    }
-    .padding(10)
-    .background(Color.primary.opacity(0.04))
-    .cornerRadius(8)
-    .overlay(
-      RoundedRectangle(cornerRadius: 8)
-        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-    )
+    Text(item.textPreview)
+      .font(.system(size: 12))
+      .lineSpacing(4)
+      .lineLimit(6)
+      .multilineTextAlignment(.leading)
+      .foregroundColor(.primary.opacity(0.85))
+      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+      .padding(.top, 4)
   }
 
   private var imagePreview: some View {
@@ -181,28 +187,17 @@ struct ClipboardCardView: View {
           case .empty:
             imagePlaceholder(showsProgress: true)
           case .success(let image):
-            ZStack {
-              RoundedRectangle(cornerRadius: 12)
-                .fill(Color(nsColor: .windowBackgroundColor).opacity(0.5))
-
-              image
-                .resizable()
-                .scaledToFit()
-                .frame(maxWidth: .infinity, maxHeight: 120)
-                .padding(8)
-            }
-            .frame(maxWidth: .infinity, maxHeight: 120)
-            .clipped()
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            image
+              .resizable()
+              .scaledToFit()
+              .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+              .cornerRadius(6)
           case .failure:
             imagePlaceholder(showsProgress: false)
           @unknown default:
             imagePlaceholder(showsProgress: false)
           }
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: 120)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
       } else {
         imagePlaceholder(showsProgress: false)
       }
@@ -210,10 +205,7 @@ struct ClipboardCardView: View {
   }
 
   private func imagePlaceholder(showsProgress: Bool) -> some View {
-    ZStack {
-      RoundedRectangle(cornerRadius: 12)
-        .fill(Color.primary.opacity(0.05))
-
+    Group {
       if showsProgress {
         ProgressView()
           .progressViewStyle(.circular)
@@ -224,12 +216,7 @@ struct ClipboardCardView: View {
           .foregroundColor(.secondary.opacity(0.8))
       }
     }
-    .frame(maxWidth: .infinity)
-    .frame(height: 120)
-    .overlay(
-      RoundedRectangle(cornerRadius: 12)
-        .stroke(Color.primary.opacity(0.06), lineWidth: 1)
-    )
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
   }
 
   private var textPreview: some View {

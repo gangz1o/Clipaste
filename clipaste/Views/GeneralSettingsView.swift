@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct GeneralSettingsView: View {
-    @StateObject private var viewModel = SettingsViewModel()
+    @EnvironmentObject private var viewModel: SettingsViewModel
     
     var body: some View {
         Form {
@@ -39,7 +39,11 @@ struct GeneralSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .padding()
         .frame(minWidth: 400, idealWidth: 450, maxWidth: .infinity, minHeight: 300, alignment: .top)
     }
+}
+
+#Preview {
+    GeneralSettingsView()
+        .environmentObject(SettingsViewModel())
 }

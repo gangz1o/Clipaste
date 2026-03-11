@@ -3,6 +3,7 @@ import SwiftUI
 struct ClipboardHorizontalView: View {
     let items: [ClipboardItem]
     let onSelect: (ClipboardItem) -> Void
+    var viewModel: ClipboardViewModel? = nil
 
     @State private var hoveredItemID: UUID?
 
@@ -12,7 +13,7 @@ struct ClipboardHorizontalView: View {
                 ForEach(items) { item in
                     ClipboardCardView(item: item, onSelect: {
                         onSelect(item)
-                    })
+                    }, viewModel: viewModel)
                         .contentShape(RoundedRectangle(cornerRadius: 16))
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
@@ -31,7 +32,6 @@ struct ClipboardHorizontalView: View {
             }
             .padding(.horizontal, 24)
         }
-        .mapVerticalScrollToHorizontal()
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 }
