@@ -5,6 +5,8 @@ import Combine
 class ClipboardViewModel: ObservableObject {
     @Published var items: [ClipboardItem] = []
     @Published var searchText: String = ""
+    @Published var highlightedItemId: UUID? = nil
+    @Published var quickLookItem: ClipboardItem? = nil  // 空格键预览
     // 旧分组（横版 UI 使用的固定分组，保留兼容）
     @Published var groups: [ClipboardGroup] = []
     @Published var selectedGroupID: UUID? = nil
@@ -58,22 +60,53 @@ class ClipboardViewModel: ObservableObject {
             let searcher = ClipboardSearcher(modelContainer: container)
             let mappedItems = await searcher.searchAndMap(searchText: "")
             self.items = mappedItems
+
+            if let highlightedItemId = self.highlightedItemId,
+               mappedItems.contains(where: { $0.id == highlightedItemId }) == false {
+                self.highlightedItemId = nil
+            }
         }
     }
 
     func userDidSelect(item: ClipboardItem) {
-        ClipboardPanelManager.shared.hidePanel()
+        guard highlightedItemId != item.id else { return }
+        highlightedItemId = item.id
 
-        guard let record = StorageManager.shared.fetchRecord(id: item.id) else {
-            return
+        print("✅ 单击选中: \(item.id)")
+    }
+
+    /// 空格键快速预览：开/关切换。
+    /// 如果正在预览则关闭；否则弹出当前高亮选中项的预览。
+    func toggleQuickLook() {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+            if quickLookItem != nil {
+                quickLookItem = nil
+            } else if let hid = highlightedItemId,
+                      let item = filteredItems.first(where: { $0.id == hid }) {
+                quickLookItem = item
+            }
+        }
+    }
+
+    /// 方向键导航：direction = +1 下/右，-1 上/左。
+    func moveSelection(direction: Int) {
+        let items = filteredItems
+        guard !items.isEmpty else { return }
+
+        let currentIndex = highlightedItemId.flatMap { hid in
+            items.firstIndex(where: { $0.id == hid })
         }
 
-        guard PasteEngine.shared.checkAccessibilityPermissions() else {
-            return
+        let nextIndex: Int
+        if let idx = currentIndex {
+            nextIndex = min(max(idx + direction, 0), items.count - 1)
+        } else {
+            // 没有选中项时：向下/右从 0 开始，向上/左从末尾开始
+            nextIndex = direction > 0 ? 0 : items.count - 1
         }
 
-        Task { @MainActor in
-            await PasteEngine.shared.paste(record: record)
+        withAnimation(.easeInOut(duration: 0.1)) {
+            highlightedItemId = items[nextIndex].id
         }
     }
 
@@ -102,7 +135,7 @@ class ClipboardViewModel: ObservableObject {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if !query.isEmpty {
             result = result.filter { item in
-                let searchableText = (item.rawText ?? item.textPreview).lowercased()
+                let searchableText = (item.searchableText ?? item.rawText ?? item.textPreview).lowercased()
                 if searchableText.contains(query) {
                     return true
                 }
@@ -169,35 +202,45 @@ class ClipboardViewModel: ObservableObject {
     // MARK: - 右键菜单动作接口
 
     func pasteToActiveApp(item: ClipboardItem) {
-        // 1. Write back to system clipboard (select also triggers clipboard write)
+        print("🚀 触发双击事件: \(item.id)")
+
+        // 1. 先同步 UI 选中态
         userDidSelect(item: item)
 
-        // 2. Hide panel so focus returns to target app
-        ClipboardPanelManager.shared.hidePanel()
-
-        // 3. Respect "autoPasteToActiveApp" setting
-        let autoPaste = UserDefaults.standard.object(forKey: "autoPasteToActiveApp") as? Bool ?? true
-        if autoPaste {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                let src = CGEventSource(stateID: .hidSystemState)
-                let vDown = CGEvent(keyboardEventSource: src, virtualKey: 0x09, keyDown: true)
-                let vUp   = CGEvent(keyboardEventSource: src, virtualKey: 0x09, keyDown: false)
-                vDown?.flags = .maskCommand
-                vUp?.flags   = .maskCommand
-                vDown?.post(tap: .cgAnnotatedSessionEventTap)
-                vUp?.post(tap:   .cgAnnotatedSessionEventTap)
-            }
+        guard let record = StorageManager.shared.fetchRecord(id: item.id) else {
+            print("❌ 未找到可复制的记录: \(item.id)")
+            return
         }
 
-        // 4. Respect "moveToTopAfterPaste" setting (move record's timestamp to now)
-        let moveToTop = UserDefaults.standard.bool(forKey: "moveToTopAfterPaste")
-        if moveToTop {
-            // Move the item to top by bumping its position in the in-memory list
-            if let idx = items.firstIndex(where: { $0.id == item.id }), idx != 0 {
-                withAnimation {
-                    let moved = items.remove(at: idx)
-                    items.insert(moved, at: 0)
+        Task { @MainActor in
+            // 2. 双击必须真实写入系统剪贴板
+            let wroteToPasteboard = await PasteEngine.shared.writeToPasteboard(record: record)
+            guard wroteToPasteboard else {
+                print("❌ 写入系统剪贴板失败: \(item.id)")
+                return
+            }
+
+            // 3. 隐藏面板，把焦点还给目标 App
+            ClipboardPanelManager.shared.forceHidePanel()
+
+            // 4. 根据设置决定是否自动触发粘贴
+            let autoPaste = UserDefaults.standard.object(forKey: "autoPasteToActiveApp") as? Bool ?? true
+            if autoPaste {
+                guard PasteEngine.shared.checkAccessibilityPermissions() else {
+                    return
                 }
+
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    PasteEngine.shared.simulateCommandV()
+                }
+            } else {
+                print("🛑 用户关闭了自动粘贴，仅执行复制并隐藏面板")
+            }
+
+            // 5. Respect "moveToTopAfterPaste" setting
+            let moveToTop = UserDefaults.standard.bool(forKey: "moveToTopAfterPaste")
+            if moveToTop {
+                moveItemToTop(item)
             }
         }
     }
@@ -221,10 +264,11 @@ class ClipboardViewModel: ObservableObject {
     }
 
     func copyToClipboard(item: ClipboardItem) {
-        guard let record = StorageManager.shared.fetchRecord(id: item.id),
-              let text = record.plainText else { return }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
+        guard let record = StorageManager.shared.fetchRecord(id: item.id) else { return }
+
+        Task { @MainActor in
+            _ = await PasteEngine.shared.writeToPasteboard(record: record)
+        }
     }
 
     func pinItem(item: ClipboardItem) {
@@ -249,7 +293,28 @@ class ClipboardViewModel: ObservableObject {
         withAnimation(.easeOut(duration: 0.2)) {
             items.removeAll { $0.id == item.id }
         }
+        if highlightedItemId == item.id {
+            highlightedItemId = nil
+        }
         // 2. 后台持久化：Actor 异步删除数据库记录
         StorageManager.shared.deleteRecord(hash: item.contentHash)
+    }
+
+    private func moveItemToTop(_ item: ClipboardItem) {
+        // 1. 乐观 UI：立即把卡片移到最前，视觉上瞬间响应
+        if let idx = items.firstIndex(where: { $0.id == item.id }), idx != 0 {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                let moved = items.remove(at: idx)
+                items.insert(moved, at: 0)
+            }
+        }
+        // 保持高亮跟随
+        highlightedItemId = item.id
+
+        // 2. 持久化：Actor 刷新数据库时间戳，完成后广播 .clipboardDataDidChange
+        //    ViewModel 的 Combine 订阅收到通知后会自动调用 loadData()，UI 再次排序与 DB 一致
+        Task {
+            await StorageManager.shared.moveItemToTop(id: item.id)
+        }
     }
 }

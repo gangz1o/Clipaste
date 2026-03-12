@@ -11,6 +11,8 @@ private struct ClipboardRecordSnapshot: Sendable {
     let thumbnailPath: String?
     let typeRawValue: String
     let groupId: String?
+    let linkTitle: String?
+    let linkIconData: Data?
 }
 
 @ModelActor
@@ -46,7 +48,9 @@ actor ClipboardSearcher {
                 plainText: record.plainText,
                 thumbnailPath: record.thumbnailPath,
                 typeRawValue: record.typeRawValue,
-                groupId: record.groupId
+                groupId: record.groupId,
+                linkTitle: record.linkTitle,
+                linkIconData: record.linkIconData
             )
         }
 
@@ -138,6 +142,50 @@ final class StorageManager {
         }
     }
 
+    /// 在图片记录保存后，静默触发 OCR 任务，将提取出的文字回写至 plainText 以支持全局搜索。
+    /// 参数 hash 即 contentHash，调用方在保存图片时就已经持有，无需再查询 UUID。
+    nonisolated
+    func processOCRForImage(hash: String, absoluteImagePath: String) {
+        Task(priority: .background) {
+            guard let text = await OCREngine.extractText(from: absoluteImagePath) else { return }
+            let container = self.container
+            let ocrActor = ClipboardStoreActor(modelContainer: container)
+            await ocrActor.updateRecordWithOCRText(hash: hash, text: text)
+
+            await MainActor.run {
+                NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+            }
+        }
+    }
+
+    /// 对纯文本 URL 静默运行 LinkPresentation 抜取，成功后回写元数据并刷新 UI。
+    nonisolated
+    func processLinkMetadata(hash: String, urlString: String) {
+        Task(priority: .background) {
+            let (title, iconData) = await LinkMetadataEngine.fetchMetadata(for: urlString)
+            guard title != nil || iconData != nil else { return }
+
+            let container = self.container
+            let linkActor = ClipboardStoreActor(modelContainer: container)
+            await linkActor.updateRecordWithLinkMetadata(hash: hash, title: title, iconData: iconData)
+
+            // 通知 UI 刷新，让生硅的链接卡片变成漂亮的书签
+            await MainActor.run {
+                NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+            }
+        }
+    }
+
+    /// 彻底清空所有剪贴板历史，同时删除本地缓存的图片文件。
+    /// Actor 完成后广播 `.clipboardDataDidChange`，ViewModel 的 Combine 订阅自动刺激 `loadData()` 清空 UI。
+    nonisolated
+    func clearAllHistory() {
+        let actor = self.storeActor
+        Task.detached(priority: .userInitiated) {
+            await actor.deleteAllRecords()
+        }
+    }
+
     nonisolated
     func createGroup(name: String, systemIconName: String = "folder") {
         let actor = self.storeActor
@@ -168,6 +216,12 @@ final class StorageManager {
         Task.detached(priority: .userInitiated) {
             await actor.deleteGroup(id: id)
         }
+    }
+
+    /// 将指定记录的时间戳刷新为当前时间，使其在按时间倒序排列时置顶。
+    /// 更新完成后会广播 `.clipboardDataDidChange`，ViewModel 的 Combine 订阅会自动触发 UI 刷新。
+    func moveItemToTop(id: UUID) async {
+        await storeActor.updateItemTimestampToNow(id: id)
     }
 
     /// 异步读取所有分组（通过 Actor)
@@ -203,6 +257,7 @@ final class StorageManager {
             contentType: type,
             contentHash: contentHash,
             textPreview: makeTextPreview(plainText: plainText, type: type),
+            searchableText: plainText,
             sourceBundleIdentifier: bundleIdentifier,
             appName: appName,
             appIcon: appIcon,
@@ -212,7 +267,9 @@ final class StorageManager {
             imagePath: type == .image ? thumbnailPath : nil,
             thumbnailURL: type == .image ? LocalFileManager.shared.url(forRelativePath: thumbnailPath) : nil,
             fileURL: type == .fileURL ? plainText : nil,
-            groupId: record.groupId
+            groupId: record.groupId,
+            linkTitle: record.linkTitle,
+            linkIconData: record.linkIconData
         )
     }
 
@@ -241,6 +298,33 @@ final class StorageManager {
 
 @ModelActor
 actor ClipboardStoreActor {
+    /// 将 OCR 提取出的文字静默写入指定图片记录的 plainText 字段（通过 contentHash 查找记录）。
+    func updateRecordWithOCRText(hash: String, text: String) {
+        var descriptor = FetchDescriptor<ClipboardRecord>(
+            predicate: #Predicate { $0.contentHash == hash }
+        )
+        descriptor.fetchLimit = 1
+        if let record = try? modelContext.fetch(descriptor).first {
+            record.plainText = text
+            try? modelContext.save()
+            print("✅ OCR 文本已静默更新至图片记录 (hash: \(hash.prefix(8))…)")
+        }
+    }
+
+    /// 将 LinkPresentation 抓取到的网页标题和图标静默回写至指定文本记录。
+    func updateRecordWithLinkMetadata(hash: String, title: String?, iconData: Data?) {
+        var descriptor = FetchDescriptor<ClipboardRecord>(
+            predicate: #Predicate { $0.contentHash == hash }
+        )
+        descriptor.fetchLimit = 1
+        if let record = try? modelContext.fetch(descriptor).first {
+            if let title { record.linkTitle = title }
+            if let iconData { record.linkIconData = iconData }
+            try? modelContext.save()
+            print("✅ 链接元数据已静默更新: \(title ?? "未知标题") (hash: \(hash.prefix(8))…)")
+        }
+    }
+
     func recordExists(hash: String) -> Bool {
         var descriptor = FetchDescriptor<ClipboardRecord>(
             predicate: #Predicate<ClipboardRecord> { record in
@@ -361,6 +445,43 @@ actor ClipboardStoreActor {
         }
     }
 
+    /// 彻底清空所有剪贴板记录及关联的本地图片文件。
+    func deleteAllRecords() {
+        let descriptor = FetchDescriptor<ClipboardRecord>()
+        do {
+            let records = try modelContext.fetch(descriptor)
+            guard !records.isEmpty else {
+                print("⚠️ [ClipboardStoreActor] 历史已空，无需清空")
+                return
+            }
+
+            let localFileManager = LocalFileManager.shared
+            let fileManager = FileManager.default
+
+            for record in records {
+                // \u987a\u624b\u5220\u9664\u672c\u5730\u7f29\u7565\u56fe\uff0c\u5f7b\u5e95\u91ca\u653e\u78c1\u76d8\u7a7a\u95f4
+                if record.typeRawValue == ClipboardContentType.image.rawValue {
+                    if let thumbnailPath = record.thumbnailPath,
+                       let url = localFileManager.url(forRelativePath: thumbnailPath) {
+                        try? fileManager.removeItem(at: url)
+                    }
+                    if let originalPath = record.originalFilePath,
+                       let url = localFileManager.url(forRelativePath: originalPath) {
+                        try? fileManager.removeItem(at: url)
+                    }
+                }
+                modelContext.delete(record)
+            }
+
+            try modelContext.save()
+            // \u5e7f\u64ad\u53d8\u66f4\u901a\u77e5\uff0cViewModel \u7684 Combine \u8ba2\u9605\u81ea\u52a8\u523a\u6fc0 loadData() \u6e05\u7a7a UI
+            NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+            print("✅ [ClipboardStoreActor] 已彻底清空 \(records.count) 条历史记录")
+        } catch {
+            print("❌ [ClipboardStoreActor] 清空失败: \(error)")
+        }
+    }
+
     // MARK: - 分组 CRUD
 
     func createGroup(name: String, systemIconName: String = "folder") {
@@ -424,5 +545,26 @@ actor ClipboardStoreActor {
         }
         try? modelContext.save()
         print("[ClipboardStoreActor] Group deleted: \(id)")
+    }
+
+    /// 将指定记录的 timestamp 更新为当前时间，并触发 UI 刷新通知。
+    func updateItemTimestampToNow(id: UUID) {
+        var descriptor = FetchDescriptor<ClipboardRecord>(
+            predicate: #Predicate<ClipboardRecord> { record in record.id == id }
+        )
+        descriptor.fetchLimit = 1
+
+        do {
+            if let record = try modelContext.fetch(descriptor).first {
+                record.timestamp = Date()
+                try modelContext.save()
+                NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+                print("✅ [ClipboardStoreActor] 记录已置顶: \(id)")
+            } else {
+                print("⚠️ [ClipboardStoreActor] 置顶失败，未找到记录: \(id)")
+            }
+        } catch {
+            print("❌ [ClipboardStoreActor] 置顶时写入失败: \(error)")
+        }
     }
 }

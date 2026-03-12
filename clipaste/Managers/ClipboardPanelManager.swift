@@ -10,6 +10,14 @@ class ClipboardPanelManager {
     private var panel: ClipboardPanel?
     private var eventMonitor: Any?
     private var layoutObserver: Any?
+    private var pinObserver: Any?
+    private var forceHideObserver: Any?
+
+    /// 记录呼出面板前正在活跃的 App（如微信、Safari），用于关闭面板时精准归还焦点
+    private var previousActiveApp: NSRunningApplication?
+
+    /// Whether the panel is pinned (won't auto-dismiss on outside click).
+    private var isPinned: Bool = UserDefaults.standard.bool(forKey: "isPanelPinned")
 
     /// Indicates whether the panel is currently visible to the user.
     private(set) var isVisible: Bool = false
@@ -17,6 +25,8 @@ class ClipboardPanelManager {
     private init() {
         setupPanel()
         setupLayoutObserver()
+        setupPinObserver()
+        setupForceHideObserver()
     }
 
     private func setupPanel() {
@@ -44,7 +54,7 @@ class ClipboardPanelManager {
         self.panel = panel
     }
 
-    // MARK: - Layout Observer
+    // MARK: - Observers
 
     private func setupLayoutObserver() {
         layoutObserver = NotificationCenter.default.addObserver(
@@ -54,6 +64,31 @@ class ClipboardPanelManager {
         ) { [weak self] notification in
             guard let self, let layout = notification.object as? AppLayoutMode else { return }
             self.updatePanelSize(layout: layout, animated: true)
+        }
+    }
+
+    private func setupPinObserver() {
+        pinObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("TogglePinStatus"),
+            object: nil,
+            queue: .main
+        ) { [weak self] notification in
+            guard let self else { return }
+            if let pinned = notification.object as? Bool {
+                self.isPinned = pinned
+                // 固定时提升窗口层级，防止被其他 App 遮挡
+                self.panel?.level = pinned ? .floating : Self.panelLevel
+            }
+        }
+    }
+
+    private func setupForceHideObserver() {
+        forceHideObserver = NotificationCenter.default.addObserver(
+            forName: NSNotification.Name("HidePanelForce"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.forceHidePanel()
         }
     }
 
@@ -104,7 +139,7 @@ class ClipboardPanelManager {
         let sf = screen.visibleFrame
         switch layout {
         case .horizontal:
-            let height: CGFloat = 340
+            let height: CGFloat = 320
             return NSRect(x: sf.minX, y: sf.minY, width: sf.width, height: height)
         case .vertical:
             return verticalFrame(on: screen)
@@ -124,10 +159,9 @@ class ClipboardPanelManager {
             panel.setFrame(target, display: false)
         }
 
-        // 动态开关窗口的背景拖拽权限：仅竖屏为 true，横屏为 false
-        let isVertical = layout == .vertical
-        panel.isMovableByWindowBackground = isVertical
-        panel.isMovable = isVertical
+        // 仅允许从 Header 区域拖动（通过 WindowDragArea 视图实现），禁止全窗口背景拖移
+        panel.isMovableByWindowBackground = false
+        panel.isMovable = true
     }
 
     // MARK: - Show / Hide
@@ -145,15 +179,19 @@ class ClipboardPanelManager {
     func showPanel() {
         guard !isVisible, let panel else { return }
 
+        // 0. 拍照留底：在呼出面板之前，记下当前正活跃的 App
+        //    必须在 activate / makeKeyAndOrderFront 之前调用，否则 frontmostApplication 会变成自己
+        previousActiveApp = NSWorkspace.shared.frontmostApplication
+
         // 每次呼出先读一次 Toggle 的底层 Bool（isVerticalLayout 是设置页的权威来源），
         // 再同步到 AppLayoutMode 供 panelFrame 使用，保证冷启动尺寸正确。
         let isVertical = UserDefaults.standard.bool(forKey: "isVerticalLayout")
         let layout: AppLayoutMode = isVertical ? .vertical : .horizontal
         let screen = screenContainingMouse() ?? NSScreen.main
 
-        // 每次呼出同步一次拖拽权限：仅竖屏可拖，横屏锁定
-        panel.isMovableByWindowBackground = isVertical
-        panel.isMovable = isVertical
+        // 仅允许从 Header 区域拖动（通过 WindowDragArea 视图实现），禁止全窗口背景拖移
+        panel.isMovableByWindowBackground = false
+        panel.isMovable = true
 
         let visibleFrame = panelFrame(for: layout, on: screen ?? NSScreen.main!)
 
@@ -174,7 +212,9 @@ class ClipboardPanelManager {
         panel.setFrame(hiddenFrame, display: true)
         panel.alphaValue = 0.0
 
-        NSApp.activate(ignoringOtherApps: true)
+        // ⚠️ 不再调用 NSApp.activate(ignoringOtherApps:) — 那会把菜单栏切成自己的 App，
+        //    导致目标 App 失去焦点，Cmd+V 无法命中正确窗口。
+        //    .nonactivatingPanel 已经允许面板接收按键，无需抢占 App 级焦点。
         panel.makeKeyAndOrderFront(nil)
         panel.becomeFirstResponder()
 
@@ -190,18 +230,35 @@ class ClipboardPanelManager {
 
     }
 
-    /// Hides the clipboard panel without affecting other app windows.
+    /// Hides the clipboard panel — intercepted when the panel is pinned.
     func hidePanel() {
         guard isVisible else { return }
-        dismissPanelOnly()
+        if isPinned { return } // 图钉固定时，拦截隐藏指令
+        executeHide()
     }
 
-    private func dismissPanelOnly() {
+    /// Force-hides the panel regardless of pin state (used by paste/settings/about).
+    func forceHidePanel() {
+        guard isVisible else { return }
+        executeHide()
+    }
+
+    private func executeHide() {
         guard let panel = panel else { return }
         removeEventMonitor()
         panel.orderOut(nil)
         panel.resignKey()
         isVisible = false
+
+        // 将焦点精准归还给呼出面板前的 App（保证 Cmd+V 粘贴命中目标窗口）
+        if let app = previousActiveApp, !app.isTerminated {
+            app.activate()
+        }
+        previousActiveApp = nil
+    }
+
+    private func dismissPanelOnly() {
+        executeHide()
     }
 
     private func screenContainingMouse() -> NSScreen? {
@@ -220,11 +277,8 @@ class ClipboardPanelManager {
         guard eventMonitor == nil else { return }
         eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             guard let self, self.isVisible else { return }
-            if self.hasOtherActiveWindows() {
-                self.dismissPanelOnly()
-            } else {
-                self.hidePanel()
-            }
+            // 始终走 hidePanel()，内部会检查图钉状态
+            self.hidePanel()
         }
     }
 

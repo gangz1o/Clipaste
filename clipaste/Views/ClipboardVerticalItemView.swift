@@ -6,6 +6,15 @@ struct ClipboardVerticalItemView: View {
 
     @State private var isHovering = false
 
+    private var isSelected: Bool {
+        viewModel.highlightedItemId == item.id
+    }
+
+    /// 颜色嗅探结果：非 nil 时整张卡片用该颜色渲染
+    private var parsedColor: Color? {
+        ColorParser.extractColor(from: previewText)
+    }
+
     private var previewText: String {
         if let rawText = item.rawText, !rawText.isEmpty {
             return rawText
@@ -48,9 +57,45 @@ struct ClipboardVerticalItemView: View {
                         }
                     }
                 } else {
-                    HighlightedText(text: previewText, highlight: viewModel.searchText)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
+                    if parsedColor != nil {
+                        // 颜色条目：只居中展示等宽色值，背景由卡片层处理
+                        Text(previewText)
+                            .font(.system(size: 14, weight: .bold, design: .monospaced))
+                            .foregroundColor(parsedColor!.isDark ? .white : .black)
+                            .shadow(
+                                color: parsedColor!.isDark
+                                    ? Color.black.opacity(0.3)
+                                    : Color.white.opacity(0.3),
+                                radius: 1, x: 0, y: 1
+                            )
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    } else if previewText.lowercased().hasPrefix("http") {
+                        // 链接 — 标题优先的书签样式
+                        VStack(alignment: .leading, spacing: 2) {
+                            if let title = item.linkTitle, !title.isEmpty {
+                                HighlightedText(text: title, highlight: viewModel.searchText)
+                                    .font(.system(size: 13, weight: .medium))
+                                    .lineLimit(1)
+                                    .truncationMode(.tail)
+                                Text(previewText)
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                                    .lineLimit(1)
+                                    .truncationMode(.tail)
+                            } else {
+                                HighlightedText(text: previewText, highlight: viewModel.searchText)
+                                    .lineLimit(2)
+                                    .truncationMode(.tail)
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    } else {
+                        // 普通文本兜底
+                        HighlightedText(text: previewText, highlight: viewModel.searchText)
+                            .lineLimit(2)
+                            .multilineTextAlignment(.leading)
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -59,7 +104,11 @@ struct ClipboardVerticalItemView: View {
             VStack(alignment: .trailing, spacing: 10) {
                 Text(item.timestamp, format: .dateTime.hour().minute())
                     .font(.system(size: 11))
-                    .foregroundColor(.secondary)
+                    // 颜色卡片时，时间文字也跟着反转，保证可读性
+                    .foregroundColor(
+                        parsedColor.map { $0.isDark ? .white.opacity(0.8) : .black.opacity(0.6) }
+                        ?? .secondary
+                    )
 
                 Spacer().frame(height: 12)
             }
@@ -68,11 +117,24 @@ struct ClipboardVerticalItemView: View {
         .frame(height: 64)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(nsColor: .controlBackgroundColor).opacity(isHovering ? 1.0 : 0.6))
+                .fill(
+                    // 颜色卡片：整行用解析出的颜色填充；否则沿用默认选中/悬停样式
+                    parsedColor.map { AnyShapeStyle($0) }
+                    ?? AnyShapeStyle(
+                        isSelected
+                        ? Color.accentColor.opacity(0.12)
+                        : Color(nsColor: .controlBackgroundColor).opacity(isHovering ? 1.0 : 0.6)
+                    )
+                )
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(isHovering ? Color.accentColor : Color.clear, lineWidth: 2)
+                .stroke(
+                    parsedColor != nil
+                        ? Color.primary.opacity(0.12)   // 颜色卡片用极细中性描边
+                        : (isSelected ? Color.accentColor : (isHovering ? Color.accentColor.opacity(0.45) : Color.clear)),
+                    lineWidth: (parsedColor != nil || isSelected) ? 1.5 : 1.5
+                )
         )
         .clipboardContextMenu(for: item, viewModel: viewModel)
         .onHover { hovering in
@@ -86,6 +148,20 @@ struct ClipboardVerticalItemView: View {
             ClipboardDragPreview(item: item)
         }
         .clipboardItemActions(for: item, viewModel: viewModel)
+        // 空格键 QuickLook：以本卡片为锚点弹出原生气泡预览
+        .popover(
+            isPresented: Binding(
+                get: { viewModel.quickLookItem?.id == item.id },
+                set: { isShowing in
+                    if !isShowing, viewModel.quickLookItem?.id == item.id {
+                        viewModel.quickLookItem = nil
+                    }
+                }
+            ),
+            arrowEdge: .trailing  // 气泡在卡片左侧弹出，箭头指向卡片
+        ) {
+            ClipboardQuickLookView(item: item)
+        }
     }
 }
 

@@ -16,25 +16,30 @@ final class PasteEngine {
         return AXIsProcessTrustedWithOptions(options)
     }
 
-    func paste(record: ClipboardRecord) async {
-        guard checkAccessibilityPermissions() else { return }
-
+    func writeToPasteboard(record: ClipboardRecord) async -> Bool {
         let snapshot = ClipboardRecordSnapshot(
             typeRawValue: record.typeRawValue,
             plainText: record.plainText,
             originalFilePath: record.originalFilePath
         )
 
-        guard let payload = await Self.makePastePayload(from: snapshot) else { return }
+        guard let payload = await Self.makePastePayload(from: snapshot) else { return false }
 
-        ClipboardPanelManager.shared.hidePanel()
         ClipboardMonitor.shared.isIgnoredNextChange = true
         pasteboard.clearContents()
+        return write(payload: payload)
+    }
 
-        guard write(payload: payload) else { return }
-
-        try? await Task.sleep(nanoseconds: 150_000_000)
+    func simulateCommandV() {
         postPasteKeystroke()
+    }
+
+    func paste(record: ClipboardRecord) async {
+        guard checkAccessibilityPermissions() else { return }
+        guard await writeToPasteboard(record: record) else { return }
+        ClipboardPanelManager.shared.hidePanel()
+        try? await Task.sleep(nanoseconds: 150_000_000)
+        simulateCommandV()
     }
 
     private func write(payload: PastePayload) -> Bool {

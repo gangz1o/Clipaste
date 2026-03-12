@@ -4,6 +4,22 @@ final class ClipboardPanel: NSPanel {
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { true }
 
+    /// 强制注入 `.nonactivatingPanel`：面板可以接收键盘输入（搜索框正常打字），
+    /// 但不会切走目标 App（如微信、Safari）的焦点，确保 Cmd+V 能准确粘贴到原来的 App。
+    override init(
+        contentRect: NSRect,
+        styleMask style: NSWindow.StyleMask,
+        backing backingStoreType: NSWindow.BackingStoreType,
+        defer flag: Bool
+    ) {
+        super.init(
+            contentRect: contentRect,
+            styleMask: style.union(.nonactivatingPanel),
+            backing: backingStoreType,
+            defer: flag
+        )
+    }
+
     // MARK: - Vertical→Horizontal scroll redirection
 
     /// Intercept all events before they are dispatched to views.

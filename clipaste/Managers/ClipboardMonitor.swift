@@ -156,6 +156,12 @@ final class ClipboardMonitor {
                 thumbnailPath: savedPaths.thumbnailPath,
                 originalFilePath: savedPaths.originalPath
             )
+
+            // 静默触发后台 OCR，将图片中的文字写入 plainText 以支持全局搜索。
+            // 使用 originalPath（完整原始图片）以获得最高 OCR 识别率。
+            if let absolutePath = LocalFileManager.shared.url(forRelativePath: savedPaths.originalPath)?.path {
+                StorageManager.shared.processOCRForImage(hash: contentHash, absoluteImagePath: absolutePath)
+            }
         }
     }
 
@@ -173,6 +179,15 @@ final class ClipboardMonitor {
             thumbnailPath: thumbnailPath,
             originalFilePath: originalFilePath
         )
+
+        // 如果存入的是一段纯文本 URL，悄悄触发 LinkPresentation 抓取，让链接变成漂亮的书签卡片
+        if payload.type == ClipboardContentType.text.rawValue,
+           let text = payload.text {
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
+                StorageManager.shared.processLinkMetadata(hash: payload.hash, urlString: text.trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+        }
     }
 }
 

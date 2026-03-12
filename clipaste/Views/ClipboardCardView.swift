@@ -1,276 +1,256 @@
 import SwiftUI
 
 struct ClipboardCardView: View {
-  let item: ClipboardItem
-  var onSelect: () -> Void = {}
-  var viewModel: ClipboardViewModel? = nil
+    let item: ClipboardItem
+    var onSelect: () -> Void = {}
+    var viewModel: ClipboardViewModel? = nil
 
-  @State private var isHovered = false
-  @State private var isHovering = false
-  @FocusState private var isFocused: Bool
+    @State private var isHovered = false
 
-  private var previewText: String {
-    if let rawText = item.rawText, !rawText.isEmpty {
-      return rawText
+    private var isSelected: Bool {
+        viewModel?.highlightedItemId == item.id
     }
 
-    return item.textPreview.isEmpty ? "（空）" : item.textPreview
-  }
-
-  private var searchHighlight: String {
-    viewModel?.searchText ?? ""
-  }
-
-  private var typeIconName: String {
-    if item.contentType == .image {
-      return "photo"
-    } else {
-      switch item.appName {
-      case "Xcode", "Terminal":
-        return "curlybraces.square"
-      case "Safari", "Google Chrome":
-        return "link"
-      default:
-        return "doc.text"
-      }
+    private var previewText: String {
+        if let rawText = item.rawText, !rawText.isEmpty { return rawText }
+        return item.textPreview.isEmpty ? "（空）" : item.textPreview
     }
-  }
 
-  private var typeColor: Color {
-    if item.contentType == .image {
-      return .purple
-    } else {
-      switch item.appName {
-      case "Xcode", "Terminal":
-        return .blue
-      case "Safari", "Google Chrome":
-        return .orange
-      default:
-        return .green
-      }
-    }
-  }
+    private var searchHighlight: String { viewModel?.searchText ?? "" }
 
-  var body: some View {
-    ZStack {
-      // 水印层：复用 appIcon，位于最底层
-      if let icon = item.appIcon {
-        Image(nsImage: icon)
-          .resizable()
-          .aspectRatio(contentMode: .fit)
-          // 1. 黄金尺寸与裁剪：放大图标，使其占据绝大部分卡片，并稍微超出边界
-          .frame(width: 220, height: 220)
-          // 2. 灰度化：强制将图标去色，消除色彩噪音
-          .saturation(0)
-          // 3. 黄金透明度：设定极其克制的透明度，绝不喧宾夺主
-          .opacity(0.06)
-          // 4. 景深：应用轻微模糊，消除过锐的轮廓，营造“氛围”感
-          .blur(radius: 5)
-          // 5. 抽象对齐：将巨大的图标稍微向右下角偏移，营造高级的裁剪感
-          .offset(x: 30, y: 30)
-          // 6. 物理约束：确保超出卡片的部分被彻底 clipped 掉
-          .clipped()
-          // 7. 交互隔离：确保这个装饰层完全忽略鼠标事件
-          .allowsHitTesting(false)
-      }
-
-      VStack(alignment: .leading, spacing: 8) {
-        // Header: App icon, name
-        HStack(spacing: 8) {
-          Group {
-            if let nsImage = item.appIcon {
-              Image(nsImage: nsImage)
-                .resizable()
-                .scaledToFit()
-            } else {
-              Image(systemName: "app.dashed")
-                .resizable()
-                .scaledToFit()
-                .foregroundColor(.secondary)
+    // MARK: - Body
+    var body: some View {
+        ZStack {
+            // ── 水印层：App 图标，最底层──────────────────────────────────
+            if let icon = item.appIcon {
+                Image(nsImage: icon)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 220, height: 220)
+                    .saturation(0)
+                    .opacity(0.06)
+                    .blur(radius: 5)
+                    .offset(x: 30, y: 30)
+                    .clipped()
+                    .allowsHitTesting(false)
             }
-          }
-          .frame(width: 16, height: 16)
 
-          // App Name
-          HighlightedText(
-            text: item.appName,
-            highlight: searchHighlight,
-            font: .system(size: 11, weight: .bold),
-            highlightFont: .system(size: 11, weight: .bold)
-          )
-            .lineLimit(1)
+            VStack(alignment: .leading, spacing: 0) {
+                // ── Header：App 图标 + 名称 + 时间 ─────────────────────────
+                HStack(alignment: .center, spacing: 8) {
+                    Group {
+                        if let icon = item.appIcon {
+                            Image(nsImage: icon)
+                                .resizable()
+                                .scaledToFit()
+                        } else {
+                            Image(systemName: "app.dashed")
+                                .resizable()
+                                .scaledToFit()
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .frame(width: 16, height: 16)
 
-          Spacer(minLength: 4)
+                    Text(item.appName)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
 
-          Image(systemName: typeIconName)
-            .font(.caption2)
-            .foregroundColor(.secondary)
+                    Spacer(minLength: 4)
 
-          // Timestamp (Top Right)
-          Text(item.timestamp, format: .dateTime.hour().minute())
-            .font(.caption2)
-            .foregroundColor(.secondary)
+                    // 链接角标
+                    if previewText.lowercased().hasPrefix("http") {
+                        Image(systemName: "link")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.secondary)
+                    } else if item.contentType == .image {
+                        Image(systemName: "photo")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+
+                    Text(item.timestamp, format: .dateTime.hour().minute())
+                        .font(.system(size: 10, weight: .regular, design: .monospaced))
+                        .foregroundColor(.secondary)
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 12)
+                .padding(.bottom, 10)
+
+                // ── Body：内容区域 ─────────────────────────────────────────
+                contentBody
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 12)
+            }
         }
-
-        // Core Content Preview
-        contentPreview
-
-        Spacer(minLength: 0)
-      }
-      .padding(12)
-    }
-    .frame(width: 240, height: 240)
-    // Background: 固定不随 hover 变化，避免 hover 动画
-    .background(
-      RoundedRectangle(cornerRadius: 16)
-        .fill(Color(nsColor: .windowBackgroundColor).opacity(0.5))
-    )
-    .background(
-      VisualEffectView(material: .popover, blendingMode: .withinWindow)
+        // 横版大卡片固定尺寸
+        .frame(width: 240, height: 240)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(
+                    isSelected
+                    ? Color.accentColor.opacity(0.12)
+                    : Color(nsColor: .windowBackgroundColor).opacity(0.5)
+                )
+        )
+        .background(
+            VisualEffectView(material: .popover, blendingMode: .withinWindow)
+                .clipShape(RoundedRectangle(cornerRadius: 16))
+        )
+        .overlay(alignment: .leading) {
+            // 类型颜色条
+            Rectangle()
+                .fill(typeAccentColor)
+                .frame(width: 4)
+        }
         .clipShape(RoundedRectangle(cornerRadius: 16))
-    )
-    .overlay(alignment: .leading) {
-      Rectangle()
-        .fill(typeColor)
-        .frame(width: 4)
-    }
-    .clipShape(RoundedRectangle(cornerRadius: 16))
-    // 固定阴影，取消 hover 动画
-    .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 3)
-    .overlay {
-      if isFocused {
-        RoundedRectangle(cornerRadius: 16)
-          .stroke(Color.accentColor, lineWidth: 3)
-          .frame(width: 240, height: 240)
-          .shadow(color: Color.accentColor.opacity(0.3), radius: 6, x: 0, y: 0)
-          .allowsHitTesting(false)
-      }
-    }
-    .clipboardContextMenu(for: item, viewModel: viewModel)
-    .onDrag {
-      NSItemProvider(object: item.id.uuidString as NSString)
-    } preview: {
-      ClipboardDragPreview(item: item)
-    }
-    // Single-click select, double-click paste
-    .modifier(ClipboardCardActionModifier(item: item, onSelect: onSelect, viewModel: viewModel))
-  }
-
-  @ViewBuilder
-  private var contentPreview: some View {
-    if item.contentType == .image {
-      imagePreview
-    } else {
-      switch item.appName {
-      case "Xcode", "Terminal":
-        codePreview
-      case "Safari", "Google Chrome":
-        webPreview
-      default:
-        textPreview
-      }
-    }
-  }
-
-  private var codePreview: some View {
-    HighlightedText(
-      text: previewText,
-      highlight: searchHighlight,
-      font: .system(size: 12, design: .monospaced),
-      foregroundColor: .primary.opacity(0.85),
-      highlightFont: .system(size: 12, weight: .bold, design: .monospaced)
-    )
-      .lineLimit(6)
-      .lineSpacing(2)
-      .multilineTextAlignment(.leading)
-      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-      .padding(.top, 4)
-  }
-
-  private var webPreview: some View {
-    HighlightedText(
-      text: previewText,
-      highlight: searchHighlight,
-      font: .system(size: 12),
-      foregroundColor: .primary.opacity(0.85),
-      highlightFont: .system(size: 12, weight: .bold)
-    )
-      .lineSpacing(4)
-      .lineLimit(6)
-      .multilineTextAlignment(.leading)
-      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-      .padding(.top, 4)
-  }
-
-  private var imagePreview: some View {
-    VStack(alignment: .leading, spacing: 8) {
-      if let thumbnailURL = item.thumbnailURL {
-        AsyncImage(url: thumbnailURL) { phase in
-          switch phase {
-          case .empty:
-            imagePlaceholder(showsProgress: true)
-          case .success(let image):
-            image
-              .resizable()
-              .scaledToFit()
-              .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-              .cornerRadius(6)
-          case .failure:
-            imagePlaceholder(showsProgress: false)
-          @unknown default:
-            imagePlaceholder(showsProgress: false)
-          }
+        .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 3)
+        .overlay {
+            if isSelected {
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color.accentColor, lineWidth: 3)
+                    .shadow(color: Color.accentColor.opacity(0.3), radius: 6)
+                    .allowsHitTesting(false)
+            }
         }
-      } else {
-        imagePlaceholder(showsProgress: false)
-      }
+        // 空格键 QuickLook 气泡（箭头朝下，挂在卡片顶部）
+        .popover(
+            isPresented: Binding(
+                get: { viewModel?.quickLookItem?.id == item.id },
+                set: { isShowing in
+                    if !isShowing, viewModel?.quickLookItem?.id == item.id {
+                        viewModel?.quickLookItem = nil
+                    }
+                }
+            ),
+            arrowEdge: .bottom
+        ) {
+            ClipboardQuickLookView(item: item)
+        }
+        .clipboardContextMenu(for: item, viewModel: viewModel)
+        .onDrag {
+            NSItemProvider(object: item.id.uuidString as NSString)
+        } preview: {
+            ClipboardDragPreview(item: item)
+        }
+        .modifier(ClipboardCardActionModifier(item: item, onSelect: onSelect, viewModel: viewModel))
     }
-  }
 
-  private func imagePlaceholder(showsProgress: Bool) -> some View {
-    Group {
-      if showsProgress {
-        ProgressView()
-          .progressViewStyle(.circular)
-          .tint(.secondary)
-      } else {
-        Image(systemName: "photo")
-          .font(.title2)
-          .foregroundColor(.secondary.opacity(0.8))
-      }
+    // MARK: - Content Body
+
+    @ViewBuilder
+    private var contentBody: some View {
+        if item.contentType == .image {
+            // ── 图片：等比例完整显示，绝不裁切原图 ──────────────────────
+            if let url = item.thumbnailURL {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let img):
+                        ZStack {
+                            // 底层垫一层极其微弱的背景，让透明 PNG 也能优雅展示
+                            Color(nsColor: .controlBackgroundColor).opacity(0.5)
+                            img.resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .padding(8)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .clipped()
+                        .cornerRadius(8)
+                    case .empty:
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .tint(.secondary)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    default:
+                        Image(systemName: "photo")
+                            .font(.title2)
+                            .foregroundColor(.secondary.opacity(0.8))
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                }
+            }
+        } else if let parsedColor = ColorParser.extractColor(from: previewText) {
+            // ── 颜色块：全卡片沉浸式填充 ──────────────────────────────────
+            ZStack {
+                parsedColor
+                Text(previewText)
+                    .font(.system(size: 14, weight: .bold, design: .monospaced))
+                    .foregroundColor(parsedColor.isDark ? .white : .black)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .cornerRadius(8)
+        } else if previewText.lowercased().hasPrefix("http") {
+            // ── 链接：标题优先书签（无图标）────────────────────────────────
+            VStack(alignment: .leading, spacing: 3) {
+                if let title = item.linkTitle, !title.isEmpty {
+                    HighlightedText(text: title, highlight: searchHighlight,
+                                    font: .system(size: 12, weight: .medium),
+                                    highlightFont: .system(size: 12, weight: .bold))
+                        .lineLimit(3)
+                        .truncationMode(.tail)
+                    Text(previewText)
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                } else {
+                    HighlightedText(text: previewText, highlight: searchHighlight,
+                                    font: .system(size: 12),
+                                    foregroundColor: .blue.opacity(0.85),
+                                    highlightFont: .system(size: 12, weight: .bold))
+                        .lineLimit(6)
+                        .truncationMode(.tail)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        } else {
+            // ── 普通文本（含代码）────────────────────────────────────────
+            HighlightedText(
+                text: previewText,
+                highlight: searchHighlight,
+                font: .system(size: 12, design: isCodeContent ? .monospaced : .default),
+                foregroundColor: .primary.opacity(0.85),
+                highlightFont: .system(size: 12, weight: .bold, design: isCodeContent ? .monospaced : .default)
+            )
+            .lineSpacing(3)
+            .lineLimit(8)
+            .multilineTextAlignment(.leading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
     }
-    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-  }
 
-  private var textPreview: some View {
-    HighlightedText(
-      text: previewText,
-      highlight: searchHighlight,
-      font: .system(size: 12),
-      foregroundColor: .primary.opacity(0.85),
-      highlightFont: .system(size: 12, weight: .bold)
-    )
-      .lineSpacing(4)
-      .lineLimit(6)
-      .multilineTextAlignment(.leading)
-      .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-      .padding(.top, 4)
-  }
+    // MARK: - Helpers
+
+    private var isCodeContent: Bool {
+        ["Xcode", "Terminal"].contains(item.appName)
+    }
+
+    private var typeAccentColor: Color {
+        switch item.contentType {
+        case .image: return .purple
+        case .fileURL: return .orange
+        default:
+            if previewText.lowercased().hasPrefix("http") { return .orange }
+            if isCodeContent { return .blue }
+            return .green
+        }
+    }
 }
 
 #Preview {
-  ClipboardCardView(
-    item: ClipboardItem(
-      contentType: .text,
-      contentHash: CryptoHelper.generateHash(
-        for: "Preview text of the copied content goes here. It might be long and should truncate."),
-      textPreview:
-        "Preview text of the copied content goes here. It might be long and should truncate.",
-      appName: "Safari",
-      appIconName: "safari",
-      rawText: "Preview text of the copied content goes here. It might be long and should truncate."
+    ClipboardCardView(
+        item: ClipboardItem(
+            contentType: .text,
+            contentHash: CryptoHelper.generateHash(
+                for: "Preview text of the copied content goes here. It might be long and should truncate."),
+            textPreview: "Preview text of the copied content goes here. It might be long and should truncate.",
+            appName: "Safari",
+            appIconName: "safari",
+            rawText: "Preview text of the copied content goes here. It might be long and should truncate."
+        )
     )
-  )
-  .padding()
-  .background(Color.black)
+    .padding()
+    .background(Color.black)
 }

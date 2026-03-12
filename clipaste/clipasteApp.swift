@@ -160,25 +160,35 @@ struct clipasteApp: App {
                 .modelContainer(StorageManager.shared.container)
                 .environment(\.locale, appLanguage.locale ?? .current)
         }
+        .defaultSize(width: 620, height: 460)
+        .windowResizability(.contentMinSize)
 
         // Status Bar Menu to access app functions
         MenuBarExtra("Clipaste", image: "MenuBarIcon") {
-            Group {
-                Button("设置...") {
-                    // macOS native way to open the Settings window programmatically
-                    NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-                    NSApp.activate(ignoringOtherApps: true)
-                }
-                .keyboardShortcut(",", modifiers: .command)
-                
-                Divider()
-                
-                Button("退出 Clipaste") {
-                    NSApplication.shared.terminate(nil)
-                }
-                .keyboardShortcut("q", modifiers: .command)
-            }
+            MenuBarExtraContent()
             .modelContainer(StorageManager.shared.container)
+        }
+    }
+}
+
+private struct MenuBarExtraContent: View {
+    @Environment(\.openSettings) private var openSettings
+
+    var body: some View {
+        Group {
+            Button("设置...") {
+                SettingsWindowCoordinator.open {
+                    openSettings()
+                }
+            }
+            .keyboardShortcut(",", modifiers: .command)
+
+            Divider()
+
+            Button("退出 Clipaste") {
+                NSApplication.shared.terminate(nil)
+            }
+            .keyboardShortcut("q", modifiers: .command)
         }
     }
 }

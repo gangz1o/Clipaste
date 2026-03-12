@@ -20,6 +20,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
     let contentType: ClipboardContentType
     let contentHash: String
     let textPreview: String
+    let searchableText: String?
     let sourceBundleIdentifier: String?
     let appName: String
     let appIcon: NSImage?
@@ -30,12 +31,15 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
     let thumbnailURL: URL?
     let fileURL: String?
     var groupId: String? // 所属分组 ID，nil 表示未分组
+    var linkTitle: String?     // 链接预览：网页标题（LinkPresentation 抓取）
+    var linkIconData: Data?    // 链接预览：网站图标数据
 
     init(
         id: UUID = UUID(),
         contentType: ClipboardContentType = .text,
         contentHash: String,
         textPreview: String,
+        searchableText: String? = nil,
         sourceBundleIdentifier: String? = nil,
         appName: String,
         appIcon: NSImage? = nil,
@@ -45,12 +49,15 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         imagePath: String? = nil,
         thumbnailURL: URL? = nil,
         fileURL: String? = nil,
-        groupId: String? = nil
+        groupId: String? = nil,
+        linkTitle: String? = nil,
+        linkIconData: Data? = nil
     ) {
         self.id = id
         self.contentType = contentType
         self.contentHash = contentHash
         self.textPreview = textPreview
+        self.searchableText = searchableText
         self.sourceBundleIdentifier = sourceBundleIdentifier
         self.appName = appName
         self.appIcon = appIcon
@@ -61,6 +68,8 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         self.thumbnailURL = thumbnailURL
         self.fileURL = fileURL
         self.groupId = groupId
+        self.linkTitle = linkTitle
+        self.linkIconData = linkIconData
     }
 }
 
@@ -70,6 +79,7 @@ extension ClipboardItem {
         lhs.contentType == rhs.contentType &&
         lhs.contentHash == rhs.contentHash &&
         lhs.textPreview == rhs.textPreview &&
+        lhs.searchableText == rhs.searchableText &&
         lhs.sourceBundleIdentifier == rhs.sourceBundleIdentifier &&
         lhs.appName == rhs.appName &&
         lhs.appIconName == rhs.appIconName &&
@@ -78,7 +88,9 @@ extension ClipboardItem {
         lhs.imagePath == rhs.imagePath &&
         lhs.thumbnailURL == rhs.thumbnailURL &&
         lhs.fileURL == rhs.fileURL &&
-        lhs.groupId == rhs.groupId
+        lhs.groupId == rhs.groupId &&
+        lhs.linkTitle == rhs.linkTitle &&
+        lhs.linkIconData == rhs.linkIconData
     }
 
     func hash(into hasher: inout Hasher) {
@@ -86,6 +98,7 @@ extension ClipboardItem {
         hasher.combine(contentType)
         hasher.combine(contentHash)
         hasher.combine(textPreview)
+        hasher.combine(searchableText)
         hasher.combine(sourceBundleIdentifier)
         hasher.combine(appName)
         hasher.combine(appIconName)
@@ -95,6 +108,8 @@ extension ClipboardItem {
         hasher.combine(thumbnailURL)
         hasher.combine(fileURL)
         hasher.combine(groupId)
+        hasher.combine(linkTitle)
+        hasher.combine(linkIconData)
     }
 }
 

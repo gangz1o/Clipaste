@@ -30,7 +30,10 @@ struct ClipboardHorizontalView: View {
                         .help("点击后粘贴到当前应用")
                 }
             }
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 20)
+            .padding(.top, 12)
+            .padding(.bottom, 12)
+            .frame(maxHeight: .infinity, alignment: .center)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }

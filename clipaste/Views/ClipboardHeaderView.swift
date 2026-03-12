@@ -3,8 +3,12 @@ import UniformTypeIdentifiers
 
 struct ClipboardHeaderView: View {
     @ObservedObject var viewModel: ClipboardViewModel
+    @Environment(\.openSettings) private var openSettings
     @FocusState var isSearchFocused: Bool
     @AppStorage("isVerticalLayout") private var isVerticalLayout: Bool = false
+    @AppStorage("isPanelPinned") private var isPanelPinned: Bool = false
+    @AppStorage("isMonitoringPaused") private var isMonitoringPaused: Bool = false
+    @AppStorage("monitorInterval") private var monitorInterval: Double = 0.5
     @State private var isShowingNewGroupPopover = false
     @State private var newGroupName = ""
     @State private var targetedGroupId: String? = nil
@@ -24,6 +28,20 @@ struct ClipboardHeaderView: View {
                 horizontalHeader
             }
         }
+        .padding(.bottom, 8)
+        .background(
+            // WindowDragArea 覆盖整个 Header 区域：只有这里才能拖动面板
+            WindowDragArea()
+                .background(isVerticalLayout ? AnyShapeStyle(.regularMaterial) : AnyShapeStyle(Color.clear))
+        )
+        .overlay(
+            Group {
+                if isVerticalLayout {
+                    Divider()
+                }
+            },
+            alignment: .bottom
+        )
         .alert("重命名分组", isPresented: $showEditAlert) {
             TextField("分组名称", text: $editGroupName)
             Button("取消", role: .cancel) { }
@@ -48,57 +66,18 @@ struct ClipboardHeaderView: View {
     // MARK: - 竖屏模式：两行布局
     private var verticalHeader: some View {
         VStack(spacing: 10) {
-            // 第一行：图钉 + 搜索框 + 设置
-            HStack(spacing: 10) {
-                Button(action: { /* 预留图钉功能 */ }) {
-                    Image(systemName: "pin")
-                        .font(.system(size: 14))
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.plain)
-
-                HStack(spacing: 6) {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 12))
-                        .foregroundColor(.secondary)
-
-                    TextField("搜索历史记录...", text: $viewModel.searchText)
-                        .font(.system(size: 13))
-                        .textFieldStyle(.plain)
-                        .autocorrectionDisabled(true)
-                        .focused($isSearchFocused)
-
-                    if !viewModel.searchText.isEmpty {
-                        Button(action: { viewModel.searchText = "" }) {
-                            Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.secondary)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.horizontal, 10)
-                .padding(.vertical, 7)
-                .background(Color(nsColor: .controlBackgroundColor).opacity(0.6))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-                .frame(maxWidth: .infinity)
-
-                Button(action: { /* 预留设置功能 */ }) {
-                    Image(systemName: "gearshape")
-                        .font(.system(size: 14))
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.plain)
-            }
+            // 第一行：搜索框（含图钉 + 齿轮菜单）
+            searchBarContent
 
             // 第二行：分组标签横向滚动
             groupPills
         }
         .padding(.horizontal, 14)
         .padding(.top, 14)
-        .padding(.bottom, 10)
+        .padding(.bottom, 2)
     }
 
-    // MARK: - 横屏模式：单行布局（原有）
+    // MARK: - 横屏模式：单行布局（原有，不改动）
     private var horizontalHeader: some View {
         HStack(spacing: 8) {
             // 左侧区域 (分组标签栏)
@@ -106,7 +85,7 @@ struct ClipboardHeaderView: View {
 
             Spacer()
 
-            // 右侧区域 (精致搜索框)
+            // 右侧区域 (精致胶囊搜索框，保持原样)
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
@@ -136,7 +115,130 @@ struct ClipboardHeaderView: View {
             .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
             .padding(.trailing, 16)
         }
-        .padding(.vertical, 12)
+        .padding(.top, 12)
+        .padding(.bottom, 4)
+    }
+
+    // MARK: - 共享：搜索栏（含图钉 + 齿轮菜单）
+    @ViewBuilder
+    private var searchBarContent: some View {
+        HStack(spacing: 8) {
+            // 左侧：固定面板按钮
+            Button(action: {
+                isPanelPinned.toggle()
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("TogglePinStatus"),
+                    object: isPanelPinned
+                )
+            }) {
+                Image(systemName: isPanelPinned ? "pin.fill" : "pin")
+                    .foregroundColor(isPanelPinned ? .accentColor : .secondary)
+                    .font(.system(size: 15))
+                    .rotationEffect(.degrees(isPanelPinned ? 45 : 0))
+                    .animation(.spring(), value: isPanelPinned)
+            }
+            .buttonStyle(.plain)
+            .help(isPanelPinned ? "取消固定面板" : "固定面板 (使其不自动隐藏)")
+
+            // 中间：搜索框
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+                TextField("输入开始搜索...", text: $viewModel.searchText)
+                    .font(.system(size: 13))
+                    .textFieldStyle(.plain)
+                    .autocorrectionDisabled(true)
+#if os(macOS)
+                    .textContentType(.none)
+#endif
+                    .focused($isSearchFocused)
+                if !viewModel.searchText.isEmpty {
+                    Button(action: { viewModel.searchText = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity)
+            .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            // 右侧：原生系统下拉菜单
+            Menu {
+                Button(action: { isMonitoringPaused.toggle() }) {
+                    Text(isMonitoringPaused ? "恢复监控剪贴板" : "停止监控剪贴板")
+                }
+
+                Menu("剪贴板监视间隔") {
+                    Button(action: { monitorInterval = 0.1 }) {
+                        HStack {
+                            Text("非常频繁 (0.1秒)")
+                            if monitorInterval == 0.1 { Image(systemName: "checkmark") }
+                        }
+                    }
+                    Button(action: { monitorInterval = 0.5 }) {
+                        HStack {
+                            Text("频繁 (0.5秒)")
+                            if monitorInterval == 0.5 { Image(systemName: "checkmark") }
+                        }
+                    }
+                    Button(action: { monitorInterval = 1.0 }) {
+                        HStack {
+                            Text("正常 (1秒)")
+                            if monitorInterval == 1.0 { Image(systemName: "checkmark") }
+                        }
+                    }
+                }
+
+                Divider()
+
+                Button("设置...") {
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("HidePanelForce"),
+                        object: nil
+                    )
+                    SettingsWindowCoordinator.open {
+                        openSettings()
+                    }
+                }
+
+                Button("随系统启动 (敬请期待)") {}
+                    .disabled(true)
+
+                Divider()
+
+                Button("关于 clipaste") {
+                    NSApp.orderFrontStandardAboutPanel()
+                    NotificationCenter.default.post(
+                        name: NSNotification.Name("HidePanelForce"),
+                        object: nil
+                    )
+                }
+
+                Button("发送反馈") {
+                    if let url = URL(string: "mailto:your_email@example.com?subject=clipaste%20Feedback") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+
+                Divider()
+
+                Button("退出") {
+                    NSApplication.shared.terminate(nil)
+                }
+            } label: {
+                Image(systemName: "gearshape")
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 15))
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+        }
     }
 
     // MARK: - 共享：分组胶囊（三段式布局）
@@ -293,4 +395,42 @@ struct ClipboardHeaderView: View {
     let dummyViewModel = ClipboardViewModel(clipboardMonitor: nil)
     return ClipboardHeaderView(viewModel: dummyViewModel)
         .frame(width: 380)
+}
+
+// MARK: - Window Drag Handle
+
+/// NSViewRepresentable，使其覆盖区域内的鼠标拖拽可以移动窗口。
+/// 与 isMovableByWindowBackground = false 配合，实现「仅 Header 可拖动」。
+/// 注意：mouseDownCanMoveWindow 仅在 isMovableByWindowBackground = true 时被 AppKit 尊重，
+/// 因此我们改为直接拦截 mouseDown / mouseDragged 手动搬移窗口。
+struct WindowDragArea: NSViewRepresentable {
+    func makeNSView(context: Context) -> DragHandleView { DragHandleView() }
+    func updateNSView(_ nsView: DragHandleView, context: Context) {}
+
+    class DragHandleView: NSView {
+        private var dragStart: NSPoint?
+
+        override func mouseDown(with event: NSEvent) {
+            // 记录鼠标在窗口坐标系中的初始位置
+            dragStart = event.locationInWindow
+        }
+
+        override func mouseDragged(with event: NSEvent) {
+            guard let start = dragStart, let window else { return }
+            let current = event.locationInWindow
+            let dx = current.x - start.x
+            let dy = current.y - start.y
+            var origin = window.frame.origin
+            origin.x += dx
+            origin.y += dy
+            window.setFrameOrigin(origin)
+        }
+
+        override func mouseUp(with event: NSEvent) {
+            dragStart = nil
+        }
+
+        /// 视图本身透明，不遮挡任何绘制内容
+        override func draw(_ dirtyRect: NSRect) {}
+    }
 }

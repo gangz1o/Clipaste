@@ -1,56 +1,59 @@
 import SwiftUI
 
 struct AdvancedSettingsView: View {
-    @StateObject private var viewModel = SettingsViewModel()
-    
+    @EnvironmentObject private var viewModel: SettingsViewModel
+
     var body: some View {
         Form {
             Section {
-                // 1. 自动粘贴设置块
-                VStack(alignment: .leading, spacing: 6) {
-                    Toggle("粘贴至当前激活的 App", isOn: $viewModel.autoPasteToActiveApp)
-                        .toggleStyle(.switch)
-                    
-                    Text("双击卡片时，自动将内容直接写入目标应用，无需手动 ⌘V。")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    if viewModel.autoPasteToActiveApp {
-                        Button("检查\u{201C}辅助功能\u{201D}权限...") {
-                            let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
-                            NSWorkspace.shared.open(url)
+                Toggle("双击后自动粘贴到当前应用", isOn: $viewModel.autoPasteToActiveApp)
+                    .toggleStyle(.switch)
+
+                if viewModel.autoPasteToActiveApp {
+                    Button("打开“辅助功能”设置…") {
+                        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else {
+                            return
                         }
-                        .buttonStyle(.link)
-                        .font(.caption)
+
+                        NSWorkspace.shared.open(url)
                     }
+                    .buttonStyle(.link)
                 }
-                .padding(.vertical, 4)
-                
-                // 2. 排序行为块
+            } header: {
+                Text("粘贴")
+            } footer: {
+                Text("关闭后，双击条目只会将内容复制到系统剪贴板，不会自动发出粘贴快捷键。")
+            }
+
+            Section {
                 Toggle("粘贴后将项目移至列表最前", isOn: $viewModel.moveToTopAfterPaste)
                     .toggleStyle(.switch)
-                    .padding(.vertical, 4)
-                
-                // 3. 格式化块
-                VStack(alignment: .leading, spacing: 6) {
-                    Picker("文本粘贴默认格式", selection: $viewModel.pasteTextFormat) {
-                        ForEach(PasteTextFormat.allCases) { format in
-                            Text(format.displayName).tag(format)
-                        }
+            } header: {
+                Text("排序与行为")
+            } footer: {
+                Text("适合频繁重复使用刚刚粘贴过的内容。")
+            }
+
+            Section {
+                Picker("默认文本格式", selection: $viewModel.pasteTextFormat) {
+                    ForEach(PasteTextFormat.allCases) { format in
+                        Text(format.displayName).tag(format)
                     }
-                    .pickerStyle(.menu)
-                    
-                    Text("提示：在列表中按住 ⌥ Option 键双击，可临时反转此设置。")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
                 }
-                .padding(.vertical, 4)
+                .pickerStyle(.menu)
+            } header: {
+                Text("文本格式")
+            } footer: {
+                Text("按住 Option 键双击列表条目，可临时反转当前文本格式设置。")
             }
         }
         .formStyle(.grouped)
-        // 彻底隐藏默认滚动条
         .scrollIndicators(.hidden)
-        .padding()
-        .frame(minWidth: 400, idealWidth: 450, maxWidth: .infinity, minHeight: 300, alignment: .top)
+        .frame(minWidth: 360, idealWidth: 420, maxWidth: .infinity, minHeight: 320, alignment: .top)
     }
+}
+
+#Preview {
+    AdvancedSettingsView()
+        .environmentObject(SettingsViewModel())
 }
