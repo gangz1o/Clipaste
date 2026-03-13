@@ -26,6 +26,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             self?.handleTogglePanelShortcut()
         }
 
+        KeyboardShortcuts.onKeyDown(for: .nextList) {
+            // TODO: implement list-switching when the feature is ready
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .prevList) {
+            // TODO: implement list-switching when the feature is ready
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .clearHistory) {
+            StorageManager.shared.clearAllHistory()
+        }
+
         // Verify accessibility permission so KeyboardShortcuts can use the privileged
         // CGEventTap (session-level) instead of the degraded NSEvent global monitor.
         // Without this, apps like Xcode that handle ⌘⇧C internally will swallow the
@@ -151,6 +163,7 @@ struct clipasteApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var settingsViewModel = SettingsViewModel()
     @AppStorage("appLanguage") private var appLanguage: AppLanguage = .auto
+    @AppStorage("appTheme") private var appTheme: AppTheme = .system
 
     var body: some Scene {
         // Register standard macOS Settings Window
@@ -159,6 +172,7 @@ struct clipasteApp: App {
                 .environmentObject(settingsViewModel)
                 .modelContainer(StorageManager.shared.container)
                 .environment(\.locale, appLanguage.locale ?? .current)
+                .preferredColorScheme(appTheme.colorScheme)
         }
         .defaultSize(width: 620, height: 460)
         .windowResizability(.contentMinSize)
@@ -176,7 +190,7 @@ private struct MenuBarExtraContent: View {
 
     var body: some View {
         Group {
-            Button("设置...") {
+            Button("Settings…") {
                 SettingsWindowCoordinator.open {
                     openSettings()
                 }
@@ -185,7 +199,7 @@ private struct MenuBarExtraContent: View {
 
             Divider()
 
-            Button("退出 Clipaste") {
+            Button("Quit Clipaste") {
                 NSApplication.shared.terminate(nil)
             }
             .keyboardShortcut("q", modifiers: .command)

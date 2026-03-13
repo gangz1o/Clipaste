@@ -2,52 +2,60 @@ import SwiftUI
 
 struct GeneralSettingsView: View {
     @EnvironmentObject private var viewModel: SettingsViewModel
+    @AppStorage("appTheme") private var appTheme: AppTheme = .system
 
     @State private var showingClearAlert = false
 
     var body: some View {
         Form {
             Section {
-                Toggle("登录时打开 Clipaste", isOn: $viewModel.launchAtLogin)
+                Toggle("Launch Clipaste at Login", isOn: $viewModel.launchAtLogin)
                     .toggleStyle(.switch)
 
-                Picker("语言", selection: $viewModel.appLanguage) {
+                Picker("Appearance", selection: $appTheme) {
+                    ForEach(AppTheme.allCases) { theme in
+                        Text(theme.displayName).tag(theme)
+                    }
+                }
+                .pickerStyle(.menu)
+
+                Picker("Language", selection: $viewModel.appLanguage) {
                     ForEach(AppLanguage.allCases) { lang in
                         Text(lang.displayName).tag(lang)
                     }
                 }
             } header: {
-                Text("启动与语言")
+                Text("Launch & Language")
             } footer: {
-                Text("语言更改会在下次启动后完全生效。")
+                Text("Language changes take full effect after the next launch.")
             }
 
             Section {
-                Toggle("使用竖向列表布局", isOn: $viewModel.isVerticalLayout)
+                Toggle("Use Vertical List Layout", isOn: $viewModel.isVerticalLayout)
                     .toggleStyle(.switch)
 
                 if viewModel.isVerticalLayout {
-                    Picker("显示位置", selection: $viewModel.verticalFollowMode) {
+                    Picker("Display Position", selection: $viewModel.verticalFollowMode) {
                         ForEach(VerticalFollowMode.allCases) { mode in
                             Text(mode.displayName).tag(mode)
                         }
                     }
                 }
             } header: {
-                Text("窗口")
+                Text("Window")
             } footer: {
-                Text("横向卡片更适合浏览预览，竖向列表更适合快速切换与搜索。")
+                Text("Horizontal cards are better for browsing; vertical list is better for quick switching and searching.")
             }
             .animation(.easeInOut(duration: 0.2), value: viewModel.isVerticalLayout)
 
             Section {
-                Picker("保留时长", selection: $viewModel.historyRetention) {
+                Picker("Retention Period", selection: $viewModel.historyRetention) {
                     ForEach(HistoryRetention.allCases) { retention in
                         Text(retention.displayName).tag(retention)
                     }
                 }
             } header: {
-                Text("历史记录")
+                Text("History")
             } footer: {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
@@ -56,25 +64,25 @@ struct GeneralSettingsView: View {
                         Button(role: .destructive) {
                             showingClearAlert = true
                         } label: {
-                            Label("清空历史记录…", systemImage: "trash")
+                            Label("Clear History…", systemImage: "trash")
                         }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
                     }
 
-                    Text("永久删除所有剪贴板记录及相关图片缓存，且无法恢复。")
+                    Text("Permanently deletes all clipboard records and image caches. This cannot be undone.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
                 .padding(.top, 6)
             }
-            .alert("确定要清空全部历史记录吗？", isPresented: $showingClearAlert) {
-                Button("取消", role: .cancel) { }
-                Button("彻底清空", role: .destructive) {
+            .alert("Clear All History?", isPresented: $showingClearAlert) {
+                Button("Cancel", role: .cancel) { }
+                Button("Clear All", role: .destructive) {
                     StorageManager.shared.clearAllHistory()
                 }
             } message: {
-                Text("此操作将永久删除所有剪贴板记录及相关图片缓存，且无法恢复。")
+                Text("Permanently deletes all clipboard records and image caches. This cannot be undone.")
             }
         }
         .formStyle(.grouped)

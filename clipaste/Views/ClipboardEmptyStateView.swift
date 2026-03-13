@@ -11,11 +11,11 @@ struct ClipboardEmptyStateView: View {
                 .foregroundStyle(.tertiary)
 
             VStack(spacing: 6) {
-                Text(isSearching ? "未找到匹配项" : "剪贴板为空")
+                Text(isSearching ? "No Matches Found" : "Clipboard Empty")
                     .font(.headline)
                     .foregroundStyle(.primary)
 
-                Text(isSearching ? "尝试更换搜索关键字或拼写" : "您复制的文本、图片和链接将显示在这里")
+                Text(isSearching ? "Try a different search term" : "Copied text, images and links will appear here")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

@@ -48,7 +48,7 @@ struct OnboardingView: View {
                     Spacer()
 
                     Button(action: viewModel.nextStep) {
-                        Text(isLastStep ? "完成" : "继续")
+                        Text(isLastStep ? "Done" : "Continue")
                             .font(.system(size: 15, weight: .semibold))
                             .frame(minWidth: 96)
                     }
@@ -121,14 +121,9 @@ struct OnboardingView: View {
     }
 
     private var stepCaption: String {
-        switch viewModel.currentStep {
-        case .welcomeAndShortcut:
-            return "步骤 1 / 3"
-        case .permissions:
-            return "步骤 2 / 3"
-        case .preferences:
-            return "步骤 3 / 3"
-        }
+        let total = OnboardingStep.allCases.count
+        let current = (OnboardingStep.allCases.firstIndex(of: viewModel.currentStep) ?? 0) + 1
+        return String(format: String(localized: "Step %lld of %lld"), current, total)
     }
 }
 
@@ -149,21 +144,21 @@ private struct ShortcutView: View {
                 .shadow(color: .black.opacity(0.12), radius: 20, y: 10)
 
             VStack(spacing: 8) {
-                Text("欢迎使用 clipaste")
+                Text("Welcome to Clipaste")
                     .font(.system(size: 28, weight: .bold))
 
-                Text("设置你的专属唤醒快捷键")
+                Text("Set your personal wake shortcut")
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(.secondary)
             }
 
             VStack(alignment: .leading, spacing: 12) {
-                Text("全局快捷键")
+                Text("Global Shortcut")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(.secondary)
 
                 HStack {
-                    Text("呼出剪贴板历史")
+                    Text("Show Clipboard History")
                         .font(.system(size: 15, weight: .medium))
 
                     Spacer()
@@ -179,7 +174,7 @@ private struct ShortcutView: View {
             )
             .padding(.horizontal, 36)
 
-            Text("稍后也可以在设置中修改")
+            Text("You can change this later in Settings.")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.tertiary)
 
@@ -202,10 +197,10 @@ private struct PermissionView: View {
                 .foregroundStyle(hasAccessibilityPermission ? Color.green : Color.red)
 
             VStack(spacing: 8) {
-                Text("赋予粘贴超能力")
+                Text("Grant Paste Superpower")
                     .font(.system(size: 28, weight: .bold))
 
-                Text("Clipaste 需要辅助功能权限，才能在任何应用里安全地模拟粘贴，并在你按下快捷键时瞬间呼出历史记录。")
+                Text("Clipaste needs Accessibility permission to safely simulate paste in any app.")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -213,7 +208,9 @@ private struct PermissionView: View {
             }
 
             Label(
-                hasAccessibilityPermission ? "已完成授权，可以继续下一步" : "尚未授权，请先完成系统授权",
+                hasAccessibilityPermission
+                    ? "Permission Granted — Continue"
+                    : "Permission Required — Complete System Authorization",
                 systemImage: hasAccessibilityPermission ? "checkmark.circle.fill" : "xmark.circle.fill"
             )
             .font(.system(size: 13, weight: .semibold))
@@ -223,7 +220,7 @@ private struct PermissionView: View {
             .background(.ultraThinMaterial, in: Capsule(style: .continuous))
 
             Button(action: openSystemSettings) {
-                Text("打开系统设置授权")
+                Text("Open System Settings to Authorize")
                     .font(.system(size: 15, weight: .semibold))
                     .frame(maxWidth: .infinity)
             }
@@ -231,7 +228,7 @@ private struct PermissionView: View {
             .controlSize(.large)
             .padding(.horizontal, 72)
 
-            Text("完成授权后回到 Clipaste，状态会自动刷新。")
+            Text("Return to Clipaste after granting permission; status refreshes automatically.")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundStyle(.tertiary)
 
@@ -250,10 +247,10 @@ private struct PreferencesView: View {
             Spacer()
 
             VStack(spacing: 8) {
-                Text("按你的习惯完成配置")
+                Text("Set Up Your Preferences")
                     .font(.system(size: 28, weight: .bold))
 
-                Text("这些选项之后都能在设置里随时调整。")
+                Text("These options can be changed in Settings at any time.")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(.secondary)
             }
@@ -262,10 +259,10 @@ private struct PreferencesView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     Toggle(isOn: $launchAtLogin) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("开机自动启动")
+                            Text("Launch at Login")
                                 .font(.system(size: 15, weight: .semibold))
 
-                            Text("登录后直接在菜单栏待命，不打断你的工作流。")
+                            Text("Starts in the menu bar after login, without interrupting your workflow.")
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(.secondary)
                         }
@@ -278,10 +275,10 @@ private struct PreferencesView: View {
                     .overlay(Color.white.opacity(0.4))
 
                 VStack(alignment: .leading, spacing: 12) {
-                    Text("历史记录容量")
+                    Text("History Capacity")
                         .font(.system(size: 15, weight: .semibold))
 
-                    Picker("历史记录容量", selection: $historyLimit) {
+                    Picker("History Capacity", selection: $historyLimit) {
                         ForEach(HistoryLimit.allCases) { limit in
                             Text(limit.displayName).tag(limit)
                         }

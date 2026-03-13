@@ -3,6 +3,7 @@ import SwiftUI
 struct ClipboardMainView: View {
     @StateObject var viewModel = ClipboardViewModel()
     @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
+    @AppStorage("appTheme") private var appTheme: AppTheme = .system
     @FocusState private var isSearchFocused: Bool
 
     @State private var localEventMonitor: Any?
@@ -37,7 +38,9 @@ struct ClipboardMainView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.clear)
         .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))
+        .background(WindowAppearanceObserver(theme: appTheme))
         .clipShape(RoundedRectangle(cornerRadius: clipboardLayout == .vertical ? 14 : 0))
+        .preferredColorScheme(appTheme.colorScheme)
         .edgesIgnoringSafeArea(.all)
         .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { notification in
             guard notification.object is ClipboardPanel else { return }

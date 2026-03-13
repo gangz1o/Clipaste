@@ -2,26 +2,76 @@ import SwiftUI
 import KeyboardShortcuts
 
 struct ShortcutsSettingsView: View {
+    @AppStorage("modifier_quick_paste") private var quickPasteModifier: String = "⌘ Command"
+    @AppStorage("modifier_plain_text") private var plainTextModifier: String = "⇧ Shift"
+
     var body: some View {
         Form {
+            // ── 全局唤醒 ──
             Section {
-                HStack(alignment: .firstTextBaseline, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("显示或隐藏剪贴板面板")
-                        Text("从任何应用快速唤起 Clipaste。")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-
-                    Spacer(minLength: 20)
-
-                    KeyboardShortcuts.Recorder(for: .toggleClipboardPanel)
-                }
-                .padding(.vertical, 2)
+                KeyboardShortcuts.Recorder(
+                    String(localized: "Show / Hide Clipboard Panel"),
+                    name: .toggleClipboardPanel
+                )
             } header: {
-                Text("全局快捷键")
+                Text("Global Shortcuts")
             } footer: {
-                Text("如果快捷键无法生效，请在“系统设置 > 隐私与安全性 > 辅助功能”中允许 Clipaste 控制你的电脑。")
+                Text("If the shortcut doesn't work, allow Clipaste in System Settings > Privacy & Security > Accessibility.")
+            }
+
+            // ── 导航与操作 ──
+            Section {
+                KeyboardShortcuts.Recorder(
+                    String(localized: "Next List"),
+                    name: .nextList
+                )
+                KeyboardShortcuts.Recorder(
+                    String(localized: "Previous List"),
+                    name: .prevList
+                )
+                KeyboardShortcuts.Recorder(
+                    String(localized: "Clear Clipboard History"),
+                    name: .clearHistory
+                )
+            } header: {
+                Text("Navigation & Actions")
+            }
+
+            // ── 修饰键 ──
+            Section {
+                ModifierPickerView(
+                    title: String(localized: "Quick Paste"),
+                    suffix: "+ 1…9",
+                    selection: $quickPasteModifier,
+                    options: ["⌘ Command", "⌥ Option", "⌃ Control", "⇧ Shift"]
+                )
+                ModifierPickerView(
+                    title: String(localized: "Plain Text Mode"),
+                    suffix: "",
+                    selection: $plainTextModifier,
+                    options: ["⌘ Command", "⌥ Option", "⌃ Control", "⇧ Shift"]
+                )
+            } header: {
+                Text("Modifier Keys")
+            } footer: {
+                Text("Hold the modifier key while clicking an item to trigger the corresponding action.")
+            }
+
+            // ── 重置 ──
+            Section {
+                HStack {
+                    Spacer()
+                    Button(String(localized: "Reset Shortcuts to Defaults")) {
+                        KeyboardShortcuts.reset(
+                            .toggleClipboardPanel,
+                            .nextList,
+                            .prevList,
+                            .clearHistory
+                        )
+                    }
+                    .buttonStyle(.link)
+                    .font(.system(size: 13))
+                }
             }
         }
         .formStyle(.grouped)

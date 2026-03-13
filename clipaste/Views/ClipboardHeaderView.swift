@@ -38,31 +38,30 @@ struct ClipboardHeaderView: View {
             },
             alignment: .bottom
         )
-        .alert("重命名分组", isPresented: $showEditAlert) {
-            TextField("分组名称", text: $editGroupName)
-            Button("取消", role: .cancel) { }
-            Button("保存") {
+        .alert("Rename Group", isPresented: $showEditAlert) {
+            TextField("Group Name", text: $editGroupName)
+            Button("Cancel", role: .cancel) { }
+            Button("Save") {
                 if let group = groupToEdit, !editGroupName.isEmpty {
                     viewModel.renameGroup(group: group, newName: editGroupName)
                 }
             }
         }
-        .alert("删除分组", isPresented: $showDeleteAlert) {
-            Button("取消", role: .cancel) { }
-            Button("删除", role: .destructive) {
+        .alert("Delete Group", isPresented: $showDeleteAlert) {
+            Button("Cancel", role: .cancel) { }
+            Button("Delete", role: .destructive) {
                 if let group = groupToDelete {
                     viewModel.deleteGroup(group: group)
                 }
             }
         } message: {
-            Text("确定要删除此分组吗？\n其中的剪贴板记录不会被删除，它们将安全地回到\u{201C}全部\u{201D}列表中。")
+            Text("The group's clipboard records will safely return to \"All\".")
         }
     }
 
     @ViewBuilder
     private var headerBackground: some View {
         if isVerticalLayout {
-            // 仅竖版允许通过 Header 拖动窗口
             WindowDragArea()
                 .background(.regularMaterial)
         } else {
@@ -73,10 +72,7 @@ struct ClipboardHeaderView: View {
     // MARK: - 竖屏模式：两行布局
     private var verticalHeader: some View {
         VStack(spacing: 10) {
-            // 第一行：搜索框（含图钉 + 齿轮菜单）
             searchBarContent
-
-            // 第二行：分组标签横向滚动
             groupPills
         }
         .padding(.horizontal, 14)
@@ -84,20 +80,18 @@ struct ClipboardHeaderView: View {
         .padding(.bottom, 2)
     }
 
-    // MARK: - 横屏模式：单行布局（原有，不改动）
+    // MARK: - 横屏模式：单行布局
     private var horizontalHeader: some View {
         HStack(spacing: 8) {
-            // 左侧区域 (分组标签栏)
             groupPills
 
             Spacer()
 
-            // 右侧区域 (精致胶囊搜索框，保持原样)
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
 
-                TextField("搜索历史记录...", text: $viewModel.searchText)
+                TextField("Search History…", text: $viewModel.searchText)
                     .font(.system(size: 13))
                     .textFieldStyle(.plain)
                     .autocorrectionDisabled(true)
@@ -126,7 +120,7 @@ struct ClipboardHeaderView: View {
         .padding(.bottom, 4)
     }
 
-    // MARK: - 共享：搜索栏（含图钉 + 齿轮菜单）
+    // MARK: - 共享：搜索栏
     @ViewBuilder
     private var searchBarContent: some View {
         HStack(spacing: 8) {
@@ -145,14 +139,14 @@ struct ClipboardHeaderView: View {
                     .animation(.spring(), value: isPanelPinned)
             }
             .buttonStyle(.plain)
-            .help(isPanelPinned ? "取消固定面板" : "固定面板 (使其不自动隐藏)")
+            .help(isPanelPinned ? "Unpin Panel" : "Pin Panel")
 
             // 中间：搜索框
             HStack(spacing: 6) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
-                TextField("输入开始搜索...", text: $viewModel.searchText)
+                TextField("Search…", text: $viewModel.searchText)
                     .font(.system(size: 13))
                     .textFieldStyle(.plain)
                     .autocorrectionDisabled(true)
@@ -177,25 +171,25 @@ struct ClipboardHeaderView: View {
             // 右侧：原生系统下拉菜单
             Menu {
                 Button(action: { isMonitoringPaused.toggle() }) {
-                    Text(isMonitoringPaused ? "恢复监控剪贴板" : "停止监控剪贴板")
+                    Text(isMonitoringPaused ? "Resume Monitoring" : "Stop Monitoring")
                 }
 
-                Menu("剪贴板监视间隔") {
+                Menu("Clipboard Monitoring Interval") {
                     Button(action: { monitorInterval = 0.1 }) {
                         HStack {
-                            Text("非常频繁 (0.1秒)")
+                            Text("Very Frequent (0.1s)")
                             if monitorInterval == 0.1 { Image(systemName: "checkmark") }
                         }
                     }
                     Button(action: { monitorInterval = 0.5 }) {
                         HStack {
-                            Text("频繁 (0.5秒)")
+                            Text("Frequent (0.5s)")
                             if monitorInterval == 0.5 { Image(systemName: "checkmark") }
                         }
                     }
                     Button(action: { monitorInterval = 1.0 }) {
                         HStack {
-                            Text("正常 (1秒)")
+                            Text("Normal (1s)")
                             if monitorInterval == 1.0 { Image(systemName: "checkmark") }
                         }
                     }
@@ -203,7 +197,7 @@ struct ClipboardHeaderView: View {
 
                 Divider()
 
-                Button("设置...") {
+                Button("Settings…") {
                     NotificationCenter.default.post(
                         name: NSNotification.Name("HidePanelForce"),
                         object: nil
@@ -213,12 +207,12 @@ struct ClipboardHeaderView: View {
                     }
                 }
 
-                Button("随系统启动 (敬请期待)") {}
+                Button("Launch at Login (Coming Soon)") {}
                     .disabled(true)
 
                 Divider()
 
-                Button("关于 clipaste") {
+                Button("About Clipaste") {
                     NSApp.orderFrontStandardAboutPanel()
                     NotificationCenter.default.post(
                         name: NSNotification.Name("HidePanelForce"),
@@ -226,7 +220,7 @@ struct ClipboardHeaderView: View {
                     )
                 }
 
-                Button("发送反馈") {
+                Button("Send Feedback") {
                     if let url = URL(string: "mailto:your_email@example.com?subject=clipaste%20Feedback") {
                         NSWorkspace.shared.open(url)
                     }
@@ -234,7 +228,7 @@ struct ClipboardHeaderView: View {
 
                 Divider()
 
-                Button("退出") {
+                Button("Quit") {
                     NSApplication.shared.terminate(nil)
                 }
             } label: {
@@ -248,16 +242,12 @@ struct ClipboardHeaderView: View {
         }
     }
 
-    // MARK: - 共享：分组胶囊（三段式布局）
+    // MARK: - 共享：分组胶囊
     @ViewBuilder
     private var groupPills: some View {
         HStack(spacing: 8) {
-
-            // ==========================================
-            // 1. 左侧固定区："全部" 按钮
-            // ==========================================
             Button(action: { viewModel.selectedGroupId = nil }) {
-                Text("全部")
+                Text("All")
                     .font(.system(size: 12, weight: .medium))
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
@@ -267,9 +257,6 @@ struct ClipboardHeaderView: View {
             }
             .buttonStyle(.plain)
 
-            // ==========================================
-            // 2. 中间弹性滚动区：自定义分组
-            // ==========================================
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(viewModel.customGroups) { group in
@@ -316,17 +303,16 @@ struct ClipboardHeaderView: View {
                                 editGroupName = group.name
                                 groupToEdit = group
                                 showEditAlert = true
-                            } label: { Label("重命名", systemImage: "pencil") }
+                            } label: { Label("Rename", systemImage: "pencil") }
                             Button(role: .destructive) {
                                 groupToDelete = group
                                 showDeleteAlert = true
-                            } label: { Label("删除分组", systemImage: "trash") }
+                            } label: { Label("Delete Group", systemImage: "trash") }
                         }
                     }
                 }
                 .padding(.horizontal, 2)
             }
-            // 渐变遮罩：边缘自然消隐，高级质感
             .mask(
                 HStack(spacing: 0) {
                     LinearGradient(colors: [.black.opacity(0.1), .black], startPoint: .leading, endPoint: .trailing)
@@ -337,9 +323,6 @@ struct ClipboardHeaderView: View {
                 }
             )
 
-            // ==========================================
-            // 3. 右侧固定区："+" 新建分组按钮
-            // ==========================================
             Button(action: {
                 newGroupName = ""
                 isShowingNewGroupPopover.toggle()
@@ -353,8 +336,8 @@ struct ClipboardHeaderView: View {
             .buttonStyle(.plain)
             .popover(isPresented: $isShowingNewGroupPopover, arrowEdge: .bottom) {
                 VStack(spacing: 12) {
-                    Text("新建分组").font(.headline)
-                    TextField("输入分组名称", text: $newGroupName)
+                    Text("New Group").font(.headline)
+                    TextField("Group Name", text: $newGroupName)
                         .textFieldStyle(.roundedBorder)
                         .frame(width: 160)
                         .onSubmit {
@@ -363,7 +346,7 @@ struct ClipboardHeaderView: View {
                                 isShowingNewGroupPopover = false
                             }
                         }
-                    Button("创建") {
+                    Button("Create") {
                         if !newGroupName.isEmpty {
                             viewModel.createNewGroup(name: newGroupName)
                             isShowingNewGroupPopover = false
@@ -378,7 +361,7 @@ struct ClipboardHeaderView: View {
         .padding(.horizontal, 16)
     }
 
-    // MARK: - 胶囊颜色辅助（拆分以规避编译器类型检查超时）
+    // MARK: - 胶囊颜色辅助
     private func pillForeground(group: ClipboardGroupItem) -> Color {
         if targetedGroupId == group.id || viewModel.selectedGroupId == group.id {
             return .white
@@ -406,10 +389,6 @@ struct ClipboardHeaderView: View {
 
 // MARK: - Window Drag Handle
 
-/// NSViewRepresentable，使其覆盖区域内的鼠标拖拽可以移动窗口。
-/// 与 isMovableByWindowBackground = false 配合，实现「仅 Header 可拖动」。
-/// 注意：mouseDownCanMoveWindow 仅在 isMovableByWindowBackground = true 时被 AppKit 尊重，
-/// 因此我们改为直接拦截 mouseDown / mouseDragged 手动搬移窗口。
 struct WindowDragArea: NSViewRepresentable {
     func makeNSView(context: Context) -> DragHandleView { DragHandleView() }
     func updateNSView(_ nsView: DragHandleView, context: Context) {}
@@ -418,7 +397,6 @@ struct WindowDragArea: NSViewRepresentable {
         private var dragStart: NSPoint?
 
         override func mouseDown(with event: NSEvent) {
-            // 记录鼠标在窗口坐标系中的初始位置
             dragStart = event.locationInWindow
         }
 
@@ -437,7 +415,6 @@ struct WindowDragArea: NSViewRepresentable {
             dragStart = nil
         }
 
-        /// 视图本身透明，不遮挡任何绘制内容
         override func draw(_ dirtyRect: NSRect) {}
     }
 }

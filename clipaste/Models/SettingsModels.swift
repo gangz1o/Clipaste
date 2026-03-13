@@ -1,32 +1,40 @@
 import Foundation
 
 enum AppLanguage: String, CaseIterable, Identifiable {
-    case auto, zhHans, zhHant, en, ja, ko, de, fr
+    case auto
+    case zhHans = "zh-Hans"
+    case zhHant = "zh-Hant"
+    case en = "en"
+    case ja = "ja"
+    case ko = "ko"
+    case de = "de"
+    case fr = "fr"
+
     var id: String { self.rawValue }
-    
+
     var displayName: String {
         switch self {
-        case .auto: return "跟随系统"
+        case .auto:   return String(localized: "Follow System")
         case .zhHans: return "简体中文"
         case .zhHant: return "繁體中文"
-        case .en: return "English"
-        case .ja: return "日本語"
-        case .ko: return "한국어"
-        case .de: return "Deutsch"
-        case .fr: return "Français"
+        case .en:     return "English"
+        case .ja:     return "日本語"
+        case .ko:     return "한국어"
+        case .de:     return "Deutsch"
+        case .fr:     return "Français"
         }
     }
 
     var locale: Locale? {
         switch self {
-        case .auto: return nil
+        case .auto:   return nil
         case .zhHans: return Locale(identifier: "zh-Hans")
         case .zhHant: return Locale(identifier: "zh-Hant")
-        case .en: return Locale(identifier: "en")
-        case .ja: return Locale(identifier: "ja")
-        case .ko: return Locale(identifier: "ko")
-        case .de: return Locale(identifier: "de")
-        case .fr: return Locale(identifier: "fr")
+        case .en:     return Locale(identifier: "en")
+        case .ja:     return Locale(identifier: "ja")
+        case .ko:     return Locale(identifier: "ko")
+        case .de:     return Locale(identifier: "de")
+        case .fr:     return Locale(identifier: "fr")
         }
     }
 }
@@ -40,9 +48,9 @@ enum VerticalFollowMode: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .statusBar: return "出现在状态栏图标旁"
-        case .mouse: return "出现在鼠标光标旁"
-        case .lastPosition: return "出现在上次的位置"
+        case .statusBar: return String(localized: "Near Status Bar Icon")
+        case .mouse: return String(localized: "Near Mouse Cursor")
+        case .lastPosition: return String(localized: "Last Position")
         }
     }
 }
@@ -58,12 +66,12 @@ enum HistoryRetention: String, CaseIterable, Identifiable {
     
     var displayName: String {
         switch self {
-        case .threeDays: return "3 天"
-        case .oneWeek: return "1 周"
-        case .oneMonth: return "1 个月"
-        case .sixMonths: return "半年"
-        case .oneYear: return "1 年"
-        case .unlimited: return "永久"
+        case .threeDays: return String(localized: "3 Days")
+        case .oneWeek: return String(localized: "1 Week")
+        case .oneMonth: return String(localized: "1 Month")
+        case .sixMonths: return String(localized: "6 Months")
+        case .oneYear: return String(localized: "1 Year")
+        case .unlimited: return String(localized: "Forever")
         }
     }
 }
@@ -71,7 +79,6 @@ enum HistoryRetention: String, CaseIterable, Identifiable {
 extension HistoryRetention {
     /// Returns a threshold date; records created before this date should be deleted.
     /// Returns nil for `.unlimited` (keep forever).
-    /// Uses Calendar(identifier:) to avoid @MainActor dependency from Calendar.current.
     nonisolated var expirationDate: Date? {
         let now = Date()
         let cal = Calendar(identifier: .gregorian)
@@ -94,8 +101,8 @@ enum PasteTextFormat: String, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .original:  return "保留原始格式"
-        case .plainText: return "始终纯文本"
+        case .original:  return String(localized: "Keep Original Formatting")
+        case .plainText: return String(localized: "Always Plain Text")
         }
     }
 }

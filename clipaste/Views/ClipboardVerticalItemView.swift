@@ -20,7 +20,7 @@ struct ClipboardVerticalItemView: View {
             return rawText
         }
 
-        return item.textPreview.isEmpty ? "（空）" : item.textPreview
+        return item.textPreview.isEmpty ? String(localized: "(Empty)") : item.textPreview
     }
 
     var body: some View {

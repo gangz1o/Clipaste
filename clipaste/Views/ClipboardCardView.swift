@@ -13,7 +13,7 @@ struct ClipboardCardView: View {
 
     private var previewText: String {
         if let rawText = item.rawText, !rawText.isEmpty { return rawText }
-        return item.textPreview.isEmpty ? "（空）" : item.textPreview
+        return item.textPreview.isEmpty ? String(localized: "(Empty)") : item.textPreview
     }
 
     private var searchHighlight: String { viewModel?.searchText ?? "" }

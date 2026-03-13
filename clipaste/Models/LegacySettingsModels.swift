@@ -10,9 +10,9 @@ enum PasteBehavior: String, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .direct:
-            return "直接粘贴到当前应用"
+            return String(localized: "Paste Directly to Active App")
         case .clipboardOnly:
-            return "仅复制到剪贴板"
+            return String(localized: "Copy to Clipboard Only")
         }
     }
 }
@@ -26,9 +26,9 @@ enum AppLayoutMode: String, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .horizontal:
-            return "横向卡片"
+            return String(localized: "Horizontal Cards")
         case .vertical:
-            return "纵向列表"
+            return String(localized: "Vertical List")
         }
     }
 }
@@ -45,15 +45,15 @@ enum HistoryLimit: String, CaseIterable, Identifiable {
     var displayName: String {
         switch self {
         case .day:
-            return "1 天"
+            return String(localized: "1 Day")
         case .week:
-            return "1 周"
+            return String(localized: "1 Week")
         case .month:
-            return "1 个月"
+            return String(localized: "1 Month")
         case .year:
-            return "1 年"
+            return String(localized: "1 Year")
         case .unlimited:
-            return "永久"
+            return String(localized: "Unlimited")
         }
     }
 }

@@ -28,12 +28,12 @@ struct AboutSettingsView: View {
                 Text(appName)
                     .font(.title2.weight(.semibold))
 
-                Text("版本 \(shortVersion)（\(buildNumber)）")
+                Text("Version \(shortVersion) (\(buildNumber))")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
 
-            Text("更快地回看、搜索和重新粘贴最近复制的内容。")
+            Text("Quickly recall, search and re-paste recently copied content.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -41,15 +41,15 @@ struct AboutSettingsView: View {
 
             GroupBox {
                 VStack(alignment: .leading, spacing: 10) {
-                    LabeledContent("应用名称") {
+                    LabeledContent("App Name") {
                         Text(appName)
                     }
 
-                    LabeledContent("版本") {
+                    LabeledContent("Version") {
                         Text(shortVersion)
                     }
 
-                    LabeledContent("构建号") {
+                    LabeledContent("Build") {
                         Text(buildNumber)
                     }
                 }
@@ -58,12 +58,12 @@ struct AboutSettingsView: View {
             .frame(maxWidth: 340)
 
             HStack(spacing: 12) {
-                Button("系统关于面板…") {
+                Button("System About Panel…") {
                     NSApp.orderFrontStandardAboutPanel()
                 }
                 .buttonStyle(.bordered)
 
-                Button("发送反馈") {
+                Button("Send Feedback") {
                     guard let url = URL(string: "mailto:your_email@example.com?subject=Clipaste%20Feedback") else {
                         return
                     }
