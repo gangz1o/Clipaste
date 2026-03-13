@@ -17,5 +17,8 @@ extension KeyboardShortcuts.Name {
         default: .init(.leftArrow, modifiers: [.command])
     )
 
-    static let clearHistory = Self("clearHistory")
+    static let clearHistory = Self(
+        "clearHistory",
+        default: .init(.r, modifiers: [.command, .shift])
+    )
 }

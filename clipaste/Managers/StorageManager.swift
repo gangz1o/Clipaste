@@ -9,6 +9,7 @@ private struct ClipboardRecordSnapshot: Sendable {
     let timestamp: Date
     let plainText: String?
     let thumbnailPath: String?
+    let originalFilePath: String?
     let typeRawValue: String
     let groupId: String?
     let linkTitle: String?
@@ -47,6 +48,7 @@ actor ClipboardSearcher {
                 timestamp: record.timestamp,
                 plainText: record.plainText,
                 thumbnailPath: record.thumbnailPath,
+                originalFilePath: record.originalFilePath,
                 typeRawValue: record.typeRawValue,
                 groupId: record.groupId,
                 linkTitle: record.linkTitle,
@@ -266,6 +268,7 @@ final class StorageManager {
             rawText: type == .text ? plainText : nil,
             imagePath: type == .image ? thumbnailPath : nil,
             thumbnailURL: type == .image ? LocalFileManager.shared.url(forRelativePath: thumbnailPath) : nil,
+            originalImageURL: type == .image ? LocalFileManager.shared.url(forRelativePath: record.originalFilePath) : nil,
             fileURL: type == .fileURL ? plainText : nil,
             groupId: record.groupId,
             linkTitle: record.linkTitle,

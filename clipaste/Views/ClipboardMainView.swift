@@ -7,6 +7,7 @@ struct ClipboardMainView: View {
     @FocusState private var isSearchFocused: Bool
 
     @State private var localEventMonitor: Any?
+    @State private var viewRebuildToken: Bool = false
 
     var body: some View {
         Group {
@@ -31,10 +32,10 @@ struct ClipboardMainView: View {
                         .padding(.vertical, 6)
                         .padding(.top, 4)
                         .background(.regularMaterial)
-                        .overlay(Divider(), alignment: .top)
                     }
             }
         }
+        .id(viewRebuildToken)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.clear)
         .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))
@@ -47,10 +48,15 @@ struct ClipboardMainView: View {
             focusSearchField()
         }
         .onChange(of: clipboardLayout) {
+            // 1. 先同步通知 PanelManager 瞬间切至目标尺寸
             NotificationCenter.default.post(
                 name: .clipboardLayoutModeChanged,
                 object: clipboardLayout
             )
+            // 2. 下个 run loop 再切换视图 identity，确保 SwiftUI 在新尺寸下重建
+            DispatchQueue.main.async {
+                viewRebuildToken.toggle()
+            }
         }
         .onAppear { setupKeyboardMonitor() }
         .onDisappear {
@@ -93,8 +99,8 @@ struct ClipboardMainView: View {
             if keyCode == 53 {
                 if viewModel.quickLookItem != nil {
                     viewModel.toggleQuickLook()
-                } else if !viewModel.searchText.isEmpty {
-                    viewModel.searchText = ""
+                } else if !viewModel.searchInput.isEmpty {
+                    viewModel.searchInput = ""
                 } else {
                     NotificationCenter.default.post(
                         name: NSNotification.Name("HidePanelForce"), object: nil
@@ -104,13 +110,13 @@ struct ClipboardMainView: View {
             }
 
             // ── 空格键 (49) ───────────────────────────────────────────────
-            // 规则：有选中项 → 预览/关闭预览；无选中项 → 空格正常进搜索框。
+            // 规则：有选中项 → 预览优先；否则搜索框正常输入。
             if keyCode == 49 {
                 // 输入法候选词未上屏时，绝对放行
                 if let tv = NSApp.keyWindow?.firstResponder as? NSTextView, tv.hasMarkedText() {
                     return event
                 }
-                // 有高亮条目，或正在预览中 → 触发 QuickLook
+                // 有高亮条目，或正在预览中 → 触发 QuickLook（优先级高于搜索框）
                 if viewModel.highlightedItemId != nil || viewModel.quickLookItem != nil {
                     viewModel.toggleQuickLook()
                     return nil
@@ -124,6 +130,10 @@ struct ClipboardMainView: View {
                 if viewModel.quickLookItem != nil {
                     viewModel.toggleQuickLook()
                     return nil
+                }
+                // ⚠️ 搜索框正在输入时，回车放行（如确认输入法候选词）
+                if isSearchFocused {
+                    return event
                 }
                 if let hid = viewModel.highlightedItemId,
                    let item = viewModel.filteredItems.first(where: { $0.id == hid }) {

@@ -12,11 +12,11 @@ struct ClipboardCardView: View {
     }
 
     private var previewText: String {
-        if let rawText = item.rawText, !rawText.isEmpty { return rawText }
+        if let preview = item.previewText, !preview.isEmpty { return preview }
         return item.textPreview.isEmpty ? String(localized: "(Empty)") : item.textPreview
     }
 
-    private var searchHighlight: String { viewModel?.searchText ?? "" }
+    private var searchHighlight: String { viewModel?.activeSearchQuery ?? "" }
 
     // MARK: - Body
     var body: some View {
@@ -60,7 +60,7 @@ struct ClipboardCardView: View {
                     Spacer(minLength: 4)
 
                     // 链接角标
-                    if previewText.lowercased().hasPrefix("http") {
+                    if item.isFastLink {
                         Image(systemName: "link")
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(.secondary)
@@ -70,9 +70,16 @@ struct ClipboardCardView: View {
                             .foregroundColor(.secondary)
                     }
 
-                    Text(item.timestamp, format: .dateTime.hour().minute())
-                        .font(.system(size: 10, weight: .regular, design: .monospaced))
-                        .foregroundColor(.secondary)
+                    // 智能时间：非今天显示日期前缀
+                    HStack(spacing: 3) {
+                        if !Calendar.current.isDateInToday(item.timestamp) {
+                            Text(item.timestamp, format: .dateTime.month(.twoDigits).day(.twoDigits))
+                        }
+                        Text(item.timestamp, format: .dateTime.hour().minute())
+                    }
+                    .font(.system(size: 10, weight: .regular, design: .monospaced))
+                    .foregroundColor(.secondary)
+                    .help(item.timestamp.formatted(date: .complete, time: .standard))
                 }
                 .padding(.horizontal, 12)
                 .padding(.top, 12)
@@ -123,7 +130,7 @@ struct ClipboardCardView: View {
         }
         .clipboardContextMenu(for: item, viewModel: viewModel)
         .onDrag {
-            NSItemProvider(object: item.id.uuidString as NSString)
+            item.universalDragProvider
         } preview: {
             ClipboardDragPreview(item: item)
         }
@@ -157,7 +164,7 @@ struct ClipboardCardView: View {
                     }
                 }
             }
-        } else if let parsedColor = ColorParser.extractColor(from: previewText) {
+        } else if let parsedColor = item.fastParsedColor {
             // ── 颜色块：全卡片沉浸式填充 ──────────────────────────────────
             ZStack {
                 parsedColor
@@ -167,7 +174,7 @@ struct ClipboardCardView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .cornerRadius(8)
-        } else if previewText.lowercased().hasPrefix("http") {
+        } else if item.isFastLink {
             // ── 链接：标题优先书签（无图标）────────────────────────────────
             VStack(alignment: .leading, spacing: 3) {
                 if let title = item.linkTitle, !title.isEmpty {
@@ -218,7 +225,7 @@ struct ClipboardCardView: View {
         case .image: return .purple
         case .fileURL: return .orange
         default:
-            if previewText.lowercased().hasPrefix("http") { return .orange }
+            if item.isFastLink { return .orange }
             if isCodeContent { return .blue }
             return .green
         }

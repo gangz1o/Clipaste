@@ -11,6 +11,8 @@ struct ClipboardHeaderView: View {
     @AppStorage("monitorInterval") private var monitorInterval: Double = 0.5
     @State private var isShowingNewGroupPopover = false
     @State private var newGroupName = ""
+    @State private var newGroupIcon = "folder"
+    @State private var showIconPicker = false
     @State private var targetedGroupId: String? = nil
 
     // MARK: - 重命名 / 删除分组弹窗控制
@@ -30,14 +32,6 @@ struct ClipboardHeaderView: View {
         }
         .padding(.bottom, 8)
         .background(headerBackground)
-        .overlay(
-            Group {
-                if isVerticalLayout {
-                    Divider()
-                }
-            },
-            alignment: .bottom
-        )
         .alert("Rename Group", isPresented: $showEditAlert) {
             TextField("Group Name", text: $editGroupName)
             Button("Cancel", role: .cancel) { }
@@ -91,7 +85,7 @@ struct ClipboardHeaderView: View {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
 
-                TextField("Search History…", text: $viewModel.searchText)
+                TextField("Search History…", text: $viewModel.searchInput)
                     .font(.system(size: 13))
                     .textFieldStyle(.plain)
                     .autocorrectionDisabled(true)
@@ -100,8 +94,8 @@ struct ClipboardHeaderView: View {
 #endif
                     .focused($isSearchFocused)
 
-                if !viewModel.searchText.isEmpty {
-                    Button(action: { viewModel.searchText = "" }) {
+                if !viewModel.searchInput.isEmpty {
+                    Button(action: { viewModel.searchInput = "" }) {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.secondary)
                     }
@@ -146,7 +140,7 @@ struct ClipboardHeaderView: View {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 12))
                     .foregroundColor(.secondary)
-                TextField("Search…", text: $viewModel.searchText)
+                TextField("Search…", text: $viewModel.searchInput)
                     .font(.system(size: 13))
                     .textFieldStyle(.plain)
                     .autocorrectionDisabled(true)
@@ -154,8 +148,8 @@ struct ClipboardHeaderView: View {
                     .textContentType(.none)
 #endif
                     .focused($isSearchFocused)
-                if !viewModel.searchText.isEmpty {
-                    Button(action: { viewModel.searchText = "" }) {
+                if !viewModel.searchInput.isEmpty {
+                    Button(action: { viewModel.searchInput = "" }) {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.secondary)
                     }
@@ -242,142 +236,194 @@ struct ClipboardHeaderView: View {
         }
     }
 
-    // MARK: - 共享：分组胶囊
+    // MARK: - 共享：分组药丸导航栏
     @ViewBuilder
     private var groupPills: some View {
+        let maxVisible = isVerticalLayout ? 4 : 5
+
         HStack(spacing: 8) {
+            // ── "全部" 固定药丸 ──
             Button(action: { viewModel.selectedGroupId = nil }) {
-                Text("All")
-                    .font(.system(size: 12, weight: .medium))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .foregroundColor(viewModel.selectedGroupId == nil ? .white : .primary)
-                    .background(viewModel.selectedGroupId == nil ? Color.accentColor : Color(nsColor: .controlBackgroundColor).opacity(0.5))
-                    .clipShape(Capsule())
+                HStack(spacing: 6) {
+                    Image(systemName: "tray.2.fill")
+                        .font(.system(size: 13, weight: viewModel.selectedGroupId == nil ? .semibold : .regular))
+                    Text(String(localized: "All"))
+                        .font(.system(size: 13, weight: viewModel.selectedGroupId == nil ? .semibold : .medium))
+                        .fixedSize(horizontal: true, vertical: false)
+                }
+                .foregroundColor(viewModel.selectedGroupId == nil ? .white : .primary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule()
+                        .fill(viewModel.selectedGroupId == nil ? Color.accentColor : Color(nsColor: .controlBackgroundColor).opacity(0.8))
+                )
             }
             .buttonStyle(.plain)
+            .help(String(localized: "All"))
 
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(viewModel.customGroups) { group in
-                        Button(action: { viewModel.selectedGroupId = group.id }) {
-                            HStack(spacing: 4) {
-                                Text(group.name).font(.system(size: 12, weight: .medium))
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .foregroundColor(pillForeground(group: group))
-                            .background(pillBackground(group: group))
-                            .clipShape(Capsule())
-                            .shadow(color: .black.opacity(0.05), radius: 2, y: 1)
-                        }
-                        .buttonStyle(.plain)
-                        .onDrop(
-                            of: [.plainText],
-                            isTargeted: Binding(
-                                get: { targetedGroupId == group.id },
-                                set: { isTargeted in
-                                    withAnimation(.easeInOut(duration: 0.15)) {
-                                        targetedGroupId = isTargeted ? group.id : nil
-                                    }
-                                }
-                            )
-                        ) { providers in
-                            if let provider = providers.first(where: { $0.canLoadObject(ofClass: NSString.self) }) {
-                                _ = provider.loadObject(ofClass: NSString.self) { object, _ in
-                                    if let idString = object as? String,
-                                       let uuid = UUID(uuidString: idString) {
-                                        DispatchQueue.main.async {
-                                            if let draggedItem = viewModel.items.first(where: { $0.id == uuid }) {
-                                                viewModel.assignItemToGroup(item: draggedItem, group: group)
-                                            }
-                                        }
-                                    }
-                                }
-                                return true
-                            }
-                            return false
-                        }
-                        .contextMenu {
-                            Button {
-                                editGroupName = group.name
-                                groupToEdit = group
-                                showEditAlert = true
-                            } label: { Label("Rename", systemImage: "pencil") }
-                            Button(role: .destructive) {
-                                groupToDelete = group
-                                showDeleteAlert = true
-                            } label: { Label("Delete Group", systemImage: "trash") }
-                        }
+            // ── 前 N 个分组药丸 ──
+            ForEach(viewModel.customGroups.prefix(maxVisible)) { group in
+                groupIconButton(group: group)
+            }
+
+            Spacer()
+
+            // ── 溢出菜单 ──
+            Menu {
+                ForEach(viewModel.customGroups) { group in
+                    Button {
+                        viewModel.selectedGroupId = group.id
+                    } label: {
+                        Label(group.name, systemImage: group.systemIconName)
                     }
                 }
-                .padding(.horizontal, 2)
+
+                Divider()
+
+                Button {
+                    newGroupName = ""
+                    newGroupIcon = "folder"
+                    isShowingNewGroupPopover = true
+                } label: {
+                    Label(String(localized: "New Group"), systemImage: "plus")
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+                    .font(.system(size: 16))
+                    .foregroundColor(.secondary)
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
             }
-            .mask(
-                HStack(spacing: 0) {
-                    LinearGradient(colors: [.black.opacity(0.1), .black], startPoint: .leading, endPoint: .trailing)
-                        .frame(width: 8)
-                    Color.black
-                    LinearGradient(colors: [.black, .black.opacity(0.1)], startPoint: .leading, endPoint: .trailing)
-                        .frame(width: 8)
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .popover(isPresented: $isShowingNewGroupPopover, arrowEdge: .bottom) {
+                newGroupPopover
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.bottom, 8)
+    }
+
+    // MARK: - 单个分组药丸按钮
+    @ViewBuilder
+    private func groupIconButton(group: ClipboardGroupItem) -> some View {
+        let isSelected = viewModel.selectedGroupId == group.id
+        let isDropTarget = targetedGroupId == group.id
+
+        Button(action: { viewModel.selectedGroupId = group.id }) {
+            HStack(spacing: 6) {
+                Image(systemName: group.systemIconName)
+                    .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
+                    .foregroundColor((isSelected || isDropTarget) ? .white : .secondary)
+                Text(group.name)
+                    .font(.system(size: 13, weight: (isSelected || isDropTarget) ? .semibold : .medium))
+                    .foregroundColor((isSelected || isDropTarget) ? .white : .primary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .layoutPriority(1)
+                    .frame(maxWidth: isVerticalLayout ? 50 : 80, alignment: .leading)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(iconBackground(selected: isSelected, dropTarget: isDropTarget))
+            )
+        }
+        .buttonStyle(.plain)
+        .help(group.name)
+        .onDrop(
+            of: [.plainText, .data],
+            isTargeted: Binding(
+                get: { targetedGroupId == group.id },
+                set: { isTargeted in
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        targetedGroupId = isTargeted ? group.id : nil
+                    }
                 }
             )
-
-            Button(action: {
-                newGroupName = ""
-                isShowingNewGroupPopover.toggle()
-            }) {
-                Image(systemName: "plus")
-                    .font(.system(size: 14, weight: .medium))
-                    .frame(width: 28, height: 28)
-                    .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
-                    .clipShape(Circle())
-            }
-            .buttonStyle(.plain)
-            .popover(isPresented: $isShowingNewGroupPopover, arrowEdge: .bottom) {
-                VStack(spacing: 12) {
-                    Text("New Group").font(.headline)
-                    TextField("Group Name", text: $newGroupName)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(width: 160)
-                        .onSubmit {
-                            if !newGroupName.isEmpty {
-                                viewModel.createNewGroup(name: newGroupName)
-                                isShowingNewGroupPopover = false
+        ) { providers in
+            let customUTI = "com.seedpilot.clipboard.item"
+            if let provider = providers.first(where: { $0.hasItemConformingToTypeIdentifier(customUTI) }) {
+                provider.loadDataRepresentation(forTypeIdentifier: customUTI) { data, _ in
+                    if let data, let idString = String(data: data, encoding: .utf8),
+                       let uuid = UUID(uuidString: idString) {
+                        DispatchQueue.main.async {
+                            if let draggedItem = viewModel.items.first(where: { $0.id == uuid }) {
+                                viewModel.assignItemToGroup(item: draggedItem, group: group)
                             }
                         }
-                    Button("Create") {
-                        if !newGroupName.isEmpty {
-                            viewModel.createNewGroup(name: newGroupName)
-                            isShowingNewGroupPopover = false
-                        }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(newGroupName.isEmpty)
                 }
-                .padding(16)
+                return true
             }
+            return false
         }
-        .padding(.horizontal, 16)
+        .contextMenu {
+            Button {
+                editGroupName = group.name
+                groupToEdit = group
+                showEditAlert = true
+            } label: { Label("Rename", systemImage: "pencil") }
+            Button(role: .destructive) {
+                groupToDelete = group
+                showDeleteAlert = true
+            } label: { Label("Delete Group", systemImage: "trash") }
+        }
     }
 
-    // MARK: - 胶囊颜色辅助
-    private func pillForeground(group: ClipboardGroupItem) -> Color {
-        if targetedGroupId == group.id || viewModel.selectedGroupId == group.id {
-            return .white
+    // MARK: - 新建分组弹窗
+    private var newGroupPopover: some View {
+        VStack(spacing: 12) {
+            Text("New Group")
+                .font(.headline)
+
+            HStack(spacing: 10) {
+                // 图标选择按钮
+                Button(action: { showIconPicker = true }) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(Color(nsColor: .controlBackgroundColor))
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .stroke(Color.secondary.opacity(0.25))
+                            )
+                        Image(systemName: newGroupIcon)
+                            .foregroundColor(.accentColor)
+                            .font(.system(size: 15))
+                    }
+                }
+                .buttonStyle(.plain)
+                .popover(isPresented: $showIconPicker) {
+                    GroupIconPicker(selectedIcon: $newGroupIcon)
+                }
+
+                TextField("Group Name", text: $newGroupName)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 150)
+                    .onSubmit { commitNewGroup() }
+            }
+
+            Button("Create") { commitNewGroup() }
+                .buttonStyle(.borderedProminent)
+                .disabled(newGroupName.isEmpty)
         }
-        return .primary
+        .padding(16)
     }
 
-    @ViewBuilder
-    private func pillBackground(group: ClipboardGroupItem) -> some View {
-        if targetedGroupId == group.id {
-            Color.accentColor.opacity(0.8)
-        } else if viewModel.selectedGroupId == group.id {
-            Color.accentColor
-        } else {
-            Color.clear.background(.regularMaterial)
-        }
+    private func commitNewGroup() {
+        guard !newGroupName.isEmpty else { return }
+        viewModel.createNewGroup(name: newGroupName, systemIconName: newGroupIcon)
+        isShowingNewGroupPopover = false
+    }
+
+    // MARK: - 图标背景颜色
+    private func iconBackground(selected: Bool, dropTarget: Bool) -> Color {
+        if dropTarget { return Color.accentColor.opacity(0.8) }
+        if selected { return Color.accentColor }
+        return Color(nsColor: .controlBackgroundColor).opacity(0.5)
     }
 }
 

@@ -118,6 +118,7 @@ struct SettingsWindowObserver: NSViewRepresentable {
             super.viewDidMoveToWindow()
 
             guard let window else { return }
+            window.titlebarSeparatorStyle = .none
             Task { @MainActor in
                 SettingsWindowCoordinator.register(window: window)
             }

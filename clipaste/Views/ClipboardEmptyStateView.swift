@@ -28,6 +28,6 @@ struct ClipboardEmptyStateView: View {
     }
 
     private var isSearching: Bool {
-        !viewModel.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        !viewModel.searchInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 }

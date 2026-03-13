@@ -30,7 +30,7 @@ class ClipboardPanelManager {
     }
 
     private func setupPanel() {
-        let styleMask: NSWindow.StyleMask = [.borderless, .resizable]
+        let styleMask: NSWindow.StyleMask = [.borderless]
 
         let panel = ClipboardPanel(
             contentRect: .zero,
@@ -43,12 +43,12 @@ class ClipboardPanelManager {
         panel.backgroundColor = .clear
         panel.isOpaque = false
         panel.alphaValue = 0.0
-        panel.minSize = NSSize(width: 320, height: 450)
 
         panel.level = Self.panelLevel
         panel.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
 
         let hostingController = NSHostingController(rootView: ClipboardMainView())
+        hostingController.sizingOptions = []   // 禁止 SwiftUI 内容撑大面板，由 setFrame 控制
         panel.contentViewController = hostingController
 
         self.panel = panel
@@ -99,7 +99,7 @@ class ClipboardPanelManager {
     private func verticalFrame(on screen: NSScreen) -> NSRect {
         let sf = screen.visibleFrame
         let width: CGFloat = 360
-        let height: CGFloat = 650
+        let height: CGFloat = 700
         let modeRaw = UserDefaults.standard.string(forKey: "verticalFollowMode") ?? VerticalFollowMode.mouse.rawValue
         let mode = VerticalFollowMode(rawValue: modeRaw) ?? .mouse
 
@@ -149,15 +149,9 @@ class ClipboardPanelManager {
     private func updatePanelSize(layout: AppLayoutMode, animated: Bool) {
         guard let panel, let screen = screenContainingMouse() ?? NSScreen.main else { return }
         let target = panelFrame(for: layout, on: screen)
-        if animated {
-            NSAnimationContext.runAnimationGroup { ctx in
-                ctx.duration = 0.22
-                ctx.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-                panel.animator().setFrame(target, display: true)
-            }
-        } else {
-            panel.setFrame(target, display: false)
-        }
+
+        // 瞬间切换尺寸（无动画），确保 SwiftUI .id() 重建时容器尺寸已就位
+        panel.setFrame(target, display: true)
 
         // 横版贴底无需阴影（否则顶部出现边框线）；竖版浮窗保留阴影
         panel.hasShadow = (layout == .vertical)
@@ -191,6 +185,7 @@ class ClipboardPanelManager {
 
         applyPanelMovability(for: layout, panel: panel)
         panel.hasShadow = (layout == .vertical)
+
 
         let visibleFrame = panelFrame(for: layout, on: screen ?? NSScreen.main!)
 
@@ -264,6 +259,7 @@ class ClipboardPanelManager {
     private func dismissPanelOnly() {
         executeHide()
     }
+
 
     private func screenContainingMouse() -> NSScreen? {
         let mouseLocation = NSEvent.mouseLocation

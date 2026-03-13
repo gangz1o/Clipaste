@@ -4,7 +4,9 @@ import Combine
 @MainActor
 class ClipboardViewModel: ObservableObject {
     @Published var items: [ClipboardItem] = []
-    @Published var searchText: String = ""
+    @Published var filteredItems: [ClipboardItem] = []
+    @Published var searchInput: String = ""
+    @Published var activeSearchQuery: String = ""
     @Published var highlightedItemId: UUID? = nil
     @Published var quickLookItem: ClipboardItem? = nil  // 空格键预览
     // 旧分组（横版 UI 使用的固定分组，保留兼容）
@@ -36,6 +38,66 @@ class ClipboardViewModel: ObservableObject {
         loadCustomGroups()
         self.clipboardMonitor.startMonitoring()
         triggerAutoCleanup()
+        setupFilterPipeline()
+    }
+
+    // MARK: - Combine 防抖搜索管道
+
+    private func setupFilterPipeline() {
+        // 搜索词变化：防抖 200ms，避免高频输入时大量无意义过滤
+        let debouncedSearch = $searchInput
+            .debounce(for: .milliseconds(200), scheduler: DispatchQueue.main)
+
+        // 数据源 / 分组变化：立即响应
+        let dataChanges = Publishers.CombineLatest($items, $selectedGroupId)
+
+        Publishers.CombineLatest(debouncedSearch, dataChanges)
+            .sink { [weak self] (query, itemsAndGroup) in
+                guard let self else { return }
+                let (allItems, groupId) = itemsAndGroup
+                // ⚠️ 防抖结束后才更新底层查询词，彻底切断输入时的重绘风暴
+                self.activeSearchQuery = query
+                self.performAsyncFilter(query: query, items: allItems, groupId: groupId)
+            }
+            .store(in: &cancellables)
+    }
+
+    private func performAsyncFilter(query: String, items: [ClipboardItem], groupId: String?) {
+        let cleanQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // 无搜索词且无分组 → 直接还原全部，避免线程切换开销
+        if cleanQuery.isEmpty && groupId == nil {
+            self.filteredItems = items
+            return
+        }
+
+        // ⚠️ 丢入后台线程，绝不允许在主线程遍历几十 MB 文本
+        DispatchQueue.global(qos: .userInitiated).async {
+            var result = items
+
+            // 1. 分组过滤
+            if let gid = groupId {
+                result = result.filter { $0.groupId == gid }
+            }
+
+            // 2. 关键字过滤（使用 range(of:options:) 底层高效匹配）
+            if !cleanQuery.isEmpty {
+                result = result.filter { item in
+                    let searchable = item.searchableText ?? item.rawText ?? item.textPreview
+                    if searchable.range(of: cleanQuery, options: [.caseInsensitive, .diacriticInsensitive]) != nil {
+                        return true
+                    }
+                    if item.appName.range(of: cleanQuery, options: [.caseInsensitive]) != nil {
+                        return true
+                    }
+                    return false
+                }
+            }
+
+            DispatchQueue.main.async { [weak self] in
+                self?.filteredItems = result
+            }
+        }
     }
 
     // MARK: - Auto Cleanup
@@ -120,36 +182,7 @@ class ClipboardViewModel: ObservableObject {
         print("触发添加新分组")
     }
 
-    // MARK: - 自定义分组接口
-
-    // 动态过滤后的列表数据
-    var filteredItems: [ClipboardItem] {
-        var result = items
-
-        // 1. 先进行分组过滤
-        if let groupId = selectedGroupId {
-            result = result.filter { $0.groupId == groupId }
-        }
-
-        // 2. 再进行关键字实时过滤（忽略大小写）
-        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        if !query.isEmpty {
-            result = result.filter { item in
-                let searchableText = (item.searchableText ?? item.rawText ?? item.textPreview).lowercased()
-                if searchableText.contains(query) {
-                    return true
-                }
-
-                if item.appName.lowercased().contains(query) {
-                    return true
-                }
-
-                return false
-            }
-        }
-
-        return result
-    }
+    // filteredItems 已迁移为 @Published 存储属性 + Combine 异步管道
 
     func loadCustomGroups() {
         customGroups = StorageManager.shared.fetchAllGroups()

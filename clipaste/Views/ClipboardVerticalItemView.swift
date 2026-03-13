@@ -10,34 +10,34 @@ struct ClipboardVerticalItemView: View {
         viewModel.highlightedItemId == item.id
     }
 
-    /// 颜色嗅探结果：非 nil 时整张卡片用该颜色渲染
+    /// 颜色嗅探结果：使用极速短路版本，超过 100 字符跳过正则
     private var parsedColor: Color? {
-        ColorParser.extractColor(from: previewText)
+        item.fastParsedColor
     }
 
     private var previewText: String {
-        if let rawText = item.rawText, !rawText.isEmpty {
-            return rawText
+        if let preview = item.previewText, !preview.isEmpty {
+            return preview
         }
 
         return item.textPreview.isEmpty ? String(localized: "(Empty)") : item.textPreview
     }
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: 12) {
             // 1. 左侧：App 图标
             if let icon = item.appIcon {
                 Image(nsImage: icon)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 36, height: 36)
+                    .frame(width: 32, height: 32)
                     .shadow(color: Color.black.opacity(0.1), radius: 2, y: 1)
             } else {
                 ZStack {
                     Circle().fill(Color.gray.opacity(0.2))
                     Image(systemName: "app.dashed").foregroundColor(.secondary)
                 }
-                .frame(width: 36, height: 36)
+                .frame(width: 32, height: 32)
             }
 
             // 2. 中间：内容预览
@@ -49,7 +49,11 @@ struct ClipboardVerticalItemView: View {
                                 .aspectRatio(contentMode: .fill)
                                 .frame(width: 60, height: 40)
                                 .clipped()
-                                .cornerRadius(4)
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
+                                )
                         } else {
                             Image(systemName: "photo")
                                 .foregroundColor(.secondary)
@@ -69,11 +73,11 @@ struct ClipboardVerticalItemView: View {
                                 radius: 1, x: 0, y: 1
                             )
                             .frame(maxWidth: .infinity, alignment: .leading)
-                    } else if previewText.lowercased().hasPrefix("http") {
+                    } else if item.isFastLink {
                         // 链接 — 标题优先的书签样式
                         VStack(alignment: .leading, spacing: 2) {
                             if let title = item.linkTitle, !title.isEmpty {
-                                HighlightedText(text: title, highlight: viewModel.searchText)
+                                HighlightedText(text: title, highlight: viewModel.activeSearchQuery)
                                     .font(.system(size: 13, weight: .medium))
                                     .lineLimit(1)
                                     .truncationMode(.tail)
@@ -83,7 +87,7 @@ struct ClipboardVerticalItemView: View {
                                     .lineLimit(1)
                                     .truncationMode(.tail)
                             } else {
-                                HighlightedText(text: previewText, highlight: viewModel.searchText)
+                                HighlightedText(text: previewText, highlight: viewModel.activeSearchQuery)
                                     .lineLimit(2)
                                     .truncationMode(.tail)
                                     .foregroundColor(.blue)
@@ -92,7 +96,7 @@ struct ClipboardVerticalItemView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     } else {
                         // 普通文本兜底
-                        HighlightedText(text: previewText, highlight: viewModel.searchText)
+                        HighlightedText(text: previewText, highlight: viewModel.activeSearchQuery)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
                     }
@@ -100,21 +104,37 @@ struct ClipboardVerticalItemView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            // 3. 右侧：时间
-            VStack(alignment: .trailing, spacing: 10) {
+            // 3. 右侧：智能时间微排版
+            VStack(alignment: .trailing, spacing: 2) {
+                // 永远显示时间作为主视觉
                 Text(item.timestamp, format: .dateTime.hour().minute())
-                    .font(.system(size: 11))
-                    // 颜色卡片时，时间文字也跟着反转，保证可读性
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundColor(
                         parsedColor.map { $0.isDark ? .white.opacity(0.8) : .black.opacity(0.6) }
                         ?? .secondary
                     )
 
-                Spacer().frame(height: 12)
+                // 只对"非今天"的历史数据展示日期，极致紧凑 9pt 弱化字体
+                if !Calendar.current.isDateInToday(item.timestamp) {
+                    Group {
+                        if Calendar.current.isDate(item.timestamp, equalTo: Date(), toGranularity: .year) {
+                            Text(item.timestamp, format: .dateTime.month(.twoDigits).day(.twoDigits))
+                        } else {
+                            Text(item.timestamp, format: .dateTime.year().month(.twoDigits).day(.twoDigits))
+                        }
+                    }
+                    .font(.system(size: 9, weight: .regular))
+                    .foregroundColor(
+                        parsedColor.map { $0.isDark ? .white.opacity(0.4) : .black.opacity(0.3) }
+                        ?? .secondary.opacity(0.5)
+                    )
+                }
             }
+            .help(item.timestamp.formatted(date: .complete, time: .standard))
+            .frame(maxWidth: 60, alignment: .trailing)
         }
-        .padding(.horizontal, 14)
-        .frame(height: 64)
+        .padding(.horizontal, 12)
+        .frame(height: 76)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(
@@ -143,7 +163,7 @@ struct ClipboardVerticalItemView: View {
             }
         }
         .onDrag {
-            NSItemProvider(object: item.id.uuidString as NSString)
+            item.universalDragProvider
         } preview: {
             ClipboardDragPreview(item: item)
         }
@@ -184,7 +204,7 @@ struct ClipboardDragPreview: View {
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 56, height: 56)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
-            } else if item.rawText?.lowercased().hasPrefix("http") == true {
+            } else if item.isFastLink {
                 // Link type: link badge
                 Image(systemName: "link.circle.fill")
                     .resizable()

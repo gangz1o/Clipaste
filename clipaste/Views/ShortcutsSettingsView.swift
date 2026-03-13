@@ -9,10 +9,7 @@ struct ShortcutsSettingsView: View {
         Form {
             // ── 全局唤醒 ──
             Section {
-                KeyboardShortcuts.Recorder(
-                    String(localized: "Show / Hide Clipboard Panel"),
-                    name: .toggleClipboardPanel
-                )
+                ShortcutRecorderRow("Show / Hide Clipboard Panel", name: .toggleClipboardPanel)
             } header: {
                 Text("Global Shortcuts")
             } footer: {
@@ -21,18 +18,9 @@ struct ShortcutsSettingsView: View {
 
             // ── 导航与操作 ──
             Section {
-                KeyboardShortcuts.Recorder(
-                    String(localized: "Next List"),
-                    name: .nextList
-                )
-                KeyboardShortcuts.Recorder(
-                    String(localized: "Previous List"),
-                    name: .prevList
-                )
-                KeyboardShortcuts.Recorder(
-                    String(localized: "Clear Clipboard History"),
-                    name: .clearHistory
-                )
+                ShortcutRecorderRow("Next List", name: .nextList)
+                ShortcutRecorderRow("Previous List", name: .prevList)
+                ShortcutRecorderRow("Clear Clipboard History", name: .clearHistory)
             } header: {
                 Text("Navigation & Actions")
             }
@@ -82,4 +70,64 @@ struct ShortcutsSettingsView: View {
 
 #Preview {
     ShortcutsSettingsView()
+}
+
+private struct ShortcutRecorderRow: View {
+    let title: LocalizedStringKey
+    let name: KeyboardShortcuts.Name
+
+    @State private var shortcut: KeyboardShortcuts.Shortcut?
+
+    init(_ title: LocalizedStringKey, name: KeyboardShortcuts.Name) {
+        self.title = title
+        self.name = name
+        _shortcut = State(initialValue: name.shortcut)
+    }
+
+    var body: some View {
+        LabeledContent {
+            HStack(spacing: 8) {
+                shortcutRecorder
+
+                if name.defaultShortcut != nil {
+                    Button {
+                        KeyboardShortcuts.reset(name)
+                        shortcut = name.shortcut
+                    } label: {
+                        Image(systemName: "arrow.uturn.backward")
+                    }
+                    .buttonStyle(.borderless)
+                    .controlSize(.small)
+                    .help(String(localized: "Restore Default Shortcut"))
+                    .accessibilityLabel(Text("Restore Default Shortcut"))
+                    .disabled(!canRestoreDefault)
+                }
+
+            }
+        } label: {
+            Text(title)
+        }
+    }
+
+    private var canRestoreDefault: Bool {
+        guard let defaultShortcut = name.defaultShortcut else {
+            return false
+        }
+
+        return shortcut != defaultShortcut
+    }
+
+    private var shortcutRecorder: some View {
+        KeyboardShortcuts.Recorder(for: name) { newShortcut in
+            shortcut = newShortcut
+        }
+        .frame(minWidth: 140)
+        .overlay(alignment: .trailing) {
+            Capsule()
+                .fill(Color(nsColor: .controlBackgroundColor))
+                .frame(width: 28, height: 22)
+                .padding(.trailing, 6)
+                .allowsHitTesting(false)
+        }
+    }
 }
