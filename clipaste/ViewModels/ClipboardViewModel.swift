@@ -9,6 +9,7 @@ class ClipboardViewModel: ObservableObject {
     @Published var activeSearchQuery: String = ""
     @Published var highlightedItemId: UUID? = nil
     @Published var quickLookItem: ClipboardItem? = nil  // 空格键预览
+    @Published var sharingItem: ClipboardItem? = nil     // 右键分享错点
     // 旧分组（横版 UI 使用的固定分组，保留兼容）
     @Published var groups: [ClipboardGroup] = []
     @Published var selectedGroupID: UUID? = nil
@@ -279,20 +280,15 @@ class ClipboardViewModel: ObservableObject {
     }
 
     func pasteAsPlainText(item: ClipboardItem) {
-        ClipboardPanelManager.shared.hidePanel()
         guard let record = StorageManager.shared.fetchRecord(id: item.id),
               let text = record.plainText else { return }
-        NSPasteboard.general.clearContents()
-        NSPasteboard.general.setString(text, forType: .string)
-        // 面板已撤回，等屏幕咤啥后模拟 ⌘V
+        // 1. 纯文本写入系统剪贴板（抹除一切格式）
+        PasteEngine.shared.writePlainTextToPasteboard(text: text)
+        // 2. 强制隐藏面板（无视图钉），焦点归还目标 App
+        ClipboardPanelManager.shared.forceHidePanel()
+        // 3. 延迟发送 Cmd+V，确保面板完全关闭且目标 App 已获焦
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            let src = CGEventSource(stateID: .hidSystemState)
-            let vKeyDown = CGEvent(keyboardEventSource: src, virtualKey: 0x09, keyDown: true)
-            let vKeyUp   = CGEvent(keyboardEventSource: src, virtualKey: 0x09, keyDown: false)
-            vKeyDown?.flags = .maskCommand
-            vKeyUp?.flags   = .maskCommand
-            vKeyDown?.post(tap: .cghidEventTap)
-            vKeyUp?.post(tap: .cghidEventTap)
+            PasteEngine.shared.simulateCommandV()
         }
     }
 
@@ -301,12 +297,27 @@ class ClipboardViewModel: ObservableObject {
 
         Task { @MainActor in
             _ = await PasteEngine.shared.writeToPasteboard(record: record)
+            // 仅复制，不隐藏面板；播放音效作为操作反馈
+            NSSound(named: "Pop")?.play()
         }
     }
 
     func pinItem(item: ClipboardItem) {
-        print("执行：固定/取消固定 - \(item.id)")
-        // TODO: 持久化固定状态
+        let newPinState = !item.isPinned
+
+        // 1. 乐观 UI：同步翻转 items + filteredItems 中的 isPinned
+        if let idx = items.firstIndex(where: { $0.id == item.id }) {
+            items[idx].isPinned = newPinState
+        }
+        if let idx = filteredItems.firstIndex(where: { $0.id == item.id }) {
+            filteredItems[idx].isPinned = newPinState
+        }
+
+        // 2. 后台持久化（不会发通知，不会触发 loadData）
+        StorageManager.shared.togglePin(hash: item.contentHash, isPinned: newPinState)
+
+        // 3. 音效反馈
+        NSSound(named: "Pop")?.play()
     }
 
     func editItemContent(item: ClipboardItem) {
@@ -318,18 +329,33 @@ class ClipboardViewModel: ObservableObject {
     }
 
     func showPreview(item: ClipboardItem) {
-        print("执行：预览 (Space) - \(item.id)")
+        // 复用空格键预览机制：设置 quickLookItem 即可触发 QuickLook popover
+        if quickLookItem?.id == item.id {
+            quickLookItem = nil  // 再次点击则关闭
+        } else {
+            quickLookItem = item
+        }
+    }
+
+    func shareItem(item: ClipboardItem) {
+        // 设置 sharingItem，触发卡片上的 ShareAnchorView 在对应位置弹出原生分享菜单
+        sharingItem = item
     }
 
     func deleteItem(item: ClipboardItem) {
-        // 1. 乐观 UI：立即从内存移除，卡片瞬间消失
+        // 1. 乐观 UI：同步移除 items + filteredItems，必须在同一个动画事务内完成
+        //    防止 Combine 管道在 items 变化后产生过渡状态导致 filteredItems 二次突变
         withAnimation(.easeOut(duration: 0.2)) {
             items.removeAll { $0.id == item.id }
+            filteredItems.removeAll { $0.id == item.id }
         }
         if highlightedItemId == item.id {
             highlightedItemId = nil
         }
-        // 2. 后台持久化：Actor 异步删除数据库记录
+        if quickLookItem?.id == item.id {
+            quickLookItem = nil
+        }
+        // 2. 后台持久化：Actor 异步删除数据库记录（不会发通知，不会触发 loadData）
         StorageManager.shared.deleteRecord(hash: item.contentHash)
     }
 

@@ -14,6 +14,7 @@ private struct ClipboardRecordSnapshot: Sendable {
     let groupId: String?
     let linkTitle: String?
     let linkIconData: Data?
+    let isPinned: Bool
 }
 
 @ModelActor
@@ -52,7 +53,8 @@ actor ClipboardSearcher {
                 typeRawValue: record.typeRawValue,
                 groupId: record.groupId,
                 linkTitle: record.linkTitle,
-                linkIconData: record.linkIconData
+                linkIconData: record.linkIconData,
+                isPinned: record.isPinned
             )
         }
 
@@ -141,6 +143,15 @@ final class StorageManager {
         let actor = self.storeActor
         Task.detached(priority: .userInitiated) {
             await actor.delete(hash: hash)
+        }
+    }
+
+    /// 切换固定状态（不发送通知，ViewModel 已做乐观 UI 更新）
+    nonisolated
+    func togglePin(hash: String, isPinned: Bool) {
+        let actor = self.storeActor
+        Task.detached(priority: .userInitiated) {
+            await actor.updatePinStatus(hash: hash, isPinned: isPinned)
         }
     }
 
@@ -272,7 +283,8 @@ final class StorageManager {
             fileURL: type == .fileURL ? plainText : nil,
             groupId: record.groupId,
             linkTitle: record.linkTitle,
-            linkIconData: record.linkIconData
+            linkIconData: record.linkIconData,
+            isPinned: record.isPinned
         )
     }
 
@@ -441,7 +453,8 @@ actor ClipboardStoreActor {
             if let recordToDelete = try modelContext.fetch(descriptor).first {
                 modelContext.delete(recordToDelete)
                 try modelContext.save()
-                NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+                // ⚠️ 不发送 .clipboardDataDidChange —— ViewModel 已做乐观移除，
+                //    此处再触发 loadData() 会引发动画中数组二次突变，造成崩溃。
             }
         } catch {
             print("❌ [ClipboardStoreActor] 删除失败: \(error)")
@@ -568,6 +581,22 @@ actor ClipboardStoreActor {
             }
         } catch {
             print("❌ [ClipboardStoreActor] 置顶时写入失败: \(error)")
+        }
+    }
+
+    /// 更新记录的固定状态（不发送通知，ViewModel 已做乐观 UI）
+    func updatePinStatus(hash: String, isPinned: Bool) {
+        var descriptor = FetchDescriptor<ClipboardRecord>(
+            predicate: #Predicate<ClipboardRecord> { $0.contentHash == hash }
+        )
+        descriptor.fetchLimit = 1
+        do {
+            if let record = try modelContext.fetch(descriptor).first {
+                record.isPinned = isPinned
+                try modelContext.save()
+            }
+        } catch {
+            print("❌ [ClipboardStoreActor] 固定状态更新失败: \(error)")
         }
     }
 }

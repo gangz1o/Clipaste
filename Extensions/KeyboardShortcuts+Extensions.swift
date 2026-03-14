@@ -7,6 +7,11 @@ extension KeyboardShortcuts.Name {
         default: .init(.c, modifiers: [.command, .shift])
     )
 
+    static let toggleVerticalClipboard = Self(
+        "toggleVerticalClipboard",
+        default: .init(.t, modifiers: [.command, .shift])
+    )
+
     static let nextList = Self(
         "nextList",
         default: .init(.rightArrow, modifiers: [.command])

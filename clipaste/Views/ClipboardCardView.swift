@@ -128,6 +128,8 @@ struct ClipboardCardView: View {
         ) {
             ClipboardQuickLookView(item: item)
         }
+        // 分享锚点：用 background 捕获 NSView + onChange 触发分享
+        .modifier(OptionalShareModifier(item: item, viewModel: viewModel))
         .clipboardContextMenu(for: item, viewModel: viewModel)
         .onDrag {
             item.universalDragProvider

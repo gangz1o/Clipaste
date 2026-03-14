@@ -528,7 +528,6 @@
       }
     },
     "All Groups" : {
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3392,6 +3391,7 @@
       }
     },
     "Pin" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4431,6 +4431,46 @@
         }
       }
     },
+    "Toggle Vertical Clipboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertikale Zwischenablage umschalten"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basculer le presse-papiers vertical"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "縦型クリップボードを切り替え"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "세로 클립보드 전환"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换垂直剪贴板"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換垂直剪貼板"
+          }
+        }
+      }
+    },
     "Show Clipboard History" : {
       "localizations" : {
         "de" : {
@@ -5368,7 +5408,31 @@
         }
       }
     },
+    "上次同步：%@" : {
+
+    },
+    "同步失败: %@" : {
+
+    },
+    "在所有登录同一 Apple ID 的 Mac 设备间无缝同步您的剪贴板历史记录。" : {
+
+    },
+    "数据同步" : {
+
+    },
+    "正在同步..." : {
+
+    },
     "点击后粘贴到当前应用" : {
+
+    },
+    "立即同步" : {
+
+    },
+    "等待首次同步..." : {
+
+    },
+    "通过 iCloud 同步" : {
 
     }
   },

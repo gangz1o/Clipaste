@@ -21,22 +21,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             presentOnboardingWindow()
         }
 
-        // Register the global shortcut in AppDelegate instead of any SwiftUI lifecycle path.
-        KeyboardShortcuts.onKeyDown(for: .toggleClipboardPanel) { [weak self] in
-            self?.handleTogglePanelShortcut()
-        }
-
-        KeyboardShortcuts.onKeyDown(for: .nextList) {
-            // TODO: implement list-switching when the feature is ready
-        }
-
-        KeyboardShortcuts.onKeyDown(for: .prevList) {
-            // TODO: implement list-switching when the feature is ready
-        }
-
-        KeyboardShortcuts.onKeyDown(for: .clearHistory) {
-            StorageManager.shared.clearAllHistory()
-        }
+        registerGlobalShortcuts()
 
         // Verify accessibility permission so KeyboardShortcuts can use the privileged
         // CGEventTap (session-level) instead of the degraded NSEvent global monitor.
@@ -68,6 +53,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         ClipboardPanelManager.shared.togglePanel()
     }
 
+    private func handleToggleVerticalClipboardShortcut() {
+        let defaults = UserDefaults.standard
+        let isVerticalLayout = !defaults.bool(forKey: "isVerticalLayout")
+        let layoutMode: AppLayoutMode = isVerticalLayout ? .vertical : .horizontal
+
+        defaults.set(isVerticalLayout, forKey: "isVerticalLayout")
+        defaults.set(layoutMode.rawValue, forKey: "clipboardLayout")
+
+        NotificationCenter.default.post(
+            name: .clipboardLayoutModeChanged,
+            object: layoutMode
+        )
+    }
+
+    private func registerGlobalShortcuts() {
+        KeyboardShortcuts.onKeyDown(for: .toggleClipboardPanel) { [weak self] in
+            self?.handleTogglePanelShortcut()
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .toggleVerticalClipboard) { [weak self] in
+            self?.handleToggleVerticalClipboardShortcut()
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .nextList) {
+            // TODO: implement list-switching when the feature is ready
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .prevList) {
+            // TODO: implement list-switching when the feature is ready
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .clearHistory) {
+            StorageManager.shared.clearAllHistory()
+        }
+    }
+
     /// Ensures the privileged CGEventTap (session-level) is available.
     /// Without Accessibility permission, KeyboardShortcuts falls back to
     /// NSEvent.addGlobalMonitorForEvents which is blocked by apps like Xcode
@@ -92,9 +113,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // once the user grants access (the library re-creates the tap on the
         // next registration call).
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            KeyboardShortcuts.onKeyDown(for: .toggleClipboardPanel) { [weak self] in
-                self?.handleTogglePanelShortcut()
-            }
+            self.registerGlobalShortcuts()
         }
     }
 

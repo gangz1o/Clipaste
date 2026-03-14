@@ -35,6 +35,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
     var groupId: String? // 所属分组 ID，nil 表示未分组
     var linkTitle: String?     // 链接预览：网页标题（LinkPresentation 抓取）
     var linkIconData: Data?    // 链接预览：网站图标数据
+    var isPinned: Bool         // 固定状态
 
     // ⚠️ 性能核心：全部为 let 常量，初始化时一次性计算完毕，SwiftUI 重绘读取耗时 = 0
     let previewText: String?
@@ -59,7 +60,8 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         fileURL: String? = nil,
         groupId: String? = nil,
         linkTitle: String? = nil,
-        linkIconData: Data? = nil
+        linkIconData: Data? = nil,
+        isPinned: Bool = false
     ) {
         self.id = id
         self.contentType = contentType
@@ -79,6 +81,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         self.groupId = groupId
         self.linkTitle = linkTitle
         self.linkIconData = linkIconData
+        self.isPinned = isPinned
 
         // --- 性能隔离区：只在初始化时执行一次，使用 utf8.count 极速字节级判断 ---
         let sourceText = rawText ?? (textPreview.isEmpty ? nil : textPreview)
@@ -120,7 +123,8 @@ extension ClipboardItem {
         lhs.fileURL == rhs.fileURL &&
         lhs.groupId == rhs.groupId &&
         lhs.linkTitle == rhs.linkTitle &&
-        lhs.linkIconData == rhs.linkIconData
+        lhs.linkIconData == rhs.linkIconData &&
+        lhs.isPinned == rhs.isPinned
     }
 
     func hash(into hasher: inout Hasher) {
@@ -140,6 +144,7 @@ extension ClipboardItem {
         hasher.combine(groupId)
         hasher.combine(linkTitle)
         hasher.combine(linkIconData)
+        hasher.combine(isPinned)
     }
 }
 

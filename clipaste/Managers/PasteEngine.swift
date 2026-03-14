@@ -30,6 +30,13 @@ final class PasteEngine {
         return write(payload: payload)
     }
 
+    /// 仅将纯文本写入系统剪贴板（抹除一切格式）
+    func writePlainTextToPasteboard(text: String) {
+        ClipboardMonitor.shared.isIgnoredNextChange = true
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+    }
+
     func simulateCommandV() {
         postPasteKeystroke()
     }

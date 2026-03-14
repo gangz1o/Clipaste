@@ -15,6 +15,7 @@ final class ClipboardRecord {
     var groupId: String? // 所属分组 ID
     var linkTitle: String?     // 链接预览：网页标题
     var linkIconData: Data?    // 链接预览：网站图标数据
+    var isPinned: Bool = false // 固定状态
 
     init(
         id: UUID = UUID(),
@@ -28,7 +29,8 @@ final class ClipboardRecord {
         appLocalizedName: String? = nil,
         groupId: String? = nil,
         linkTitle: String? = nil,
-        linkIconData: Data? = nil
+        linkIconData: Data? = nil,
+        isPinned: Bool = false
     ) {
         self.id = id
         self.timestamp = timestamp
@@ -42,5 +44,6 @@ final class ClipboardRecord {
         self.groupId = groupId
         self.linkTitle = linkTitle
         self.linkIconData = linkIconData
+        self.isPinned = isPinned
     }
 }

@@ -71,15 +71,21 @@ final class ClipboardPanel: NSPanel {
         return true
     }
 
-    /// BFS through the content view hierarchy to find the first NSScrollView.
+    /// BFS through the content view hierarchy to find the main content NSScrollView.
+    /// Skips small scroll views (e.g., header group pill bar) to avoid intercepting
+    /// scroll events meant for the main horizontal list.
     private func findHorizontalScrollView() -> NSScrollView? {
-        if let sv = cachedScrollView, sv.window === self { return sv }
+        if let sv = cachedScrollView, sv.window === self,
+           sv.frame.width > 200 { return sv }
 
+        cachedScrollView = nil
         guard let root = contentView else { return nil }
         var queue: [NSView] = [root]
         while !queue.isEmpty {
             let view = queue.removeFirst()
-            if let sv = view as? NSScrollView {
+            if let sv = view as? NSScrollView,
+               sv.frame.width > 200 {
+                // Only cache the main content scroll view (wide enough to be the list)
                 cachedScrollView = sv
                 return sv
             }

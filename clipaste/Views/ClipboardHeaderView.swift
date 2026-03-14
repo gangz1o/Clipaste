@@ -63,24 +63,30 @@ struct ClipboardHeaderView: View {
         }
     }
 
-    // MARK: - 竖屏模式：两行布局
+    // MARK: - 竖版模式：双行布局
     private var verticalHeader: some View {
         VStack(spacing: 10) {
+            // 第一行：固定按钮 + 搜索框 + 设置菜单
             searchBarContent
-            groupPills
+
+            // 第二行：混合分组导航栏（占满全部宽度）
+            hybridGroupBar
         }
         .padding(.horizontal, 14)
         .padding(.top, 14)
         .padding(.bottom, 2)
     }
 
-    // MARK: - 横屏模式：单行布局
+    // MARK: - 横版模式：单行紧凑布局
     private var horizontalHeader: some View {
-        HStack(spacing: 8) {
-            groupPills
+        HStack(spacing: 12) {
+            // 固定按钮
+            pinButton
 
-            Spacer()
+            // 混合分组导航栏（自动占据左侧空间）
+            hybridGroupBar
 
+            // 搜索框
             HStack {
                 Image(systemName: "magnifyingglass")
                     .foregroundColor(.secondary)
@@ -108,143 +114,28 @@ struct ClipboardHeaderView: View {
             .background(Color.clear.background(.regularMaterial))
             .clipShape(Capsule())
             .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
-            .padding(.trailing, 16)
+
+            Spacer()
+
+            // 设置菜单
+            settingsMenu
         }
+        .padding(.horizontal, 16)
         .padding(.top, 12)
         .padding(.bottom, 4)
     }
 
-    // MARK: - 共享：搜索栏
-    @ViewBuilder
-    private var searchBarContent: some View {
+    // MARK: - 核心组件：混合优先级分组导航栏
+    // 固定"全部" + 横向滚动药丸流 + 固定溢出菜单
+    private var hybridGroupBar: some View {
         HStack(spacing: 8) {
-            // 左侧：固定面板按钮
+            // 1. 固定的"全部"按钮（永远在最左侧）
             Button(action: {
-                isPanelPinned.toggle()
-                NotificationCenter.default.post(
-                    name: NSNotification.Name("TogglePinStatus"),
-                    object: isPanelPinned
-                )
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    viewModel.selectedGroupId = nil
+                }
             }) {
-                Image(systemName: isPanelPinned ? "pin.fill" : "pin")
-                    .foregroundColor(isPanelPinned ? .accentColor : .secondary)
-                    .font(.system(size: 15))
-                    .rotationEffect(.degrees(isPanelPinned ? 45 : 0))
-                    .animation(.spring(), value: isPanelPinned)
-            }
-            .buttonStyle(.plain)
-            .help(isPanelPinned ? "Unpin Panel" : "Pin Panel")
-
-            // 中间：搜索框
-            HStack(spacing: 6) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 12))
-                    .foregroundColor(.secondary)
-                TextField("Search…", text: $viewModel.searchInput)
-                    .font(.system(size: 13))
-                    .textFieldStyle(.plain)
-                    .autocorrectionDisabled(true)
-#if os(macOS)
-                    .textContentType(.none)
-#endif
-                    .focused($isSearchFocused)
-                if !viewModel.searchInput.isEmpty {
-                    Button(action: { viewModel.searchInput = "" }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .frame(maxWidth: .infinity)
-            .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
-            .clipShape(RoundedRectangle(cornerRadius: 8))
-
-            // 右侧：原生系统下拉菜单
-            Menu {
-                Button(action: { isMonitoringPaused.toggle() }) {
-                    Text(isMonitoringPaused ? "Resume Monitoring" : "Stop Monitoring")
-                }
-
-                Menu("Clipboard Monitoring Interval") {
-                    Button(action: { monitorInterval = 0.1 }) {
-                        HStack {
-                            Text("Very Frequent (0.1s)")
-                            if monitorInterval == 0.1 { Image(systemName: "checkmark") }
-                        }
-                    }
-                    Button(action: { monitorInterval = 0.5 }) {
-                        HStack {
-                            Text("Frequent (0.5s)")
-                            if monitorInterval == 0.5 { Image(systemName: "checkmark") }
-                        }
-                    }
-                    Button(action: { monitorInterval = 1.0 }) {
-                        HStack {
-                            Text("Normal (1s)")
-                            if monitorInterval == 1.0 { Image(systemName: "checkmark") }
-                        }
-                    }
-                }
-
-                Divider()
-
-                Button("Settings…") {
-                    NotificationCenter.default.post(
-                        name: NSNotification.Name("HidePanelForce"),
-                        object: nil
-                    )
-                    SettingsWindowCoordinator.open {
-                        openSettings()
-                    }
-                }
-
-                Button("Launch at Login (Coming Soon)") {}
-                    .disabled(true)
-
-                Divider()
-
-                Button("About Clipaste") {
-                    NSApp.orderFrontStandardAboutPanel()
-                    NotificationCenter.default.post(
-                        name: NSNotification.Name("HidePanelForce"),
-                        object: nil
-                    )
-                }
-
-                Button("Send Feedback") {
-                    if let url = URL(string: "mailto:your_email@example.com?subject=clipaste%20Feedback") {
-                        NSWorkspace.shared.open(url)
-                    }
-                }
-
-                Divider()
-
-                Button("Quit") {
-                    NSApplication.shared.terminate(nil)
-                }
-            } label: {
-                Image(systemName: "gearshape")
-                    .foregroundColor(.secondary)
-                    .font(.system(size: 15))
-            }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
-            .fixedSize()
-        }
-    }
-
-    // MARK: - 共享：分组药丸导航栏
-    @ViewBuilder
-    private var groupPills: some View {
-        let maxVisible = isVerticalLayout ? 4 : 5
-
-        HStack(spacing: 8) {
-            // ── "全部" 固定药丸 ──
-            Button(action: { viewModel.selectedGroupId = nil }) {
-                HStack(spacing: 6) {
+                HStack(spacing: 5) {
                     Image(systemName: "tray.2.fill")
                         .font(.system(size: 13, weight: viewModel.selectedGroupId == nil ? .semibold : .regular))
                     Text(String(localized: "All"))
@@ -252,41 +143,63 @@ struct ClipboardHeaderView: View {
                         .fixedSize(horizontal: true, vertical: false)
                 }
                 .foregroundColor(viewModel.selectedGroupId == nil ? .white : .primary)
-                .padding(.horizontal, 12)
+                .padding(.horizontal, 10)
                 .padding(.vertical, 6)
                 .background(
                     Capsule()
-                        .fill(viewModel.selectedGroupId == nil ? Color.accentColor : Color(nsColor: .controlBackgroundColor).opacity(0.8))
+                        .fill(viewModel.selectedGroupId == nil ? Color.accentColor : Color(nsColor: .controlBackgroundColor).opacity(0.6))
                 )
             }
             .buttonStyle(.plain)
             .help(String(localized: "All"))
 
-            // ── 前 N 个分组药丸 ──
-            ForEach(viewModel.customGroups.prefix(maxVisible)) { group in
-                groupIconButton(group: group)
+            // 2. 中间：可横向滚动的分组药丸流（支持拖拽目标）
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(viewModel.customGroups) { group in
+                        groupPillButton(group: group)
+                    }
+                }
+                .padding(.horizontal, 2)
             }
 
-            Spacer()
-
-            // ── 溢出菜单 ──
+            // 3. 固定的溢出收纳菜单（永远在最右侧）
             Menu {
+                // 列出所有分组，带 ✓ 标记
+                Button(action: { viewModel.selectedGroupId = nil }) {
+                    HStack {
+                        Label(String(localized: "All"), systemImage: "tray.2.fill")
+                        if viewModel.selectedGroupId == nil {
+                            Spacer()
+                            Image(systemName: "checkmark")
+                        }
+                    }
+                }
+
+                if !viewModel.customGroups.isEmpty { Divider() }
+
                 ForEach(viewModel.customGroups) { group in
-                    Button {
-                        viewModel.selectedGroupId = group.id
-                    } label: {
-                        Label(group.name, systemImage: group.systemIconName)
+                    Button(action: {
+                        withAnimation { viewModel.selectedGroupId = group.id }
+                    }) {
+                        HStack {
+                            Label(group.name, systemImage: group.systemIconName)
+                            if viewModel.selectedGroupId == group.id {
+                                Spacer()
+                                Image(systemName: "checkmark")
+                            }
+                        }
                     }
                 }
 
                 Divider()
 
-                Button {
+                Button(action: {
                     newGroupName = ""
                     newGroupIcon = "folder"
                     isShowingNewGroupPopover = true
-                } label: {
-                    Label(String(localized: "New Group"), systemImage: "plus")
+                }) {
+                    Label(String(localized: "New Group…"), systemImage: "plus")
                 }
             } label: {
                 Image(systemName: "ellipsis.circle")
@@ -297,38 +210,39 @@ struct ClipboardHeaderView: View {
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
+            .help(String(localized: "All Groups"))
             .popover(isPresented: $isShowingNewGroupPopover, arrowEdge: .bottom) {
                 newGroupPopover
             }
         }
-        .padding(.horizontal, 12)
-        .padding(.bottom, 8)
     }
 
-    // MARK: - 单个分组药丸按钮
+    // MARK: - 单个分组药丸按钮（支持拖拽 & 右键管理）
     @ViewBuilder
-    private func groupIconButton(group: ClipboardGroupItem) -> some View {
+    private func groupPillButton(group: ClipboardGroupItem) -> some View {
         let isSelected = viewModel.selectedGroupId == group.id
         let isDropTarget = targetedGroupId == group.id
 
-        Button(action: { viewModel.selectedGroupId = group.id }) {
-            HStack(spacing: 6) {
+        Button(action: {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                viewModel.selectedGroupId = group.id
+            }
+        }) {
+            HStack(spacing: 5) {
                 Image(systemName: group.systemIconName)
                     .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
-                    .foregroundColor((isSelected || isDropTarget) ? .white : .secondary)
                 Text(group.name)
-                    .font(.system(size: 13, weight: (isSelected || isDropTarget) ? .semibold : .medium))
-                    .foregroundColor((isSelected || isDropTarget) ? .white : .primary)
+                    .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
                     .lineLimit(1)
                     .truncationMode(.tail)
-                    .layoutPriority(1)
-                    .frame(maxWidth: isVerticalLayout ? 50 : 80, alignment: .leading)
+                    .frame(maxWidth: isVerticalLayout ? 60 : 80, alignment: .leading)
             }
-            .padding(.horizontal, 12)
+            .foregroundColor((isSelected || isDropTarget) ? .white : .primary)
+            .padding(.horizontal, 10)
             .padding(.vertical, 6)
             .background(
                 Capsule()
-                    .fill(iconBackground(selected: isSelected, dropTarget: isDropTarget))
+                    .fill(pillBackground(selected: isSelected, dropTarget: isDropTarget))
             )
         }
         .buttonStyle(.plain)
@@ -370,6 +284,145 @@ struct ClipboardHeaderView: View {
                 groupToDelete = group
                 showDeleteAlert = true
             } label: { Label("Delete Group", systemImage: "trash") }
+        }
+    }
+
+    // MARK: - 药丸背景色
+    private func pillBackground(selected: Bool, dropTarget: Bool) -> Color {
+        if dropTarget { return Color.accentColor.opacity(0.8) }
+        if selected { return Color.accentColor }
+        return Color(nsColor: .controlBackgroundColor).opacity(0.6)
+    }
+
+    // MARK: - 固定面板按钮
+    private var pinButton: some View {
+        Button(action: {
+            isPanelPinned.toggle()
+            NotificationCenter.default.post(
+                name: NSNotification.Name("TogglePinStatus"),
+                object: isPanelPinned
+            )
+        }) {
+            Image(systemName: isPanelPinned ? "pin.fill" : "pin")
+                .foregroundColor(isPanelPinned ? .accentColor : .secondary)
+                .font(.system(size: 15))
+                .rotationEffect(.degrees(isPanelPinned ? 45 : 0))
+                .animation(.spring(), value: isPanelPinned)
+        }
+        .buttonStyle(.plain)
+        .help(isPanelPinned ? "Unpin Panel" : "Pin Panel")
+    }
+
+    // MARK: - 设置下拉菜单
+    private var settingsMenu: some View {
+        Menu {
+            Button(action: { isMonitoringPaused.toggle() }) {
+                Text(isMonitoringPaused ? "Resume Monitoring" : "Stop Monitoring")
+            }
+
+            Menu("Clipboard Monitoring Interval") {
+                Button(action: { monitorInterval = 0.1 }) {
+                    HStack {
+                        Text("Very Frequent (0.1s)")
+                        if monitorInterval == 0.1 { Image(systemName: "checkmark") }
+                    }
+                }
+                Button(action: { monitorInterval = 0.5 }) {
+                    HStack {
+                        Text("Frequent (0.5s)")
+                        if monitorInterval == 0.5 { Image(systemName: "checkmark") }
+                    }
+                }
+                Button(action: { monitorInterval = 1.0 }) {
+                    HStack {
+                        Text("Normal (1s)")
+                        if monitorInterval == 1.0 { Image(systemName: "checkmark") }
+                    }
+                }
+            }
+
+            Divider()
+
+            Button("Settings…") {
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("HidePanelForce"),
+                    object: nil
+                )
+                SettingsWindowCoordinator.open {
+                    openSettings()
+                }
+            }
+
+            Button("Launch at Login (Coming Soon)") {}
+                .disabled(true)
+
+            Divider()
+
+            Button("About Clipaste") {
+                NSApp.orderFrontStandardAboutPanel()
+                NotificationCenter.default.post(
+                    name: NSNotification.Name("HidePanelForce"),
+                    object: nil
+                )
+            }
+
+            Button("Send Feedback") {
+                if let url = URL(string: "mailto:your_email@example.com?subject=clipaste%20Feedback") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+
+            Divider()
+
+            Button("Quit") {
+                NSApplication.shared.terminate(nil)
+            }
+        } label: {
+            Image(systemName: "gearshape")
+                .foregroundColor(.secondary)
+                .font(.system(size: 15))
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+    }
+
+    // MARK: - 搜索栏（竖版模式使用）
+    @ViewBuilder
+    private var searchBarContent: some View {
+        HStack(spacing: 8) {
+            // 左侧：固定面板按钮
+            pinButton
+
+            // 中间：搜索框
+            HStack(spacing: 6) {
+                Image(systemName: "magnifyingglass")
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+                TextField("Search…", text: $viewModel.searchInput)
+                    .font(.system(size: 13))
+                    .textFieldStyle(.plain)
+                    .autocorrectionDisabled(true)
+#if os(macOS)
+                    .textContentType(.none)
+#endif
+                    .focused($isSearchFocused)
+                if !viewModel.searchInput.isEmpty {
+                    Button(action: { viewModel.searchInput = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity)
+            .background(Color(nsColor: .controlBackgroundColor).opacity(0.5))
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            // 右侧：设置菜单
+            settingsMenu
         }
     }
 
@@ -417,13 +470,6 @@ struct ClipboardHeaderView: View {
         guard !newGroupName.isEmpty else { return }
         viewModel.createNewGroup(name: newGroupName, systemIconName: newGroupIcon)
         isShowingNewGroupPopover = false
-    }
-
-    // MARK: - 图标背景颜色
-    private func iconBackground(selected: Bool, dropTarget: Bool) -> Color {
-        if dropTarget { return Color.accentColor.opacity(0.8) }
-        if selected { return Color.accentColor }
-        return Color(nsColor: .controlBackgroundColor).opacity(0.5)
     }
 }
 

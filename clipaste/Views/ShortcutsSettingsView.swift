@@ -10,6 +10,7 @@ struct ShortcutsSettingsView: View {
             // ── 全局唤醒 ──
             Section {
                 ShortcutRecorderRow("Show / Hide Clipboard Panel", name: .toggleClipboardPanel)
+                ShortcutRecorderRow("Toggle Vertical Clipboard", name: .toggleVerticalClipboard)
             } header: {
                 Text("Global Shortcuts")
             } footer: {
@@ -52,6 +53,7 @@ struct ShortcutsSettingsView: View {
                     Button(String(localized: "Reset Shortcuts to Defaults")) {
                         KeyboardShortcuts.reset(
                             .toggleClipboardPanel,
+                            .toggleVerticalClipboard,
                             .nextList,
                             .prevList,
                             .clearHistory

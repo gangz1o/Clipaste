@@ -46,9 +46,8 @@ struct ClipboardVerticalItemView: View {
                     AsyncImage(url: url) { phase in
                         if case .success(let img) = phase {
                             img.resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 60, height: 40)
-                                .clipped()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(maxHeight: 44)
                                 .clipShape(RoundedRectangle(cornerRadius: 4))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 4)
@@ -57,9 +56,10 @@ struct ClipboardVerticalItemView: View {
                         } else {
                             Image(systemName: "photo")
                                 .foregroundColor(.secondary)
-                                .frame(width: 60, height: 40)
+                                .frame(height: 44)
                         }
                     }
+                    .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     if parsedColor != nil {
                         // 颜色条目：只居中展示等宽色值，背景由卡片层处理
@@ -156,6 +156,8 @@ struct ClipboardVerticalItemView: View {
                     lineWidth: (parsedColor != nil || isSelected) ? 1.5 : 1.5
                 )
         )
+        // 分享锚点：用 background 捕获 NSView + onChange 触发分享
+        .shareable(item: item, viewModel: viewModel)
         .clipboardContextMenu(for: item, viewModel: viewModel)
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.1)) {

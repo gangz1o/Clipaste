@@ -53,11 +53,6 @@ extension View {
                     Label("Add to Group", systemImage: "folder.badge.plus")
                 }
 
-                Button {
-                    viewModel.pinItem(item: item)
-                } label: {
-                    Label("Pin", systemImage: "pin")
-                }
 
                 Divider()
 
@@ -84,7 +79,7 @@ extension View {
                 }
 
                 Button {
-                    print("share")
+                    viewModel.shareItem(item: item)
                 } label: {
                     Label("Share…", systemImage: "square.and.arrow.up")
                 }
