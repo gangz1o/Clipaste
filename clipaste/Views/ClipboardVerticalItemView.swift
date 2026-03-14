@@ -42,7 +42,32 @@ struct ClipboardVerticalItemView: View {
 
             // 2. 中间：内容预览
             VStack(alignment: .leading, spacing: 4) {
-                if item.contentType == .image, let url = item.thumbnailURL {
+                if item.contentType == .fileURL, let filePath = item.fileURL {
+                    // ── 文件类型：系统原生图标 + 文件名 + 路径 ──────────────
+                    let resolvedPath: String = {
+                        if let url = URL(string: filePath), url.isFileURL {
+                            return url.path
+                        }
+                        return filePath
+                    }()
+                    HStack(spacing: 10) {
+                        Image(nsImage: NSWorkspace.shared.icon(forFile: resolvedPath))
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 36, height: 36)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text((resolvedPath as NSString).lastPathComponent)
+                                .font(.system(size: 13, weight: .medium))
+                                .lineLimit(1)
+                            Text(resolvedPath)
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        }
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                } else if item.contentType == .image, let url = item.thumbnailURL {
                     AsyncImage(url: url) { phase in
                         if case .success(let img) = phase {
                             img.resizable()
@@ -206,6 +231,16 @@ struct ClipboardDragPreview: View {
                     .aspectRatio(contentMode: .fill)
                     .frame(width: 56, height: 56)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
+            } else if item.contentType == .fileURL, let filePath = item.fileURL {
+                // File type: show native file icon
+                let resolvedPath: String = {
+                    if let url = URL(string: filePath), url.isFileURL { return url.path }
+                    return filePath
+                }()
+                Image(nsImage: NSWorkspace.shared.icon(forFile: resolvedPath))
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 40, height: 40)
             } else if item.isFastLink {
                 // Link type: link badge
                 Image(systemName: "link.circle.fill")

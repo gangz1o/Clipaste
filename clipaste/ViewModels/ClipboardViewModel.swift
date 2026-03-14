@@ -214,6 +214,13 @@ class ClipboardViewModel: ObservableObject {
         StorageManager.shared.renameGroup(id: group.id, newName: newName)
     }
 
+    func updateGroupIcon(group: ClipboardGroupItem, newIcon: String) {
+        if let index = customGroups.firstIndex(where: { $0.id == group.id }) {
+            customGroups[index] = ClipboardGroupItem(id: group.id, name: group.name, systemIconName: newIcon)
+        }
+        StorageManager.shared.updateGroupIcon(id: group.id, newIcon: newIcon)
+    }
+
     func deleteGroup(group: ClipboardGroupItem) {
         // 1. 如果正选中了要删的分组，立刻切回"全部"
         if selectedGroupId == group.id {

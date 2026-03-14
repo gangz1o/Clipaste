@@ -1610,6 +1610,9 @@
         }
       }
     },
+    "Edit Group" : {
+
+    },
     "Follow System" : {
       "localizations" : {
         "de" : {
@@ -3792,6 +3795,7 @@
       }
     },
     "Rename Group" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4431,46 +4435,6 @@
         }
       }
     },
-    "Toggle Vertical Clipboard" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vertikale Zwischenablage umschalten"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Basculer le presse-papiers vertical"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "縦型クリップボードを切り替え"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "세로 클립보드 전환"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "切换垂直剪贴板"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "切換垂直剪貼板"
-          }
-        }
-      }
-    },
     "Show Clipboard History" : {
       "localizations" : {
         "de" : {
@@ -4884,6 +4848,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "這些選項隨時可以在設定裡調整。"
+          }
+        }
+      }
+    },
+    "Toggle Vertical Clipboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertikale Zwischenablage umschalten"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basculer le presse-papiers vertical"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "縦型クリップボードを切り替え"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "세로 클립보드 전환"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换垂直剪贴板"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換垂直剪貼板"
           }
         }
       }

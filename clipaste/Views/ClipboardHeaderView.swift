@@ -18,7 +18,9 @@ struct ClipboardHeaderView: View {
     // MARK: - 重命名 / 删除分组弹窗控制
     @State private var groupToEdit: ClipboardGroupItem? = nil
     @State private var editGroupName: String = ""
-    @State private var showEditAlert = false
+    @State private var editGroupIcon: String = "folder"
+    @State private var showEditPopover = false
+    @State private var showEditIconPicker = false
     @State private var groupToDelete: ClipboardGroupItem? = nil
     @State private var showDeleteAlert = false
 
@@ -32,14 +34,8 @@ struct ClipboardHeaderView: View {
         }
         .padding(.bottom, 8)
         .background(headerBackground)
-        .alert("Rename Group", isPresented: $showEditAlert) {
-            TextField("Group Name", text: $editGroupName)
-            Button("Cancel", role: .cancel) { }
-            Button("Save") {
-                if let group = groupToEdit, !editGroupName.isEmpty {
-                    viewModel.renameGroup(group: group, newName: editGroupName)
-                }
-            }
+        .popover(isPresented: $showEditPopover, arrowEdge: .bottom) {
+            editGroupPopover
         }
         .alert("Delete Group", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) { }
@@ -126,44 +122,40 @@ struct ClipboardHeaderView: View {
     }
 
     // MARK: - 核心组件：混合优先级分组导航栏
-    // 固定"全部" + 横向滚动药丸流 + 固定溢出菜单
+    // 固定"全部" + 横向滚动极简 Tab + 固定溢出菜单
     private var hybridGroupBar: some View {
-        HStack(spacing: 8) {
-            // 1. 固定的"全部"按钮（永远在最左侧）
-            Button(action: {
+        HStack(spacing: 6) {
+            // 1. 左侧固定："全部"按钮
+            MinimalGroupTabButton(
+                title: String(localized: "All"),
+                icon: "tray.2.fill",
+                isSelected: viewModel.selectedGroupId == nil
+            ) {
                 withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                     viewModel.selectedGroupId = nil
                 }
-            }) {
-                HStack(spacing: 5) {
-                    Image(systemName: "tray.2.fill")
-                        .font(.system(size: 13, weight: viewModel.selectedGroupId == nil ? .semibold : .regular))
-                    Text(String(localized: "All"))
-                        .font(.system(size: 13, weight: viewModel.selectedGroupId == nil ? .semibold : .medium))
-                        .fixedSize(horizontal: true, vertical: false)
-                }
-                .foregroundColor(viewModel.selectedGroupId == nil ? .white : .primary)
-                .padding(.horizontal, 10)
-                .padding(.vertical, 6)
-                .background(
-                    Capsule()
-                        .fill(viewModel.selectedGroupId == nil ? Color.accentColor : Color(nsColor: .controlBackgroundColor).opacity(0.6))
-                )
             }
-            .buttonStyle(.plain)
-            .help(String(localized: "All"))
 
-            // 2. 中间：可横向滚动的分组药丸流（支持拖拽目标）
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
+            Divider()
+                .frame(height: 14)
+                .opacity(0.5)
+
+            // 2. 中间滚动区域：用户自定义分组（免 Shift 横向滚动）
+            FreeScrollWheelView {
+                HStack(spacing: 4) {
                     ForEach(viewModel.customGroups) { group in
-                        groupPillButton(group: group)
+                        groupTabButton(group: group)
                     }
                 }
                 .padding(.horizontal, 2)
+                .fixedSize(horizontal: true, vertical: false)
             }
 
-            // 3. 固定的溢出收纳菜单（永远在最右侧）
+            Divider()
+                .frame(height: 14)
+                .opacity(0.5)
+
+            // 3. 右侧固定：极简操作区（溢出菜单）
             Menu {
                 // 列出所有分组，带 ✓ 标记
                 Button(action: { viewModel.selectedGroupId = nil }) {
@@ -202,14 +194,15 @@ struct ClipboardHeaderView: View {
                     Label(String(localized: "New Group…"), systemImage: "plus")
                 }
             } label: {
-                Image(systemName: "ellipsis.circle")
-                    .font(.system(size: 16))
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(.secondary)
-                    .frame(width: 28, height: 28)
+                    .frame(width: 24, height: 24)
                     .contentShape(Rectangle())
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
+            .frame(width: 24)
             .help(String(localized: "All Groups"))
             .popover(isPresented: $isShowingNewGroupPopover, arrowEdge: .bottom) {
                 newGroupPopover
@@ -217,38 +210,25 @@ struct ClipboardHeaderView: View {
         }
     }
 
-    // MARK: - 单个分组药丸按钮（支持拖拽 & 右键管理）
+    // MARK: - 单个分组 Tab 按钮（支持拖拽 & 右键管理）
     @ViewBuilder
-    private func groupPillButton(group: ClipboardGroupItem) -> some View {
+    private func groupTabButton(group: ClipboardGroupItem) -> some View {
         let isSelected = viewModel.selectedGroupId == group.id
         let isDropTarget = targetedGroupId == group.id
 
-        Button(action: {
+        MinimalGroupTabButton(
+            title: group.name,
+            icon: group.systemIconName,
+            isSelected: isSelected || isDropTarget,
+            maxTextWidth: isVerticalLayout ? 60 : 80
+        ) {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 viewModel.selectedGroupId = group.id
             }
-        }) {
-            HStack(spacing: 5) {
-                Image(systemName: group.systemIconName)
-                    .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
-                Text(group.name)
-                    .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
-                    .lineLimit(1)
-                    .truncationMode(.tail)
-                    .frame(maxWidth: isVerticalLayout ? 60 : 80, alignment: .leading)
-            }
-            .foregroundColor((isSelected || isDropTarget) ? .white : .primary)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 6)
-            .background(
-                Capsule()
-                    .fill(pillBackground(selected: isSelected, dropTarget: isDropTarget))
-            )
         }
-        .buttonStyle(.plain)
         .help(group.name)
         .onDrop(
-            of: [.plainText, .data],
+            of: [.item],
             isTargeted: Binding(
                 get: { targetedGroupId == group.id },
                 set: { isTargeted in
@@ -259,7 +239,7 @@ struct ClipboardHeaderView: View {
             )
         ) { providers in
             let customUTI = "com.seedpilot.clipboard.item"
-            if let provider = providers.first(where: { $0.hasItemConformingToTypeIdentifier(customUTI) }) {
+            if let provider = providers.first(where: { $0.registeredTypeIdentifiers.contains(customUTI) }) {
                 provider.loadDataRepresentation(forTypeIdentifier: customUTI) { data, _ in
                     if let data, let idString = String(data: data, encoding: .utf8),
                        let uuid = UUID(uuidString: idString) {
@@ -277,21 +257,15 @@ struct ClipboardHeaderView: View {
         .contextMenu {
             Button {
                 editGroupName = group.name
+                editGroupIcon = group.systemIconName
                 groupToEdit = group
-                showEditAlert = true
+                showEditPopover = true
             } label: { Label("Rename", systemImage: "pencil") }
             Button(role: .destructive) {
                 groupToDelete = group
                 showDeleteAlert = true
             } label: { Label("Delete Group", systemImage: "trash") }
         }
-    }
-
-    // MARK: - 药丸背景色
-    private func pillBackground(selected: Bool, dropTarget: Bool) -> Color {
-        if dropTarget { return Color.accentColor.opacity(0.8) }
-        if selected { return Color.accentColor }
-        return Color(nsColor: .controlBackgroundColor).opacity(0.6)
     }
 
     // MARK: - 固定面板按钮
@@ -471,12 +445,190 @@ struct ClipboardHeaderView: View {
         viewModel.createNewGroup(name: newGroupName, systemIconName: newGroupIcon)
         isShowingNewGroupPopover = false
     }
+
+    // MARK: - 编辑分组弹窗（支持修改名称 + 图标）
+    private var editGroupPopover: some View {
+        VStack(spacing: 12) {
+            Text("Edit Group")
+                .font(.headline)
+
+            HStack(spacing: 10) {
+                // 图标选择按钮
+                Button(action: { showEditIconPicker = true }) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(Color(nsColor: .controlBackgroundColor))
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                    .stroke(Color.secondary.opacity(0.25))
+                            )
+                        Image(systemName: editGroupIcon)
+                            .foregroundColor(.accentColor)
+                            .font(.system(size: 15))
+                    }
+                }
+                .buttonStyle(.plain)
+                .popover(isPresented: $showEditIconPicker) {
+                    GroupIconPicker(selectedIcon: $editGroupIcon)
+                }
+
+                TextField("Group Name", text: $editGroupName)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(width: 150)
+                    .onSubmit { commitEditGroup() }
+            }
+
+            Button("Save") { commitEditGroup() }
+                .buttonStyle(.borderedProminent)
+                .disabled(editGroupName.isEmpty)
+        }
+        .padding(16)
+    }
+
+    private func commitEditGroup() {
+        guard let group = groupToEdit, !editGroupName.isEmpty else { return }
+        if editGroupName != group.name {
+            viewModel.renameGroup(group: group, newName: editGroupName)
+        }
+        // 重新获取更新后的 group（名称可能已改）
+        let updatedGroup = viewModel.customGroups.first(where: { $0.id == group.id }) ?? group
+        if editGroupIcon != updatedGroup.systemIconName {
+            viewModel.updateGroupIcon(group: updatedGroup, newIcon: editGroupIcon)
+        }
+        showEditPopover = false
+    }
 }
 
 #Preview {
     let dummyViewModel = ClipboardViewModel(clipboardMonitor: nil)
     return ClipboardHeaderView(viewModel: dummyViewModel)
         .frame(width: 380)
+}
+
+// MARK: - 极简原生 Tab 按钮子组件
+
+struct MinimalGroupTabButton: View {
+    let title: String
+    let icon: String
+    let isSelected: Bool
+    var maxTextWidth: CGFloat? = nil
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 12, weight: isSelected ? .semibold : .medium))
+                Text(title)
+                    .font(.system(size: 12, weight: isSelected ? .semibold : .medium))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .if(maxTextWidth != nil) { view in
+                        view.frame(maxWidth: maxTextWidth!, alignment: .leading)
+                    }
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(isSelected ? Color.accentColor.opacity(0.15) : (isHovered ? Color.secondary.opacity(0.1) : Color.clear))
+            )
+            .foregroundColor(isSelected ? .accentColor : .primary)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .fixedSize(horizontal: true, vertical: false)
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.1)) {
+                isHovered = hovering
+            }
+        }
+    }
+}
+
+// MARK: - Conditional View Modifier
+
+extension View {
+    @ViewBuilder
+    func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
+        if condition {
+            transform(self)
+        } else {
+            self
+        }
+    }
+}
+
+// MARK: - 免 Shift 横向滚动组件
+
+/// 将垂直滚轮事件重定向为横向滚动的轻量级 NSScrollView 包装器。
+/// 用于分组导航栏等窄小横向滚动区域，让用户无需按住 Shift 即可横向滚动。
+struct FreeScrollWheelView<Content: View>: NSViewRepresentable {
+    let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    func makeNSView(context: Context) -> _FreeScrollNSScrollView {
+        let scrollView = _FreeScrollNSScrollView()
+        scrollView.hasHorizontalScroller = false
+        scrollView.hasVerticalScroller = false
+        scrollView.drawsBackground = false
+        scrollView.scrollerStyle = .overlay
+
+        let hostingView = NSHostingView(rootView: content)
+        hostingView.translatesAutoresizingMaskIntoConstraints = false
+        scrollView.documentView = hostingView
+
+        // 固定高度跟随容器，宽度自适应内容
+        NSLayoutConstraint.activate([
+            hostingView.topAnchor.constraint(equalTo: scrollView.contentView.topAnchor),
+            hostingView.bottomAnchor.constraint(equalTo: scrollView.contentView.bottomAnchor),
+            hostingView.leadingAnchor.constraint(equalTo: scrollView.contentView.leadingAnchor),
+        ])
+
+        return scrollView
+    }
+
+    func updateNSView(_ nsView: _FreeScrollNSScrollView, context: Context) {
+        if let hostingView = nsView.documentView as? NSHostingView<Content> {
+            hostingView.rootView = content
+        }
+    }
+}
+
+/// 自定义 NSScrollView：拦截垂直滚轮事件，转换为横向滚动。
+final class _FreeScrollNSScrollView: NSScrollView {
+    override func scrollWheel(with event: NSEvent) {
+        let dy = event.scrollingDeltaY
+        let dx = event.scrollingDeltaX
+
+        // 只在垂直分量主导时执行重定向
+        guard abs(dy) > abs(dx), dy != 0 else {
+            super.scrollWheel(with: event)
+            return
+        }
+
+        let multiplier: CGFloat = event.hasPreciseScrollingDeltas ? 1.0 : 10.0
+        let delta = dy * multiplier
+
+        let clipView = self.contentView
+        var origin = clipView.bounds.origin
+        origin.x -= delta
+
+        // Clamp
+        let documentWidth = self.documentView?.frame.width ?? 0
+        let visibleWidth = clipView.bounds.width
+        let maxX = max(0, documentWidth - visibleWidth)
+        origin.x = max(0, min(origin.x, maxX))
+
+        clipView.scroll(to: NSPoint(x: origin.x, y: clipView.bounds.origin.y))
+        reflectScrolledClipView(clipView)
+    }
 }
 
 // MARK: - Window Drag Handle

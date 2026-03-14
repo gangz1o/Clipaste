@@ -224,6 +224,14 @@ final class StorageManager {
     }
 
     nonisolated
+    func updateGroupIcon(id: String, newIcon: String) {
+        let actor = self.storeActor
+        Task.detached(priority: .userInitiated) {
+            await actor.updateGroupIcon(id: id, newIcon: newIcon)
+        }
+    }
+
+    nonisolated
     func deleteGroup(id: String) {
         let actor = self.storeActor
         Task.detached(priority: .userInitiated) {
@@ -541,6 +549,17 @@ actor ClipboardStoreActor {
             group.name = newName
             try? modelContext.save()
             print("[ClipboardStoreActor] Group renamed: \(newName)")
+        }
+    }
+
+    func updateGroupIcon(id: String, newIcon: String) {
+        let descriptor = FetchDescriptor<ClipboardGroupModel>(
+            predicate: #Predicate { $0.id == id }
+        )
+        if let group = try? modelContext.fetch(descriptor).first {
+            group.systemIconName = newIcon
+            try? modelContext.save()
+            print("[ClipboardStoreActor] Group icon updated: \(newIcon)")
         }
     }
 

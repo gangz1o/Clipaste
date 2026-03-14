@@ -131,8 +131,11 @@ struct ClipboardMainView: View {
                     viewModel.toggleQuickLook()
                     return nil
                 }
-                // ⚠️ 搜索框正在输入时，回车放行（如确认输入法候选词）
-                if isSearchFocused {
+                // ⚠️ 核心修复：检查当前第一响应者是否为文本输入控件
+                // SwiftUI TextField 底层是 NSTextView，弹窗中的 TextField 也一样
+                // 如果用户正在任何输入框中打字，回车必须放行给 .onSubmit 处理
+                if let firstResponder = NSApp.keyWindow?.firstResponder,
+                   firstResponder is NSTextView || firstResponder is NSTextField {
                     return event
                 }
                 if let hid = viewModel.highlightedItemId,

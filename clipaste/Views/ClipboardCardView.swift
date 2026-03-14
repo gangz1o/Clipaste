@@ -59,10 +59,14 @@ struct ClipboardCardView: View {
 
                     Spacer(minLength: 4)
 
-                    // 链接角标
+                    // 类型角标
                     if item.isFastLink {
                         Image(systemName: "link")
                             .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(.secondary)
+                    } else if item.contentType == .fileURL {
+                        Image(systemName: "doc.fill")
+                            .font(.caption2)
                             .foregroundColor(.secondary)
                     } else if item.contentType == .image {
                         Image(systemName: "photo")
@@ -143,7 +147,35 @@ struct ClipboardCardView: View {
 
     @ViewBuilder
     private var contentBody: some View {
-        if item.contentType == .image {
+        if item.contentType == .fileURL, let filePath = item.fileURL {
+            // ── 文件类型：系统原生图标 + 文件名 + 路径 ──────────────────
+            let resolvedPath: String = {
+                if let url = URL(string: filePath), url.isFileURL {
+                    return url.path
+                }
+                return filePath
+            }()
+            VStack(spacing: 8) {
+                Image(nsImage: NSWorkspace.shared.icon(forFile: resolvedPath))
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 64, height: 64)
+                VStack(spacing: 2) {
+                    Text((resolvedPath as NSString).lastPathComponent)
+                        .font(.system(size: 12, weight: .medium))
+                        .lineLimit(2)
+                        .truncationMode(.middle)
+                        .multilineTextAlignment(.center)
+                    Text(resolvedPath)
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                        .truncationMode(.middle)
+                        .multilineTextAlignment(.center)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if item.contentType == .image {
             // ── 图片：等比例完整显示，绝不裁切原图 ──────────────────────
             if let url = item.thumbnailURL {
                 AsyncImage(url: url) { phase in

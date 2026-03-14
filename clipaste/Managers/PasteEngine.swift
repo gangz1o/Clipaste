@@ -1,6 +1,7 @@
 import AppKit
 import ApplicationServices
 import Foundation
+import UniformTypeIdentifiers
 
 @MainActor
 final class PasteEngine {
@@ -103,6 +104,43 @@ final class PasteEngine {
         }
 
         return .tiff
+    }
+
+    /// 将图片格式转换后写入系统剪贴板（PNG / TIFF / JPG）
+    func convertImageAndCopyToClipboard(item: ClipboardItem, targetFormat: String) {
+        guard item.contentType == .image,
+              let url = item.originalImageURL ?? item.thumbnailURL,
+              let originalImage = NSImage(contentsOf: url) else { return }
+
+        let pb = NSPasteboard.general
+
+        guard let tiffRepresentation = originalImage.tiffRepresentation,
+              let bitmapImageRep = NSBitmapImageRep(data: tiffRepresentation) else { return }
+
+        let convertedData: Data?
+        let pbType: NSPasteboard.PasteboardType
+
+        switch targetFormat {
+        case "PNG":
+            convertedData = bitmapImageRep.representation(using: .png, properties: [:])
+            pbType = .png
+        case "TIFF":
+            convertedData = tiffRepresentation
+            pbType = .tiff
+        case "JPG":
+            convertedData = bitmapImageRep.representation(using: .jpeg, properties: [.compressionFactor: 0.8])
+            pbType = NSPasteboard.PasteboardType("public.jpeg")
+        default:
+            convertedData = bitmapImageRep.representation(using: .png, properties: [:])
+            pbType = .png
+        }
+
+        guard let finalData = convertedData else { return }
+
+        ClipboardMonitor.shared.isIgnoredNextChange = true
+        pb.clearContents()
+        pb.setData(finalData, forType: pbType)
+        NSSound(named: "Pop")?.play()
     }
 }
 

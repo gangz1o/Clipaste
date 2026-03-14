@@ -71,12 +71,17 @@ final class ClipboardPanel: NSPanel {
         return true
     }
 
-    /// BFS through the content view hierarchy to find the main content NSScrollView.
-    /// Skips small scroll views (e.g., header group pill bar) to avoid intercepting
-    /// scroll events meant for the main horizontal list.
+    /// BFS through the content view hierarchy to find the main **horizontally scrollable**
+    /// NSScrollView. Validates that the document view is actually wider than the clip view
+    /// (i.e. genuinely horizontally scrollable), preventing false matches from SwiftUI
+    /// internal scroll views used by sheets, forms, popovers, etc.
     private func findHorizontalScrollView() -> NSScrollView? {
+        // Validate cache: must still belong to this window AND be genuinely horizontally scrollable
         if let sv = cachedScrollView, sv.window === self,
-           sv.frame.width > 200 { return sv }
+           sv.frame.width > 200,
+           isHorizontallyScrollable(sv) {
+            return sv
+        }
 
         cachedScrollView = nil
         guard let root = contentView else { return nil }
@@ -84,13 +89,19 @@ final class ClipboardPanel: NSPanel {
         while !queue.isEmpty {
             let view = queue.removeFirst()
             if let sv = view as? NSScrollView,
-               sv.frame.width > 200 {
-                // Only cache the main content scroll view (wide enough to be the list)
+               sv.frame.width > 200,
+               isHorizontallyScrollable(sv) {
                 cachedScrollView = sv
                 return sv
             }
             queue.append(contentsOf: view.subviews)
         }
         return nil
+    }
+
+    /// A scroll view is "horizontally scrollable" when its document is wider than the visible clip.
+    private func isHorizontallyScrollable(_ sv: NSScrollView) -> Bool {
+        guard let documentWidth = sv.documentView?.frame.width else { return false }
+        return documentWidth > sv.contentView.bounds.width + 1 // +1 for floating-point tolerance
     }
 }
