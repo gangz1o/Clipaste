@@ -2,6 +2,11 @@ import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
+enum ClipboardDragType {
+    static let item = "com.seedpilot.clipboard.item"
+    static let group = "com.seedpilot.clipboard.group"
+}
+
 extension ClipboardItem {
     var universalDragProvider: NSItemProvider {
         let provider: NSItemProvider
@@ -22,9 +27,11 @@ extension ClipboardItem {
         // ==========================================
         // 2. 图片
         // ==========================================
-        } else if contentType == .image, let imageFileURL = originalImageURL ?? thumbnailURL {
-            provider = NSItemProvider(object: imageFileURL as NSURL)
-            if let image = NSImage(contentsOf: imageFileURL) {
+        } else if contentType == .image,
+                  let dragImageURL = preferredInternalDragImageURL {
+            provider = NSItemProvider(object: dragImageURL as NSURL)
+            if let imageData = try? Data(contentsOf: dragImageURL),
+               let image = NSImage(data: imageData) {
                 provider.registerObject(image, visibility: .all)
             }
 
@@ -50,7 +57,7 @@ extension ClipboardItem {
         // 5. 内部识别码（用于分组拖拽）
         // ==========================================
         provider.registerDataRepresentation(
-            forTypeIdentifier: "com.seedpilot.clipboard.item",
+            forTypeIdentifier: ClipboardDragType.item,
             visibility: .all
         ) { [id] completion in
             completion(id.uuidString.data(using: .utf8), nil)
@@ -58,5 +65,18 @@ extension ClipboardItem {
         }
 
         return provider
+    }
+
+    private var preferredInternalDragImageURL: URL? {
+        if let thumbnailURL {
+            return thumbnailURL
+        }
+
+        if let originalImageURL,
+           originalImageURL.pathExtension.caseInsensitiveCompare("data") != .orderedSame {
+            return originalImageURL
+        }
+
+        return originalImageURL
     }
 }

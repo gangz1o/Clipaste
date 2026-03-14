@@ -10,12 +10,14 @@ class ClipboardViewModel: ObservableObject {
     @Published var highlightedItemId: UUID? = nil
     @Published var quickLookItem: ClipboardItem? = nil  // 空格键预览
     @Published var sharingItem: ClipboardItem? = nil     // 右键分享错点
+    @Published var draggedItemId: UUID? = nil
     // 旧分组（横版 UI 使用的固定分组，保留兼容）
     @Published var groups: [ClipboardGroup] = []
     @Published var selectedGroupID: UUID? = nil
     // 新自定义分组
     @Published var customGroups: [ClipboardGroupItem] = []
     @Published var selectedGroupId: String? = nil
+    @Published var draggedGroup: ClipboardGroupItem? = nil
 
     private let clipboardMonitor: ClipboardMonitor
     private var cancellables: Set<AnyCancellable> = []
@@ -78,7 +80,7 @@ class ClipboardViewModel: ObservableObject {
 
             // 1. 分组过滤
             if let gid = groupId {
-                result = result.filter { $0.groupId == gid }
+                result = result.filter { $0.groupIDs.contains(gid) }
             }
 
             // 2. 关键字过滤（使用 range(of:options:) 底层高效匹配）
@@ -189,6 +191,25 @@ class ClipboardViewModel: ObservableObject {
         customGroups = StorageManager.shared.fetchAllGroups()
     }
 
+    func moveGroup(from sourceId: String, relativeTo destinationId: String, insertAfter: Bool) {
+        guard sourceId != destinationId,
+              let sourceIndex = customGroups.firstIndex(where: { $0.id == sourceId }),
+              customGroups.contains(where: { $0.id == destinationId }) else { return }
+
+        let draggedGroup = customGroups.remove(at: sourceIndex)
+        guard let destinationIndex = customGroups.firstIndex(where: { $0.id == destinationId }) else {
+            customGroups.insert(draggedGroup, at: min(sourceIndex, customGroups.count))
+            return
+        }
+
+        let insertionIndex = insertAfter ? destinationIndex + 1 : destinationIndex
+        customGroups.insert(draggedGroup, at: min(max(insertionIndex, 0), customGroups.count))
+    }
+
+    func saveGroupOrder() {
+        StorageManager.shared.updateGroupOrder(groupIDs: customGroups.map(\.id))
+    }
+
     func createNewGroup(name: String, systemIconName: String = "folder") {
         StorageManager.shared.createGroup(name: name, systemIconName: systemIconName)
         // 延迟一帧后刷新，等 Actor 写完
@@ -199,11 +220,13 @@ class ClipboardViewModel: ObservableObject {
     }
 
     func assignItemToGroup(item: ClipboardItem, group: ClipboardGroupItem) {
-        // 乐观 UI：直接更新内存中的 groupId
+        // 乐观 UI：直接追加分组关系
         if let index = items.firstIndex(where: { $0.id == item.id }) {
-            items[index].groupId = group.id
+            if items[index].groupIDs.contains(group.id) == false {
+                items[index].groupIDs.append(group.id)
+            }
         }
-        // 后台持久化
+
         StorageManager.shared.assignToGroup(hash: item.contentHash, groupId: group.id)
     }
 
@@ -226,13 +249,16 @@ class ClipboardViewModel: ObservableObject {
         if selectedGroupId == group.id {
             selectedGroupId = nil
         }
+        if draggedGroup?.id == group.id {
+            draggedGroup = nil
+        }
         withAnimation {
             // 2. 从顶部导航中移除分组
             customGroups.removeAll(where: { $0.id == group.id })
-            // 3. 乐观解绑：内存中属于该分组的记录回到"全部"（防 UI 状态错乱）
+            // 3. 乐观解绑：仅移除这个分组，不影响其他分组关系
             for i in 0..<items.count {
-                if items[i].groupId == group.id {
-                    items[i].groupId = nil
+                if items[i].groupIDs.contains(group.id) {
+                    items[i].groupIDs.removeAll(where: { $0 == group.id })
                 }
             }
         }
@@ -328,7 +354,41 @@ class ClipboardViewModel: ObservableObject {
     }
 
     func editItemContent(item: ClipboardItem) {
-        print("执行：编辑内容 - \(item.id)")
+        // 唤起独立的原生编辑窗口
+        EditWindowManager.shared.openEditor(for: item, viewModel: self)
+    }
+
+    /// 保存编辑后的文本（由 StandaloneEditView 调用）
+    func saveEditedItem(_ item: ClipboardItem, newText: String) {
+        // 1. 乐观 UI：立即更新内存中的 items
+        if let idx = items.firstIndex(where: { $0.id == item.id }) {
+            // 重新构建 ClipboardItem（因为部分属性是 let 常量）
+            items[idx] = ClipboardItem(
+                id: item.id,
+                contentType: item.contentType,
+                contentHash: item.contentHash,
+                textPreview: newText,
+                searchableText: newText,
+                sourceBundleIdentifier: item.sourceBundleIdentifier,
+                appName: item.appName,
+                appIcon: item.appIcon,
+                appIconName: item.appIconName,
+                timestamp: item.timestamp,
+                rawText: newText,
+                imagePath: item.imagePath,
+                thumbnailURL: item.thumbnailURL,
+                originalImageURL: item.originalImageURL,
+                fileURL: item.fileURL,
+                groupId: item.groupId,
+                groupIDs: item.groupIDs,
+                linkTitle: item.linkTitle,
+                linkIconData: item.linkIconData,
+                isPinned: item.isPinned
+            )
+        }
+
+        // 2. 持久化到数据库
+        StorageManager.shared.updateRecordText(hash: item.contentHash, newText: newText)
     }
 
     func renameItem(item: ClipboardItem) {

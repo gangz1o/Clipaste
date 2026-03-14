@@ -1,4 +1,6 @@
 import Foundation
+import ImageIO
+import UniformTypeIdentifiers
 
 final class LocalFileManager: @unchecked Sendable {
     nonisolated static let shared = LocalFileManager()
@@ -37,7 +39,7 @@ final class LocalFileManager: @unchecked Sendable {
 
         return try await Task.detached(priority: .userInitiated) {
             let fileManager = FileManager.default
-            let originalFileName = "\(hash).data"
+            let originalFileName = Self.originalImageFileName(for: data, hash: hash)
             let thumbnailFileName = "\(hash)_thumb.png"
             let originalURL = originalsDirectory.appendingPathComponent(originalFileName)
             let thumbnailURL = thumbnailsDirectory.appendingPathComponent(thumbnailFileName)
@@ -81,6 +83,18 @@ final class LocalFileManager: @unchecked Sendable {
         return try await Task.detached(priority: .userInitiated) {
             try Data(contentsOf: fileURL)
         }.value
+    }
+
+    nonisolated
+    private static func originalImageFileName(for data: Data, hash: String) -> String {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let typeIdentifier = CGImageSourceGetType(source) as String?,
+              let utType = UTType(typeIdentifier),
+              let ext = utType.preferredFilenameExtension else {
+            return "\(hash).png"
+        }
+
+        return "\(hash).\(ext)"
     }
 }
 

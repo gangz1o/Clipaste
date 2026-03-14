@@ -32,7 +32,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
     let thumbnailURL: URL?
     let originalImageURL: URL?  // QuickLook 高清预览：指向 Originals/ 下的全尺寸原图
     let fileURL: String?
-    var groupId: String? // 所属分组 ID，nil 表示未分组
+    var groupIDs: [String] // 所属分组 ID 集合
     var linkTitle: String?     // 链接预览：网页标题（LinkPresentation 抓取）
     var linkIconData: Data?    // 链接预览：网站图标数据
     var isPinned: Bool         // 固定状态
@@ -59,10 +59,13 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         originalImageURL: URL? = nil,
         fileURL: String? = nil,
         groupId: String? = nil,
+        groupIDs: [String] = [],
         linkTitle: String? = nil,
         linkIconData: Data? = nil,
         isPinned: Bool = false
     ) {
+        let normalizedGroupIDs = ClipboardItem.normalizedGroupIDs(primaryGroupID: groupId, groupIDs: groupIDs)
+
         self.id = id
         self.contentType = contentType
         self.contentHash = contentHash
@@ -78,7 +81,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         self.thumbnailURL = thumbnailURL
         self.originalImageURL = originalImageURL
         self.fileURL = fileURL
-        self.groupId = groupId
+        self.groupIDs = normalizedGroupIDs
         self.linkTitle = linkTitle
         self.linkIconData = linkIconData
         self.isPinned = isPinned
@@ -121,7 +124,7 @@ extension ClipboardItem {
         lhs.imagePath == rhs.imagePath &&
         lhs.thumbnailURL == rhs.thumbnailURL &&
         lhs.fileURL == rhs.fileURL &&
-        lhs.groupId == rhs.groupId &&
+        lhs.groupIDs == rhs.groupIDs &&
         lhs.linkTitle == rhs.linkTitle &&
         lhs.linkIconData == rhs.linkIconData &&
         lhs.isPinned == rhs.isPinned
@@ -141,10 +144,30 @@ extension ClipboardItem {
         hasher.combine(imagePath)
         hasher.combine(thumbnailURL)
         hasher.combine(fileURL)
-        hasher.combine(groupId)
+        hasher.combine(groupIDs)
         hasher.combine(linkTitle)
         hasher.combine(linkIconData)
         hasher.combine(isPinned)
+    }
+}
+
+extension ClipboardItem {
+    var groupId: String? {
+        groupIDs.first
+    }
+
+    private static func normalizedGroupIDs(primaryGroupID: String?, groupIDs: [String]) -> [String] {
+        var result: [String] = []
+
+        if let primaryGroupID, !primaryGroupID.isEmpty {
+            result.append(primaryGroupID)
+        }
+
+        for id in groupIDs where !id.isEmpty && result.contains(id) == false {
+            result.append(id)
+        }
+
+        return result
     }
 }
 

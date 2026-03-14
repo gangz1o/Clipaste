@@ -190,7 +190,8 @@ struct ClipboardVerticalItemView: View {
             }
         }
         .onDrag {
-            item.universalDragProvider
+            viewModel.draggedItemId = item.id
+            return item.universalDragProvider
         } preview: {
             ClipboardDragPreview(item: item)
         }

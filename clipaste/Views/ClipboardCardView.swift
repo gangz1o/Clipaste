@@ -136,7 +136,8 @@ struct ClipboardCardView: View {
         .modifier(OptionalShareModifier(item: item, viewModel: viewModel))
         .clipboardContextMenu(for: item, viewModel: viewModel)
         .onDrag {
-            item.universalDragProvider
+            viewModel?.draggedItemId = item.id
+            return item.universalDragProvider
         } preview: {
             ClipboardDragPreview(item: item)
         }

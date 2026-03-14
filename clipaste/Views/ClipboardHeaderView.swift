@@ -14,6 +14,8 @@ struct ClipboardHeaderView: View {
     @State private var newGroupIcon = "folder"
     @State private var showIconPicker = false
     @State private var targetedGroupId: String? = nil
+    @State private var groupTabFrames: [String: CGRect] = [:]
+    @State private var reorderTarget: GroupReorderTarget? = nil
 
     // MARK: - 重命名 / 删除分组弹窗控制
     @State private var groupToEdit: ClipboardGroupItem? = nil
@@ -149,6 +151,19 @@ struct ClipboardHeaderView: View {
                 }
                 .padding(.horizontal, 2)
                 .fixedSize(horizontal: true, vertical: false)
+                .coordinateSpace(name: GroupBarDropSpace.name)
+                .onPreferenceChange(GroupTabFramePreferenceKey.self) { frames in
+                    groupTabFrames = frames
+                }
+                .onDrop(
+                    of: [ClipboardDragType.group],
+                    delegate: GroupBarDropDelegate(
+                        orderedGroupIDs: viewModel.customGroups.map(\.id),
+                        groupFrames: groupTabFrames,
+                        reorderTarget: $reorderTarget,
+                        viewModel: viewModel
+                    )
+                )
             }
 
             Divider()
@@ -215,6 +230,7 @@ struct ClipboardHeaderView: View {
     private func groupTabButton(group: ClipboardGroupItem) -> some View {
         let isSelected = viewModel.selectedGroupId == group.id
         let isDropTarget = targetedGroupId == group.id
+        let insertionEdge = reorderTarget?.groupID == group.id ? reorderTarget?.edge : nil
 
         MinimalGroupTabButton(
             title: group.name,
@@ -227,8 +243,46 @@ struct ClipboardHeaderView: View {
             }
         }
         .help(group.name)
+        .background(
+            GeometryReader { proxy in
+                Color.clear
+                    .preference(
+                        key: GroupTabFramePreferenceKey.self,
+                        value: [group.id: proxy.frame(in: .named(GroupBarDropSpace.name))]
+                    )
+            }
+        )
+        .overlay(alignment: .leading) {
+            if insertionEdge == .leading {
+                groupInsertionIndicator
+                    .offset(x: -4)
+            }
+        }
+        .overlay(alignment: .trailing) {
+            if insertionEdge == .trailing {
+                groupInsertionIndicator
+                    .offset(x: 4)
+            }
+        }
+        .onDrag {
+            reorderTarget = nil
+            viewModel.draggedGroup = group
+            let provider = NSItemProvider(object: group.id as NSString)
+            provider.registerDataRepresentation(
+                forTypeIdentifier: ClipboardDragType.group,
+                visibility: .all
+            ) { completion in
+                completion(group.id.data(using: .utf8), nil)
+                return nil
+            }
+            return provider
+        }
         .onDrop(
-            of: [.item],
+            of: [
+                ClipboardDragType.item,
+                UTType.image.identifier,
+                UTType.fileURL.identifier
+            ],
             isTargeted: Binding(
                 get: { targetedGroupId == group.id },
                 set: { isTargeted in
@@ -238,14 +292,21 @@ struct ClipboardHeaderView: View {
                 }
             )
         ) { providers in
-            let customUTI = "com.seedpilot.clipboard.item"
-            if let provider = providers.first(where: { $0.registeredTypeIdentifiers.contains(customUTI) }) {
-                provider.loadDataRepresentation(forTypeIdentifier: customUTI) { data, _ in
+            if let draggedItemId = viewModel.draggedItemId,
+               let draggedItem = viewModel.items.first(where: { $0.id == draggedItemId }) {
+                viewModel.assignItemToGroup(item: draggedItem, group: group)
+                viewModel.draggedItemId = nil
+                return true
+            }
+
+            if let provider = providers.first(where: { $0.hasItemConformingToTypeIdentifier(ClipboardDragType.item) }) {
+                provider.loadDataRepresentation(forTypeIdentifier: ClipboardDragType.item) { data, _ in
                     if let data, let idString = String(data: data, encoding: .utf8),
                        let uuid = UUID(uuidString: idString) {
                         DispatchQueue.main.async {
                             if let draggedItem = viewModel.items.first(where: { $0.id == uuid }) {
                                 viewModel.assignItemToGroup(item: draggedItem, group: group)
+                                viewModel.draggedItemId = nil
                             }
                         }
                     }
@@ -266,6 +327,14 @@ struct ClipboardHeaderView: View {
                 showDeleteAlert = true
             } label: { Label("Delete Group", systemImage: "trash") }
         }
+    }
+
+    private var groupInsertionIndicator: some View {
+        Capsule(style: .continuous)
+            .fill(Color.accentColor)
+            .frame(width: 3, height: 22)
+            .shadow(color: Color.accentColor.opacity(0.35), radius: 4, y: 1)
+            .allowsHitTesting(false)
     }
 
     // MARK: - 固定面板按钮
@@ -518,6 +587,14 @@ struct MinimalGroupTabButton: View {
 
     @State private var isHovered = false
 
+    private var foregroundTint: Color {
+        if isSelected {
+            return .accentColor
+        }
+
+        return Color.primary.opacity(isHovered ? 0.74 : 0.66)
+    }
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 4) {
@@ -537,7 +614,7 @@ struct MinimalGroupTabButton: View {
                 RoundedRectangle(cornerRadius: 6)
                     .fill(isSelected ? Color.accentColor.opacity(0.15) : (isHovered ? Color.secondary.opacity(0.1) : Color.clear))
             )
-            .foregroundColor(isSelected ? .accentColor : .primary)
+            .foregroundColor(foregroundTint)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -609,7 +686,11 @@ final class _FreeScrollNSScrollView: NSScrollView {
     override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         // 注册内部拖拽类型，确保 NSScrollView 不会吞掉拖拽事件
-        registerForDraggedTypes([.init("com.seedpilot.clipboard.item")])
+        registerForDraggedTypes([
+            .init(ClipboardDragType.item),
+            .init(ClipboardDragType.group),
+            .string
+        ])
     }
 
     // MARK: - 拖拽透传：全部转发给 documentView (SwiftUI HostingView)
@@ -625,8 +706,16 @@ final class _FreeScrollNSScrollView: NSScrollView {
         documentView?.draggingExited(sender)
     }
 
+    override func prepareForDragOperation(_ sender: any NSDraggingInfo) -> Bool {
+        return documentView?.prepareForDragOperation(sender) ?? super.prepareForDragOperation(sender)
+    }
+
     override func performDragOperation(_ sender: any NSDraggingInfo) -> Bool {
         return documentView?.performDragOperation(sender) ?? false
+    }
+
+    override func concludeDragOperation(_ sender: (any NSDraggingInfo)?) {
+        documentView?.concludeDragOperation(sender)
     }
 
     // MARK: - 滚轮重定向
@@ -655,6 +744,109 @@ final class _FreeScrollNSScrollView: NSScrollView {
 
         clipView.scroll(to: NSPoint(x: origin.x, y: clipView.bounds.origin.y))
         reflectScrolledClipView(clipView)
+    }
+}
+
+private enum GroupInsertEdge {
+    case leading
+    case trailing
+}
+
+private struct GroupReorderTarget: Equatable {
+    let groupID: String
+    let edge: GroupInsertEdge
+}
+
+private enum GroupBarDropSpace {
+    static let name = "ClipboardHeader.GroupBarDropSpace"
+}
+
+private struct GroupTabFramePreferenceKey: PreferenceKey {
+    static var defaultValue: [String: CGRect] = [:]
+
+    static func reduce(value: inout [String: CGRect], nextValue: () -> [String: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
+    }
+}
+
+private struct GroupBarDropDelegate: DropDelegate {
+    let orderedGroupIDs: [String]
+    let groupFrames: [String: CGRect]
+    @Binding var reorderTarget: GroupReorderTarget?
+    let viewModel: ClipboardViewModel
+
+    func validateDrop(info: DropInfo) -> Bool {
+        info.hasItemsConforming(to: [ClipboardDragType.group])
+    }
+
+    func dropEntered(info: DropInfo) {
+        updateReorderPosition(info: info)
+    }
+
+    func dropUpdated(info: DropInfo) -> DropProposal? {
+        updateReorderPosition(info: info)
+        return DropProposal(operation: .move)
+    }
+
+    func dropExited(info: DropInfo) {
+        guard reorderTarget != nil else { return }
+        withAnimation(.easeInOut(duration: 0.12)) {
+            reorderTarget = nil
+        }
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        withAnimation(.easeInOut(duration: 0.12)) {
+            reorderTarget = nil
+        }
+        viewModel.draggedGroup = nil
+        viewModel.saveGroupOrder()
+        return true
+    }
+
+    private func updateReorderPosition(info: DropInfo) {
+        guard let draggedGroup = viewModel.draggedGroup,
+              let nextTarget = resolvedReorderTarget(at: info.location),
+              draggedGroup.id != nextTarget.groupID else { return }
+
+        if reorderTarget != nextTarget {
+            withAnimation(.easeInOut(duration: 0.12)) {
+                reorderTarget = nextTarget
+            }
+        }
+
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            viewModel.moveGroup(
+                from: draggedGroup.id,
+                relativeTo: nextTarget.groupID,
+                insertAfter: nextTarget.edge == .trailing
+            )
+        }
+    }
+
+    private func resolvedReorderTarget(at location: CGPoint) -> GroupReorderTarget? {
+        guard let first = orderedFrames.first,
+              let last = orderedFrames.last else { return nil }
+
+        if location.x <= first.frame.midX {
+            return GroupReorderTarget(groupID: first.id, edge: .leading)
+        }
+
+        for entry in orderedFrames {
+            if location.x <= entry.frame.maxX {
+                let edge: GroupInsertEdge = location.x <= entry.frame.midX ? .leading : .trailing
+                return GroupReorderTarget(groupID: entry.id, edge: edge)
+            }
+        }
+
+        return GroupReorderTarget(groupID: last.id, edge: .trailing)
+    }
+
+    private var orderedFrames: [(id: String, frame: CGRect)] {
+        orderedGroupIDs.compactMap { id in
+            guard let frame = groupFrames[id] else { return nil }
+            return (id, frame)
+        }
     }
 }
 

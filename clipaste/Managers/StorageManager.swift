@@ -12,9 +12,43 @@ private struct ClipboardRecordSnapshot: Sendable {
     let originalFilePath: String?
     let typeRawValue: String
     let groupId: String?
+    let groupIdsRaw: String?
     let linkTitle: String?
     let linkIconData: Data?
     let isPinned: Bool
+}
+
+nonisolated private func normalizedGroupIDs(primaryGroupID: String?, groupIdsRaw: String?) -> [String] {
+    var result: [String] = []
+
+    if let primaryGroupID, !primaryGroupID.isEmpty {
+        result.append(primaryGroupID)
+    }
+
+    if let groupIdsRaw,
+       let data = groupIdsRaw.data(using: .utf8),
+       let decoded = try? JSONDecoder().decode([String].self, from: data) {
+        for id in decoded where !id.isEmpty && result.contains(id) == false {
+            result.append(id)
+        }
+    }
+
+    return result
+}
+
+nonisolated private func encodedGroupIDs(_ groupIDs: [String]) -> String? {
+    let cleaned = groupIDs.reduce(into: [String]()) { result, id in
+        guard !id.isEmpty, result.contains(id) == false else { return }
+        result.append(id)
+    }
+
+    guard !cleaned.isEmpty,
+          let data = try? JSONEncoder().encode(cleaned),
+          let raw = String(data: data, encoding: .utf8) else {
+        return nil
+    }
+
+    return raw
 }
 
 @ModelActor
@@ -52,6 +86,7 @@ actor ClipboardSearcher {
                 originalFilePath: record.originalFilePath,
                 typeRawValue: record.typeRawValue,
                 groupId: record.groupId,
+                groupIdsRaw: record.groupIdsRaw,
                 linkTitle: record.linkTitle,
                 linkIconData: record.linkIconData,
                 isPinned: record.isPinned
@@ -239,10 +274,27 @@ final class StorageManager {
         }
     }
 
+    nonisolated
+    func updateGroupOrder(groupIDs: [String]) {
+        let actor = self.storeActor
+        Task.detached(priority: .userInitiated) {
+            await actor.updateGroupOrder(groupIDs: groupIDs)
+        }
+    }
+
     /// 将指定记录的时间戳刷新为当前时间，使其在按时间倒序排列时置顶。
     /// 更新完成后会广播 `.clipboardDataDidChange`，ViewModel 的 Combine 订阅会自动触发 UI 刷新。
     func moveItemToTop(id: UUID) async {
         await storeActor.updateItemTimestampToNow(id: id)
+    }
+
+    /// 更新记录的 plainText（编辑保存时调用）
+    nonisolated
+    func updateRecordText(hash: String, newText: String) {
+        let actor = self.storeActor
+        Task.detached(priority: .userInitiated) {
+            await actor.updateRecordText(hash: hash, newText: newText)
+        }
     }
 
     /// 异步读取所有分组（通过 Actor)
@@ -290,6 +342,7 @@ final class StorageManager {
             originalImageURL: type == .image ? LocalFileManager.shared.url(forRelativePath: record.originalFilePath) : nil,
             fileURL: type == .fileURL ? plainText : nil,
             groupId: record.groupId,
+            groupIDs: normalizedGroupIDs(primaryGroupID: record.groupId, groupIdsRaw: record.groupIdsRaw),
             linkTitle: record.linkTitle,
             linkIconData: record.linkIconData,
             isPinned: record.isPinned
@@ -525,7 +578,12 @@ actor ClipboardStoreActor {
         )
         do {
             if let record = try modelContext.fetch(descriptor).first {
-                record.groupId = groupId
+                var groupIDs = normalizedGroupIDs(primaryGroupID: record.groupId, groupIdsRaw: record.groupIdsRaw)
+                if groupIDs.contains(groupId) == false {
+                    groupIDs.append(groupId)
+                }
+                record.groupId = groupIDs.first
+                record.groupIdsRaw = encodedGroupIDs(groupIDs)
                 try modelContext.save()
             }
         } catch {
@@ -564,12 +622,15 @@ actor ClipboardStoreActor {
     }
 
     func deleteGroup(id: String) {
-        // 1. Safely unbind all records in this group (set groupId = nil)
-        let recordDescriptor = FetchDescriptor<ClipboardRecord>(
-            predicate: #Predicate { $0.groupId == id }
-        )
+        let recordDescriptor = FetchDescriptor<ClipboardRecord>()
         if let records = try? modelContext.fetch(recordDescriptor) {
-            for record in records { record.groupId = nil }
+            for record in records {
+                var groupIDs = normalizedGroupIDs(primaryGroupID: record.groupId, groupIdsRaw: record.groupIdsRaw)
+                guard groupIDs.contains(id) else { continue }
+                groupIDs.removeAll(where: { $0 == id })
+                record.groupId = groupIDs.first
+                record.groupIdsRaw = encodedGroupIDs(groupIDs)
+            }
         }
         // 2. Delete the group itself
         let groupDescriptor = FetchDescriptor<ClipboardGroupModel>(
@@ -580,6 +641,33 @@ actor ClipboardStoreActor {
         }
         try? modelContext.save()
         print("[ClipboardStoreActor] Group deleted: \(id)")
+    }
+
+    func updateGroupOrder(groupIDs: [String]) {
+        guard !groupIDs.isEmpty else { return }
+
+        let descriptor = FetchDescriptor<ClipboardGroupModel>()
+
+        do {
+            let groups = try modelContext.fetch(descriptor)
+            let groupsById = Dictionary(uniqueKeysWithValues: groups.map { ($0.id, $0) })
+            let knownIDs = Set(groupIDs)
+            let trailingIDs = groups
+                .filter { knownIDs.contains($0.id) == false }
+                .sorted { $0.createdAt < $1.createdAt }
+                .map(\.id)
+            let orderedIDs = groupIDs + trailingIDs
+            let baseDate = Date()
+
+            for (index, id) in orderedIDs.enumerated() {
+                groupsById[id]?.createdAt = baseDate.addingTimeInterval(Double(index))
+            }
+
+            try modelContext.save()
+            print("[ClipboardStoreActor] Group order updated: \(orderedIDs)")
+        } catch {
+            print("❌ [ClipboardStoreActor] Group reorder failed: \(error)")
+        }
     }
 
     /// 将指定记录的 timestamp 更新为当前时间，并触发 UI 刷新通知。
@@ -616,6 +704,24 @@ actor ClipboardStoreActor {
             }
         } catch {
             print("❌ [ClipboardStoreActor] 固定状态更新失败: \(error)")
+        }
+    }
+
+    /// 更新记录的 plainText 字段（编辑保存时调用）
+    func updateRecordText(hash: String, newText: String) {
+        var descriptor = FetchDescriptor<ClipboardRecord>(
+            predicate: #Predicate<ClipboardRecord> { $0.contentHash == hash }
+        )
+        descriptor.fetchLimit = 1
+        do {
+            if let record = try modelContext.fetch(descriptor).first {
+                record.plainText = newText
+                try modelContext.save()
+                NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+                print("✅ [ClipboardStoreActor] 编辑内容已保存 (hash: \(hash.prefix(8))…)")
+            }
+        } catch {
+            print("❌ [ClipboardStoreActor] 编辑保存失败: \(error)")
         }
     }
 }

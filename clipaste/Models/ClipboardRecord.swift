@@ -13,6 +13,7 @@ final class ClipboardRecord {
     var appBundleID: String?
     var appLocalizedName: String?
     var groupId: String? // 所属分组 ID
+    var groupIdsRaw: String? // 多分组兼容存储(JSON)
     var linkTitle: String?     // 链接预览：网页标题
     var linkIconData: Data?    // 链接预览：网站图标数据
     var isPinned: Bool = false // 固定状态
@@ -28,6 +29,7 @@ final class ClipboardRecord {
         appBundleID: String? = nil,
         appLocalizedName: String? = nil,
         groupId: String? = nil,
+        groupIdsRaw: String? = nil,
         linkTitle: String? = nil,
         linkIconData: Data? = nil,
         isPinned: Bool = false
@@ -42,6 +44,7 @@ final class ClipboardRecord {
         self.appBundleID = appBundleID
         self.appLocalizedName = appLocalizedName
         self.groupId = groupId
+        self.groupIdsRaw = groupIdsRaw
         self.linkTitle = linkTitle
         self.linkIconData = linkIconData
         self.isPinned = isPinned
