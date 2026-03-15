@@ -13,6 +13,35 @@ enum ClipboardContentType: String, Codable {
     case image
     case fileURL
     case color
+    case link      // 智能嗅探：合法 URL
+    case code      // 智能嗅探：代码特征匹配
+
+    /// Filter Bar 显示文本
+    var filterLabel: String {
+        switch self {
+        case .text:    return "文本"
+        case .image:   return "图片"
+        case .fileURL: return "文件"
+        case .color:   return "颜色"
+        case .link:    return "链接"
+        case .code:    return "代码"
+        }
+    }
+
+    /// Filter Bar 图标
+    var systemImage: String {
+        switch self {
+        case .text:    return "doc.text"
+        case .image:   return "photo"
+        case .fileURL: return "doc"
+        case .color:   return "paintpalette"
+        case .link:    return "link"
+        case .code:    return "chevron.left.forwardslash.chevron.right"
+        }
+    }
+
+    /// Filter Bar 可选分类（精简展示，不含 color/fileURL）
+    static let filterCategories: [ClipboardContentType] = [.text, .link, .code, .image]
 }
 
 /// UI-facing DTO used by the ViewModel and SwiftUI views.

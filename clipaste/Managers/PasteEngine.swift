@@ -77,7 +77,7 @@ final class PasteEngine {
         guard let contentType = ClipboardContentType(rawValue: snapshot.typeRawValue) else { return nil }
 
         switch contentType {
-        case .text, .color:
+        case .text, .color, .link, .code:
             guard let plainText = snapshot.plainText, !plainText.isEmpty else { return nil }
             return .text(plainText)
         case .fileURL:

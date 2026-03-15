@@ -7,6 +7,7 @@ class ClipboardViewModel: ObservableObject {
     @Published var filteredItems: [ClipboardItem] = []
     @Published var searchInput: String = ""
     @Published var activeSearchQuery: String = ""
+    @Published var currentFilter: ClipboardContentType? = nil  // 智能分类过滤：nil = 全部
     @Published var highlightedItemId: UUID? = nil
     @Published var quickLookItem: ClipboardItem? = nil  // 空格键预览
     @Published var sharingItem: ClipboardItem? = nil     // 右键分享错点
@@ -51,25 +52,25 @@ class ClipboardViewModel: ObservableObject {
         let debouncedSearch = $searchInput
             .debounce(for: .milliseconds(200), scheduler: DispatchQueue.main)
 
-        // 数据源 / 分组变化：立即响应
-        let dataChanges = Publishers.CombineLatest($items, $selectedGroupId)
+        // 数据源 / 分组 / 智能分类 变化：立即响应
+        let dataChanges = Publishers.CombineLatest3($items, $selectedGroupId, $currentFilter)
 
         Publishers.CombineLatest(debouncedSearch, dataChanges)
-            .sink { [weak self] (query, itemsAndGroup) in
+            .sink { [weak self] (query, triple) in
                 guard let self else { return }
-                let (allItems, groupId) = itemsAndGroup
+                let (allItems, groupId, filter) = triple
                 // ⚠️ 防抖结束后才更新底层查询词，彻底切断输入时的重绘风暴
                 self.activeSearchQuery = query
-                self.performAsyncFilter(query: query, items: allItems, groupId: groupId)
+                self.performAsyncFilter(query: query, items: allItems, groupId: groupId, typeFilter: filter)
             }
             .store(in: &cancellables)
     }
 
-    private func performAsyncFilter(query: String, items: [ClipboardItem], groupId: String?) {
+    private func performAsyncFilter(query: String, items: [ClipboardItem], groupId: String?, typeFilter: ClipboardContentType?) {
         let cleanQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        // 无搜索词且无分组 → 直接还原全部，避免线程切换开销
-        if cleanQuery.isEmpty && groupId == nil {
+        // 无搜索词且无分组且无类型过滤 → 直接还原全部，避免线程切换开销
+        if cleanQuery.isEmpty && groupId == nil && typeFilter == nil {
             self.filteredItems = items
             return
         }
@@ -77,6 +78,11 @@ class ClipboardViewModel: ObservableObject {
         // ⚠️ 丢入后台线程，绝不允许在主线程遍历几十 MB 文本
         DispatchQueue.global(qos: .userInitiated).async {
             var result = items
+
+            // 0. ⚠️ 智能分类过滤（第一道拦截）
+            if let filter = typeFilter {
+                result = result.filter { $0.contentType == filter }
+            }
 
             // 1. 分组过滤
             if let gid = groupId {
@@ -125,6 +131,12 @@ class ClipboardViewModel: ObservableObject {
             let searcher = ClipboardSearcher(modelContainer: container)
             let mappedItems = await searcher.searchAndMap(searchText: "")
             self.items = mappedItems
+
+            // ⚠️ 面板首次打开保险：若无任何筛选条件，直接同步 filteredItems
+            // 避免 Combine 防抖管道 200ms 延迟导致列表短暂显示残缺数据
+            if self.searchInput.isEmpty && self.currentFilter == nil && self.selectedGroupId == nil {
+                self.filteredItems = mappedItems
+            }
 
             if let highlightedItemId = self.highlightedItemId,
                mappedItems.contains(where: { $0.id == highlightedItemId }) == false {

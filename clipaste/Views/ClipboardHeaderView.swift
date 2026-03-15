@@ -123,28 +123,47 @@ struct ClipboardHeaderView: View {
         .padding(.bottom, 4)
     }
 
-    // MARK: - 核心组件：混合优先级分组导航栏
-    // 固定"全部" + 横向滚动极简 Tab + 固定溢出菜单
+    // MARK: - 核心组件：单行融合导航栏
+    // 可滚动区域：[全部][文本][链接][代码][图片] │ [自定义分组…]
+    // 固定区域：溢出菜单 ⋯
     private var hybridGroupBar: some View {
         HStack(spacing: 6) {
-            // 1. 左侧固定："全部"按钮
-            MinimalGroupTabButton(
-                title: String(localized: "All"),
-                icon: "tray.2.fill",
-                isSelected: viewModel.selectedGroupId == nil
-            ) {
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    viewModel.selectedGroupId = nil
-                }
-            }
-
-            Divider()
-                .frame(height: 14)
-                .opacity(0.5)
-
-            // 2. 中间滚动区域：用户自定义分组（免 Shift 横向滚动）
+            // ── 可滚动区域：智能分类 + 自定义分组 ──────────────────
             FreeScrollWheelView {
                 HStack(spacing: 4) {
+                    // 区域 A：智能分类
+                    MinimalGroupTabButton(
+                        title: String(localized: "All"),
+                        icon: "tray.2.fill",
+                        isSelected: viewModel.currentFilter == nil && viewModel.selectedGroupId == nil
+                    ) {
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            viewModel.currentFilter = nil
+                            viewModel.selectedGroupId = nil
+                        }
+                    }
+
+                    ForEach(ClipboardContentType.filterCategories, id: \.self) { type in
+                        MinimalGroupTabButton(
+                            title: type.filterLabel,
+                            icon: type.systemImage,
+                            isSelected: viewModel.currentFilter == type && viewModel.selectedGroupId == nil
+                        ) {
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                viewModel.currentFilter = type
+                                viewModel.selectedGroupId = nil
+                            }
+                        }
+                    }
+
+                    // 分割线
+                    if !viewModel.customGroups.isEmpty {
+                        Divider()
+                            .frame(height: 16)
+                            .opacity(0.5)
+                    }
+
+                    // 区域 B：自定义分组
                     ForEach(viewModel.customGroups) { group in
                         groupTabButton(group: group)
                     }
@@ -170,30 +189,54 @@ struct ClipboardHeaderView: View {
                 .frame(height: 14)
                 .opacity(0.5)
 
-            // 3. 右侧固定：极简操作区（溢出菜单）
+            // ── 固定：溢出菜单 ⋯ ─────────────────────────────────
             Menu {
-                // 列出所有分组，带 ✓ 标记
-                Button(action: { viewModel.selectedGroupId = nil }) {
-                    HStack {
-                        Label(String(localized: "All"), systemImage: "tray.2.fill")
-                        if viewModel.selectedGroupId == nil {
-                            Spacer()
-                            Image(systemName: "checkmark")
+                Section("Smart Filters") {
+                    Button(action: {
+                        viewModel.currentFilter = nil
+                        viewModel.selectedGroupId = nil
+                    }) {
+                        HStack {
+                            Label(String(localized: "All"), systemImage: "tray.2.fill")
+                            if viewModel.currentFilter == nil && viewModel.selectedGroupId == nil {
+                                Spacer()
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+
+                    ForEach(ClipboardContentType.filterCategories, id: \.self) { type in
+                        Button(action: {
+                            viewModel.currentFilter = type
+                            viewModel.selectedGroupId = nil
+                        }) {
+                            HStack {
+                                Label(type.filterLabel, systemImage: type.systemImage)
+                                if viewModel.currentFilter == type && viewModel.selectedGroupId == nil {
+                                    Spacer()
+                                    Image(systemName: "checkmark")
+                                }
+                            }
                         }
                     }
                 }
 
-                if !viewModel.customGroups.isEmpty { Divider() }
-
-                ForEach(viewModel.customGroups) { group in
-                    Button(action: {
-                        withAnimation { viewModel.selectedGroupId = group.id }
-                    }) {
-                        HStack {
-                            Label(group.name, systemImage: group.systemIconName)
-                            if viewModel.selectedGroupId == group.id {
-                                Spacer()
-                                Image(systemName: "checkmark")
+                if !viewModel.customGroups.isEmpty {
+                    Section("Groups") {
+                        ForEach(viewModel.customGroups) { group in
+                            Button(action: {
+                                withAnimation {
+                                    viewModel.selectedGroupId = group.id
+                                    viewModel.currentFilter = nil
+                                }
+                            }) {
+                                HStack {
+                                    Label(group.name, systemImage: group.systemIconName)
+                                    if viewModel.selectedGroupId == group.id {
+                                        Spacer()
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
                             }
                         }
                     }
@@ -240,6 +283,7 @@ struct ClipboardHeaderView: View {
         ) {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 viewModel.selectedGroupId = group.id
+                viewModel.currentFilter = nil   // ⚠️ 全局互斥：切分组，清智能分类
             }
         }
         .help(group.name)

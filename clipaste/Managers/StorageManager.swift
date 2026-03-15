@@ -358,7 +358,7 @@ final class StorageManager {
             appIcon: appIcon,
             appIconName: ClipboardItem.appIconName(for: bundleIdentifier),
             timestamp: timestamp,
-            rawText: type == .text ? plainText : nil,
+            rawText: (type == .text || type == .link || type == .code) ? plainText : nil,
             imagePath: type == .image ? thumbnailPath : nil,
             thumbnailURL: type == .image ? LocalFileManager.shared.url(forRelativePath: thumbnailPath) : nil,
             originalImageURL: type == .image ? LocalFileManager.shared.url(forRelativePath: record.originalFilePath) : nil,
@@ -374,7 +374,7 @@ final class StorageManager {
 
     fileprivate static func makeTextPreview(plainText: String?, type: ClipboardContentType) -> String {
         switch type {
-        case .text:
+        case .text, .link, .code:
             return plainText ?? ""
         case .fileURL:
             guard

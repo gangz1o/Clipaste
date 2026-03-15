@@ -1933,6 +1933,9 @@
         }
       }
     },
+    "Groups" : {
+
+    },
     "Hello, world!" : {
 
     },
@@ -4515,6 +4518,9 @@
           }
         }
       }
+    },
+    "Smart Filters" : {
+
     },
     "Sort & Behavior" : {
       "localizations" : {

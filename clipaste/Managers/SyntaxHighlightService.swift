@@ -11,6 +11,14 @@ import Highlightr
 final class SyntaxHighlightService: @unchecked Sendable {
     static let shared = SyntaxHighlightService()
 
+    /// ⚠️ Smart Sniffer 专用：同步判断文本是否具有代码特征。
+    /// 录入时由 ClipboardMonitor 调用，决定 typeRawValue 的打标。
+    static func looksLikeCode(_ text: String) -> Bool {
+        guard text.count >= 10 else { return false }
+        let codeCharacters = CharacterSet(charactersIn: "{}()=<>:;/$#@\"'[]\\|&!%^*+~`")
+        return text.rangeOfCharacter(from: codeCharacters) != nil
+    }
+
     // 注意：Highlightr 实例的创建开销较大，保持为单例复用
     private let highlightr: Highlightr?
 

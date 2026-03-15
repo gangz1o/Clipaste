@@ -270,6 +270,8 @@ struct ClipboardCardView: View {
         switch item.contentType {
         case .image: return .purple
         case .fileURL: return .orange
+        case .link: return .orange
+        case .code: return .blue
         default:
             if item.isFastLink { return .orange }
             if isCodeContent { return .blue }
