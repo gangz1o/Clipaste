@@ -143,6 +143,19 @@ struct ClipboardHeaderView: View {
                         }
                     }
 
+                    // 区域 A：自定义分组（紧贴"全部"右侧）
+                    ForEach(viewModel.customGroups) { group in
+                        groupTabButton(group: group)
+                    }
+
+                    // 分割线
+                    if !viewModel.customGroups.isEmpty {
+                        Divider()
+                            .frame(height: 16)
+                            .opacity(0.5)
+                    }
+
+                    // 区域 B：智能分类
                     ForEach(ClipboardContentType.filterCategories, id: \.self) { type in
                         MinimalGroupTabButton(
                             title: type.filterLabel,
@@ -154,18 +167,6 @@ struct ClipboardHeaderView: View {
                                 viewModel.selectedGroupId = nil
                             }
                         }
-                    }
-
-                    // 分割线
-                    if !viewModel.customGroups.isEmpty {
-                        Divider()
-                            .frame(height: 16)
-                            .opacity(0.5)
-                    }
-
-                    // 区域 B：自定义分组
-                    ForEach(viewModel.customGroups) { group in
-                        groupTabButton(group: group)
                     }
                 }
                 .padding(.horizontal, 2)

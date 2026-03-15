@@ -8,12 +8,14 @@ final class ClipboardGroupModel {
     var name: String
     var createdAt: Date
     var systemIconName: String
+    var sortOrder: Int
 
-    init(id: String = UUID().uuidString, name: String, systemIconName: String = "folder") {
+    init(id: String = UUID().uuidString, name: String, systemIconName: String = "folder", sortOrder: Int = 0) {
         self.id = id
         self.name = name
         self.createdAt = Date()
         self.systemIconName = systemIconName
+        self.sortOrder = sortOrder
     }
 }
 
@@ -22,4 +24,5 @@ struct ClipboardGroupItem: Identifiable, Hashable, Sendable {
     let id: String
     let name: String
     let systemIconName: String
+    let sortOrder: Int
 }

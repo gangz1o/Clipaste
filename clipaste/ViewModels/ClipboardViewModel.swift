@@ -22,6 +22,7 @@ class ClipboardViewModel: ObservableObject {
 
     private let clipboardMonitor: ClipboardMonitor
     private var cancellables: Set<AnyCancellable> = []
+    private var filterGeneration: UInt = 0
 
     init(clipboardMonitor: ClipboardMonitor? = nil) {
         self.clipboardMonitor = clipboardMonitor ?? ClipboardMonitor.shared
@@ -69,6 +70,10 @@ class ClipboardViewModel: ObservableObject {
     private func performAsyncFilter(query: String, items: [ClipboardItem], groupId: String?, typeFilter: ClipboardContentType?) {
         let cleanQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
 
+        // 每次调用递增代数，用于丢弃过期的异步结果
+        filterGeneration &+= 1
+        let thisGeneration = filterGeneration
+
         // 无搜索词且无分组且无类型过滤 → 直接还原全部，避免线程切换开销
         if cleanQuery.isEmpty && groupId == nil && typeFilter == nil {
             self.filteredItems = items
@@ -104,7 +109,9 @@ class ClipboardViewModel: ObservableObject {
             }
 
             DispatchQueue.main.async { [weak self] in
-                self?.filteredItems = result
+                // 若已有更新的过滤请求，丢弃此次过期结果
+                guard let self, self.filterGeneration == thisGeneration else { return }
+                self.filteredItems = result
             }
         }
     }
@@ -244,14 +251,14 @@ class ClipboardViewModel: ObservableObject {
 
     func renameGroup(group: ClipboardGroupItem, newName: String) {
         if let index = customGroups.firstIndex(where: { $0.id == group.id }) {
-            customGroups[index] = ClipboardGroupItem(id: group.id, name: newName, systemIconName: group.systemIconName)
+            customGroups[index] = ClipboardGroupItem(id: group.id, name: newName, systemIconName: group.systemIconName, sortOrder: group.sortOrder)
         }
         StorageManager.shared.renameGroup(id: group.id, newName: newName)
     }
 
     func updateGroupIcon(group: ClipboardGroupItem, newIcon: String) {
         if let index = customGroups.firstIndex(where: { $0.id == group.id }) {
-            customGroups[index] = ClipboardGroupItem(id: group.id, name: group.name, systemIconName: newIcon)
+            customGroups[index] = ClipboardGroupItem(id: group.id, name: group.name, systemIconName: newIcon, sortOrder: group.sortOrder)
         }
         StorageManager.shared.updateGroupIcon(id: group.id, newIcon: newIcon)
     }

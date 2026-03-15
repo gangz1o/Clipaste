@@ -41,7 +41,7 @@ enum ClipboardContentType: String, Codable {
     }
 
     /// Filter Bar 可选分类（精简展示，不含 color/fileURL）
-    static let filterCategories: [ClipboardContentType] = [.text, .link, .code, .image]
+    static let filterCategories: [ClipboardContentType] = [.text, .link, .image]
 }
 
 /// UI-facing DTO used by the ViewModel and SwiftUI views.

@@ -329,10 +329,10 @@ final class StorageManager {
     func fetchAllGroups() -> [ClipboardGroupItem] {
         let context = container.mainContext
         let descriptor = FetchDescriptor<ClipboardGroupModel>(
-            sortBy: [SortDescriptor(\.createdAt)]
+            sortBy: [SortDescriptor(\.sortOrder, order: .forward)]
         )
         let records = (try? context.fetch(descriptor)) ?? []
-        return records.map { ClipboardGroupItem(id: $0.id, name: $0.name, systemIconName: $0.systemIconName) }
+        return records.map { ClipboardGroupItem(id: $0.id, name: $0.name, systemIconName: $0.systemIconName, sortOrder: $0.sortOrder) }
     }
 
     @MainActor
@@ -598,11 +598,15 @@ actor ClipboardStoreActor {
     // MARK: - 分组 CRUD
 
     func createGroup(name: String, systemIconName: String = "folder") {
-        let newGroup = ClipboardGroupModel(name: name, systemIconName: systemIconName)
+        // 查询当前最小 sortOrder，新分组排在最前面
+        let descriptor = FetchDescriptor<ClipboardGroupModel>()
+        let groups = (try? modelContext.fetch(descriptor)) ?? []
+        let minOrder = groups.map(\.sortOrder).min() ?? 0
+        let newGroup = ClipboardGroupModel(name: name, systemIconName: systemIconName, sortOrder: minOrder - 1)
         modelContext.insert(newGroup)
         do {
             try modelContext.save()
-            print("✅ [ClipboardStoreActor] 分组已创建: \(name)")
+            print("✅ [ClipboardStoreActor] 分组已创建: \(name), sortOrder: \(minOrder - 1)")
         } catch {
             print("❌ [ClipboardStoreActor] 创建分组失败: \(error)")
         }
@@ -629,10 +633,21 @@ actor ClipboardStoreActor {
 
     func fetchAllGroups() -> [ClipboardGroupItem] {
         let descriptor = FetchDescriptor<ClipboardGroupModel>(
-            sortBy: [SortDescriptor(\.createdAt)]
+            sortBy: [SortDescriptor(\.sortOrder, order: .forward)]
         )
-        let groups = (try? modelContext.fetch(descriptor)) ?? []
-        return groups.map { ClipboardGroupItem(id: $0.id, name: $0.name, systemIconName: $0.systemIconName) }
+        var groups = (try? modelContext.fetch(descriptor)) ?? []
+
+        // 历史数据兼容：若所有分组 sortOrder 均为默认值 0，按 createdAt 升序赋值
+        if groups.count > 1 && groups.allSatisfy({ $0.sortOrder == 0 }) {
+            groups.sort { $0.createdAt < $1.createdAt }
+            for (index, group) in groups.enumerated() {
+                group.sortOrder = index
+            }
+            try? modelContext.save()
+            print("✅ [ClipboardStoreActor] 历史分组 sortOrder 已初始化")
+        }
+
+        return groups.map { ClipboardGroupItem(id: $0.id, name: $0.name, systemIconName: $0.systemIconName, sortOrder: $0.sortOrder) }
     }
 
     func updateGroupName(id: String, newName: String) {
@@ -687,20 +702,21 @@ actor ClipboardStoreActor {
         do {
             let groups = try modelContext.fetch(descriptor)
             let groupsById = Dictionary(uniqueKeysWithValues: groups.map { ($0.id, $0) })
-            let knownIDs = Set(groupIDs)
-            let trailingIDs = groups
-                .filter { knownIDs.contains($0.id) == false }
-                .sorted { $0.createdAt < $1.createdAt }
-                .map(\.id)
-            let orderedIDs = groupIDs + trailingIDs
-            let baseDate = Date()
 
-            for (index, id) in orderedIDs.enumerated() {
-                groupsById[id]?.createdAt = baseDate.addingTimeInterval(Double(index))
+            // 按传入的顺序重新赋值 sortOrder
+            for (index, id) in groupIDs.enumerated() {
+                groupsById[id]?.sortOrder = index
+            }
+
+            // 未在列表中的分组排在末尾
+            let knownIDs = Set(groupIDs)
+            let trailing = groups.filter { !knownIDs.contains($0.id) }.sorted { $0.sortOrder < $1.sortOrder }
+            for (offset, group) in trailing.enumerated() {
+                group.sortOrder = groupIDs.count + offset
             }
 
             try modelContext.save()
-            print("[ClipboardStoreActor] Group order updated: \(orderedIDs)")
+            print("[ClipboardStoreActor] Group sortOrder updated: \(groupIDs)")
         } catch {
             print("❌ [ClipboardStoreActor] Group reorder failed: \(error)")
         }
