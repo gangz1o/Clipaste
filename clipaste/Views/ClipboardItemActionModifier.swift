@@ -13,7 +13,15 @@ struct ClipboardItemActionModifier: ViewModifier {
             // Make selection feel instant. Double-click still fires paste, but single-click
             // no longer waits for the double-click recognition window to expire.
             .simultaneousGesture(TapGesture().onEnded {
-                viewModel.userDidSelect(item: item)
+                // ⚠️ macOS 黑魔法：通过 NSEvent.modifierFlags 嗅探当前修饰键
+                let flags = NSEvent.modifierFlags
+                let isCommand = flags.contains(.command)
+                let isShift = flags.contains(.shift)
+                viewModel.handleSelection(
+                    id: item.id,
+                    isCommand: isCommand,
+                    isShift: isShift
+                )
             })
             .simultaneousGesture(TapGesture(count: 2).onEnded {
                 viewModel.pasteToActiveApp(item: item)
@@ -41,7 +49,12 @@ struct ClipboardCardActionModifier: ViewModifier {
             .contentShape(Rectangle())
             .simultaneousGesture(TapGesture().onEnded {
                 if let vm = viewModel {
-                    vm.userDidSelect(item: item)
+                    let flags = NSEvent.modifierFlags
+                    vm.handleSelection(
+                        id: item.id,
+                        isCommand: flags.contains(.command),
+                        isShift: flags.contains(.shift)
+                    )
                 } else {
                     onSelect()
                 }
@@ -55,3 +68,4 @@ struct ClipboardCardActionModifier: ViewModifier {
             })
     }
 }
+

@@ -9,7 +9,7 @@ struct ClipboardCardView: View {
     @State private var isHovered = false
 
     private var isSelected: Bool {
-        viewModel?.highlightedItemId == item.id
+        viewModel?.selectedItemIDs.contains(item.id) ?? false
     }
 
     private var previewText: String {

@@ -8,6 +8,7 @@ struct ClipboardMainView: View {
 
     @State private var localEventMonitor: Any?
     @State private var viewRebuildToken: Bool = false
+    private let searchService = TypeToSearchService()
 
     var body: some View {
         Group {
@@ -43,23 +44,37 @@ struct ClipboardMainView: View {
         .clipShape(RoundedRectangle(cornerRadius: clipboardLayout == .vertical ? 14 : 0))
         .preferredColorScheme(appTheme.colorScheme)
         .edgesIgnoringSafeArea(.all)
-        .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { notification in
-            guard notification.object is ClipboardPanel else { return }
-            focusSearchField()
-        }
         .onChange(of: clipboardLayout) {
-            // 1. 先同步通知 PanelManager 瞬间切至目标尺寸
             NotificationCenter.default.post(
                 name: .clipboardLayoutModeChanged,
                 object: clipboardLayout
             )
-            // 2. 下个 run loop 再切换视图 identity，确保 SwiftUI 在新尺寸下重建
             DispatchQueue.main.async {
                 viewRebuildToken.toggle()
             }
         }
-        .onAppear { setupKeyboardMonitor() }
+        // ── 智能失焦：用户点选卡片后自动将搜索框失焦 ─────────────────
+        .onChange(of: viewModel.selectedItemIDs) { _, newValue in
+            if !newValue.isEmpty {
+                isSearchFocused = false
+            }
+        }
+        // ── 实时同步焦点状态给盲打服务 ─────────────────────────
+        .onChange(of: isSearchFocused) { _, newValue in
+            searchService.isTextFieldFocused = newValue
+        }
+        .onAppear {
+            setupKeyboardMonitor()
+            // 盲打搜索服务挂载（必须在 setupKeyboardMonitor 之后，
+            // 确保快捷键监听器优先拦截特殊按键）
+            searchService.onCapture = { [weak viewModel] char in
+                viewModel?.appendBlindTypedCharacter(char)
+            }
+            searchService.onRequireFocus = { isSearchFocused = true }
+            searchService.start()
+        }
         .onDisappear {
+            searchService.stop()
             if let monitor = localEventMonitor {
                 NSEvent.removeMonitor(monitor)
                 localEventMonitor = nil
@@ -109,19 +124,22 @@ struct ClipboardMainView: View {
                 return nil
             }
 
-            // ── 空格键 (49) ───────────────────────────────────────────────
-            // 规则：有选中项 → 预览优先；否则搜索框正常输入。
+            // ── 空格键 (49) ───────────────────────────────────────────
             if keyCode == 49 {
                 // 输入法候选词未上屏时，绝对放行
                 if let tv = NSApp.keyWindow?.firstResponder as? NSTextView, tv.hasMarkedText() {
                     return event
                 }
-                // 有高亮条目，或正在预览中 → 触发 QuickLook（优先级高于搜索框）
-                if viewModel.highlightedItemId != nil || viewModel.quickLookItem != nil {
+                // 搜索框已聚焦 → 空格正常输入，不劫持为 QuickLook
+                if let responder = NSApp.keyWindow?.firstResponder,
+                   responder is NSTextView || responder is NSTextField {
+                    return event
+                }
+                // 有选中项或正在预览 → QuickLook
+                if !viewModel.selectedItemIDs.isEmpty || viewModel.quickLookItem != nil {
                     viewModel.toggleQuickLook()
                     return nil
                 }
-                // 无选中项 → 空格落到搜索框，正常打字
                 return event
             }
 
@@ -131,19 +149,34 @@ struct ClipboardMainView: View {
                     viewModel.toggleQuickLook()
                     return nil
                 }
-                // ⚠️ 核心修复：检查当前第一响应者是否为文本输入控件
-                // SwiftUI TextField 底层是 NSTextView，弹窗中的 TextField 也一样
-                // 如果用户正在任何输入框中打字，回车必须放行给 .onSubmit 处理
+                // ☸️ 核心修复：检查当前第一响应者是否为文本输入控件
                 if let firstResponder = NSApp.keyWindow?.firstResponder,
                    firstResponder is NSTextView || firstResponder is NSTextField {
                     return event
                 }
-                if let hid = viewModel.highlightedItemId,
-                   let item = viewModel.filteredItems.first(where: { $0.id == hid }) {
+                if let firstID = viewModel.selectedItemIDs.first,
+                   let item = viewModel.filteredItems.first(where: { $0.id == firstID }) {
                     viewModel.pasteToActiveApp(item: item)
                 } else if let first = viewModel.filteredItems.first {
                     viewModel.pasteToActiveApp(item: first)
                 }
+                return nil
+            }
+
+            // ── Cmd+F (keyCode 3) ───────────────────────────────────────
+            if keyCode == 3, event.modifierFlags.contains(.command) {
+                focusSearchField()
+                return nil
+            }
+
+            // ── Cmd+A (keyCode 0) ───────────────────────────────────────
+            if keyCode == 0, event.modifierFlags.contains(.command) {
+                // 焦点安全隔离：搜索框内 Cmd+A 执行文本全选，不劫持列表
+                if let responder = NSApp.keyWindow?.firstResponder,
+                   responder is NSTextView || responder is NSTextField {
+                    return event
+                }
+                viewModel.selectAll()
                 return nil
             }
 

@@ -8,7 +8,9 @@ class ClipboardViewModel: ObservableObject {
     @Published var searchInput: String = ""
     @Published var activeSearchQuery: String = ""
     @Published var currentFilter: ClipboardContentType? = nil  // 智能分类过滤：nil = 全部
-    @Published var highlightedItemId: UUID? = nil
+    @Published var selectedItemIDs: Set<UUID> = []
+    /// Shift 连选锚点：记录最近一次「主动点击」选中的 item ID
+    var lastSelectedID: UUID? = nil
     @Published var quickLookItem: ClipboardItem? = nil  // 空格键预览
     @Published var sharingItem: ClipboardItem? = nil     // 右键分享错点
     @Published var draggedItemId: UUID? = nil
@@ -145,18 +147,160 @@ class ClipboardViewModel: ObservableObject {
                 self.filteredItems = mappedItems
             }
 
-            if let highlightedItemId = self.highlightedItemId,
-               mappedItems.contains(where: { $0.id == highlightedItemId }) == false {
-                self.highlightedItemId = nil
+            // 清理失效的选中 ID：移除已不在数据源中的 ID
+            let validIDs = Set(mappedItems.map(\.id))
+            let staleIDs = self.selectedItemIDs.subtracting(validIDs)
+            if !staleIDs.isEmpty {
+                self.selectedItemIDs.subtract(staleIDs)
+            }
+            if let anchor = self.lastSelectedID, !validIDs.contains(anchor) {
+                self.lastSelectedID = nil
             }
         }
     }
 
-    func userDidSelect(item: ClipboardItem) {
-        guard highlightedItemId != item.id else { return }
-        highlightedItemId = item.id
+    // MARK: - 多选核心运算引擎
 
-        print("✅ 单击选中: \(item.id)")
+    /// 处理来自 View 层的选择意图（View 层仅嗅探修饰键，绝不做集合运算）
+    func handleSelection(id: UUID, isCommand: Bool, isShift: Bool) {
+        if isShift, let anchorID = lastSelectedID {
+            // ── Shift 区间连选 ──────────────────────────────────────
+            let source = filteredItems
+            if let anchorIdx = source.firstIndex(where: { $0.id == anchorID }),
+               let targetIdx = source.firstIndex(where: { $0.id == id }) {
+                let range = min(anchorIdx, targetIdx)...max(anchorIdx, targetIdx)
+                let rangeIDs = Set(source[range].map(\.id))
+                selectedItemIDs.formUnion(rangeIDs)
+            }
+            // Shift 模式保持锚点不变
+        } else if isCommand {
+            // ── Command 叠加点选 ────────────────────────────────────
+            if selectedItemIDs.contains(id) {
+                selectedItemIDs.remove(id)
+            } else {
+                selectedItemIDs.insert(id)
+            }
+            lastSelectedID = id
+        } else {
+            // ── 普通单选 ────────────────────────────────────────────
+            selectedItemIDs = [id]
+            lastSelectedID = id
+        }
+    }
+
+    /// 全选当前可见列表（基于 filteredItems）
+    func selectAll() {
+        selectedItemIDs = Set(filteredItems.map(\.id))
+    }
+
+    /// 清空所有选中状态
+    func clearSelection() {
+        selectedItemIDs.removeAll()
+        lastSelectedID = nil
+    }
+
+    /// 盲打搜索：追加键盘捕获的字符到搜索词
+    /// ViewModel 绝不感知键盘/焦点/NSEvent 的存在，仅负责数据变更。
+    func appendBlindTypedCharacter(_ char: String) {
+        searchInput.append(char)
+    }
+
+    // MARK: - 批量操作引擎
+
+    /// 批量合并复制：按列表顺序提取完整文本 → 换行拼接 → 写入系统剪贴板
+    func batchCopy() {
+        let ids = selectedItemIDs
+        guard !ids.isEmpty else { return }
+
+        // 按 filteredItems 顺序排列，保证合并文本的顺序与用户看到的列表一致
+        let orderedItems = filteredItems.filter { ids.contains($0.id) }
+
+        // 从数据库获取完整未截断文本（UI 层 rawText 最多 500 字符）
+        let fullTexts: [String] = orderedItems.compactMap { item in
+            if let record = StorageManager.shared.fetchRecord(id: item.id) {
+                return record.plainText
+            }
+            // fallback：如果 DB 查询失败，使用 UI 层文本
+            return item.rawText ?? item.textPreview
+        }
+
+        let merged = fullTexts.joined(separator: "\n\n")
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(merged, forType: .string)
+
+        print("✅ 批量复制 \(orderedItems.count) 条记录到剪贴板")
+        clearSelection()
+    }
+
+    /// 批量分组路由：groupId 非 nil → 加入分组；groupId 为 nil → 移出所有分组
+    func batchAssignToGroup(groupId: String?) {
+        let ids = selectedItemIDs
+        guard !ids.isEmpty else { return }
+
+        let targetItems = filteredItems.filter { ids.contains($0.id) }
+
+        if let groupId {
+            // ── 加入指定分组 ──────────────────────────────────────────
+            for item in targetItems {
+                // 乐观 UI
+                if let index = items.firstIndex(where: { $0.id == item.id }) {
+                    if items[index].groupIDs.contains(groupId) == false {
+                        items[index].groupIDs.append(groupId)
+                    }
+                }
+                // 持久化
+                StorageManager.shared.assignToGroup(hash: item.contentHash, groupId: groupId)
+            }
+        } else {
+            // ── 移出所有分组（回到"全部"）───────────────────────────────
+            for item in targetItems {
+                // 乐观 UI
+                if let index = items.firstIndex(where: { $0.id == item.id }) {
+                    items[index].groupIDs.removeAll()
+                }
+                // 持久化
+                StorageManager.shared.removeRecordFromAllGroups(hash: item.contentHash)
+            }
+        }
+
+        clearSelection()
+        loadData()
+    }
+
+    /// 批量删除：乐观 UI 移除 + 逐条持久化删除
+    func batchDelete() {
+        let ids = selectedItemIDs
+        guard !ids.isEmpty else { return }
+
+        // 先快照要删除的 contentHash，避免乐观移除后丢失引用
+        let hashesToDelete = filteredItems
+            .filter { ids.contains($0.id) }
+            .map(\.contentHash)
+
+        // 乐观 UI：同一动画事务内批量移除
+        withAnimation(.easeOut(duration: 0.2)) {
+            items.removeAll { ids.contains($0.id) }
+            filteredItems.removeAll { ids.contains($0.id) }
+        }
+
+        // 清理 QuickLook
+        if let qlItem = quickLookItem, ids.contains(qlItem.id) {
+            quickLookItem = nil
+        }
+
+        // 持久化
+        for hash in hashesToDelete {
+            StorageManager.shared.deleteRecord(hash: hash)
+        }
+
+        clearSelection()
+        print("✅ 批量删除 \(hashesToDelete.count) 条记录")
+    }
+
+    /// 兼容旧调用点：普通单选快捷入口
+    func userDidSelect(item: ClipboardItem) {
+        handleSelection(id: item.id, isCommand: false, isShift: false)
     }
 
     /// 空格键快速预览：开/关切换。
@@ -165,8 +309,8 @@ class ClipboardViewModel: ObservableObject {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
             if quickLookItem != nil {
                 quickLookItem = nil
-            } else if let hid = highlightedItemId,
-                      let item = filteredItems.first(where: { $0.id == hid }) {
+            } else if let firstID = selectedItemIDs.first,
+                      let item = filteredItems.first(where: { $0.id == firstID }) {
                 quickLookItem = item
             }
         }
@@ -177,20 +321,22 @@ class ClipboardViewModel: ObservableObject {
         let items = filteredItems
         guard !items.isEmpty else { return }
 
-        let currentIndex = highlightedItemId.flatMap { hid in
-            items.firstIndex(where: { $0.id == hid })
+        // 方向键导航始终回归单选模式
+        let currentIndex = lastSelectedID.flatMap { lid in
+            items.firstIndex(where: { $0.id == lid })
         }
 
         let nextIndex: Int
         if let idx = currentIndex {
             nextIndex = min(max(idx + direction, 0), items.count - 1)
         } else {
-            // 没有选中项时：向下/右从 0 开始，向上/左从末尾开始
             nextIndex = direction > 0 ? 0 : items.count - 1
         }
 
+        let nextID = items[nextIndex].id
         withAnimation(.easeInOut(duration: 0.1)) {
-            highlightedItemId = items[nextIndex].id
+            selectedItemIDs = [nextID]
+            lastSelectedID = nextID
         }
     }
 
@@ -290,8 +436,9 @@ class ClipboardViewModel: ObservableObject {
     func pasteToActiveApp(item: ClipboardItem) {
         print("🚀 触发双击事件: \(item.id)")
 
-        // 1. 先同步 UI 选中态
-        userDidSelect(item: item)
+        // 1. 先同步 UI 选中态（强制单选）
+        selectedItemIDs = [item.id]
+        lastSelectedID = item.id
 
         guard let record = StorageManager.shared.fetchRecord(id: item.id) else {
             print("❌ 未找到可复制的记录: \(item.id)")
@@ -501,8 +648,9 @@ class ClipboardViewModel: ObservableObject {
             items.removeAll { $0.id == item.id }
             filteredItems.removeAll { $0.id == item.id }
         }
-        if highlightedItemId == item.id {
-            highlightedItemId = nil
+        selectedItemIDs.remove(item.id)
+        if lastSelectedID == item.id {
+            lastSelectedID = nil
         }
         if quickLookItem?.id == item.id {
             quickLookItem = nil
@@ -520,7 +668,8 @@ class ClipboardViewModel: ObservableObject {
             }
         }
         // 保持高亮跟随
-        highlightedItemId = item.id
+        selectedItemIDs = [item.id]
+        lastSelectedID = item.id
 
         // 2. 持久化：Actor 刷新数据库时间戳，完成后广播 .clipboardDataDidChange
         //    ViewModel 的 Combine 订阅收到通知后会自动调用 loadData()，UI 再次排序与 DB 一致

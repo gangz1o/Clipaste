@@ -273,6 +273,22 @@ final class StorageManager {
     }
 
     nonisolated
+    func removeRecordFromGroup(hash: String, groupId: String) {
+        let actor = self.storeActor
+        Task.detached(priority: .userInitiated) {
+            await actor.removeRecordFromGroup(recordHash: hash, groupId: groupId)
+        }
+    }
+
+    nonisolated
+    func removeRecordFromAllGroups(hash: String) {
+        let actor = self.storeActor
+        Task.detached(priority: .userInitiated) {
+            await actor.removeRecordFromAllGroups(recordHash: hash)
+        }
+    }
+
+    nonisolated
     func renameGroup(id: String, newName: String) {
         let actor = self.storeActor
         Task.detached(priority: .userInitiated) {
@@ -628,6 +644,38 @@ actor ClipboardStoreActor {
             }
         } catch {
             print("❌ [ClipboardStoreActor] 分组分配失败: \(error)")
+        }
+    }
+
+    func removeRecordFromGroup(recordHash: String, groupId: String) {
+        let descriptor = FetchDescriptor<ClipboardRecord>(
+            predicate: #Predicate<ClipboardRecord> { $0.contentHash == recordHash }
+        )
+        do {
+            if let record = try modelContext.fetch(descriptor).first {
+                var groupIDs = normalizedGroupIDs(primaryGroupID: record.groupId, groupIdsRaw: record.groupIdsRaw)
+                groupIDs.removeAll { $0 == groupId }
+                record.groupId = groupIDs.first
+                record.groupIdsRaw = encodedGroupIDs(groupIDs)
+                try modelContext.save()
+            }
+        } catch {
+            print("❌ [ClipboardStoreActor] 移出分组失败: \(error)")
+        }
+    }
+
+    func removeRecordFromAllGroups(recordHash: String) {
+        let descriptor = FetchDescriptor<ClipboardRecord>(
+            predicate: #Predicate<ClipboardRecord> { $0.contentHash == recordHash }
+        )
+        do {
+            if let record = try modelContext.fetch(descriptor).first {
+                record.groupId = nil
+                record.groupIdsRaw = nil
+                try modelContext.save()
+            }
+        } catch {
+            print("❌ [ClipboardStoreActor] 清除分组失败: \(error)")
         }
     }
 

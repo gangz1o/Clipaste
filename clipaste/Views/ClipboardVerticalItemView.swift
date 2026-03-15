@@ -8,7 +8,7 @@ struct ClipboardVerticalItemView: View {
     @State private var isHovering = false
 
     private var isSelected: Bool {
-        viewModel.highlightedItemId == item.id
+        viewModel.selectedItemIDs.contains(item.id)
     }
 
     /// 颜色嗅探结果：使用极速短路版本，超过 100 字符跳过正则
