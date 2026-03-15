@@ -4,10 +4,10 @@ import Foundation
 // MARK: - SwiftData 持久化实体
 @Model
 final class ClipboardGroupModel {
-    @Attribute(.unique) var id: String
-    var name: String
-    var createdAt: Date
-    var systemIconName: String
+    var id: String = UUID().uuidString
+    var name: String = ""
+    var createdAt: Date = Date()
+    var systemIconName: String = "folder"
     var sortOrder: Int = 0
 
     init(id: String = UUID().uuidString, name: String, systemIconName: String = "folder", sortOrder: Int = 0) {

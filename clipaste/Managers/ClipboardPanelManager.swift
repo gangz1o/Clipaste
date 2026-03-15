@@ -1,5 +1,6 @@
 import AppKit
 import SwiftUI
+import SwiftData
 
 /// ClipboardPanelManager is responsible for managing the floating clipboard history panel.
 /// It uses a borderless panel that follows the mouse's screen and presents in front of the Dock.
@@ -47,7 +48,10 @@ class ClipboardPanelManager {
         panel.level = Self.panelLevel
         panel.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
 
-        let hostingController = NSHostingController(rootView: ClipboardMainView())
+        let hostingController = NSHostingController(
+            rootView: ClipboardPanelRootView()
+                .environmentObject(ClipboardRuntimeStore.shared)
+        )
         hostingController.sizingOptions = []   // 禁止 SwiftUI 内容撑大面板，由 setFrame 控制
         panel.contentViewController = hostingController
 
@@ -288,6 +292,17 @@ class ClipboardPanelManager {
             NSEvent.removeMonitor(monitor)
             eventMonitor = nil
         }
+    }
+}
+
+private struct ClipboardPanelRootView: View {
+    @EnvironmentObject private var runtimeStore: ClipboardRuntimeStore
+
+    var body: some View {
+        ClipboardMainView()
+            .environmentObject(runtimeStore)
+            .modelContainer(runtimeStore.container)
+            .id(runtimeStore.rootIdentity)
     }
 }
 

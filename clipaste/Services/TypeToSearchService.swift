@@ -9,7 +9,13 @@ import AppKit
 /// ⚠️ 必须在主线程调用 start()/stop()，生命周期由调用方管理。
 final class TypeToSearchService {
 
+    static let shared = TypeToSearchService()
+
     // MARK: - 外部同步的状态
+
+    /// 由上层控制：当存在带有文本输入的二级窗口/面板时置 true，
+    /// 此时所有按键直接放行，不执行任何拦截和强制聚焦操作。
+    var isPaused: Bool = false
 
     /// 由 View 层实时同步：当搜索框获得焦点时置 true，
     /// 此时所有按键直接放行给 TextField 原生处理。
@@ -52,6 +58,9 @@ final class TypeToSearchService {
     // MARK: - 核心拦截逻辑
 
     private func handleKeyDown(_ event: NSEvent) -> NSEvent? {
+        // 0. 休眠状态 → 所有按键原封不动还给系统（编辑窗口等二级面板场景）
+        if isPaused { return event }
+
         // 1. 搜索框已聚焦 → 全部放行，由 TextField 原生消费
         if isTextFieldFocused { return event }
 

@@ -18,13 +18,11 @@ final class PasteEngine {
     }
 
     func writeToPasteboard(record: ClipboardRecord) async -> Bool {
-        let snapshot = ClipboardRecordSnapshot(
+        guard let payload = await Self.makePastePayload(
+            recordID: record.id,
             typeRawValue: record.typeRawValue,
-            plainText: record.plainText,
-            originalFilePath: record.originalFilePath
-        )
-
-        guard let payload = await Self.makePastePayload(from: snapshot) else { return false }
+            plainText: record.plainText
+        ) else { return false }
 
         ClipboardMonitor.shared.isIgnoredNextChange = true
         pasteboard.clearContents()
@@ -73,15 +71,19 @@ final class PasteEngine {
     }
 
     nonisolated
-    private static func makePastePayload(from snapshot: ClipboardRecordSnapshot) async -> PastePayload? {
-        guard let contentType = ClipboardContentType(rawValue: snapshot.typeRawValue) else { return nil }
+    private static func makePastePayload(
+        recordID: UUID,
+        typeRawValue: String,
+        plainText: String?
+    ) async -> PastePayload? {
+        guard let contentType = ClipboardContentType(rawValue: typeRawValue) else { return nil }
 
         switch contentType {
         case .text, .color, .link, .code:
-            guard let plainText = snapshot.plainText, !plainText.isEmpty else { return nil }
+            guard let plainText, !plainText.isEmpty else { return nil }
             return .text(plainText)
         case .fileURL:
-            guard let plainText = snapshot.plainText, !plainText.isEmpty else { return nil }
+            guard let plainText, !plainText.isEmpty else { return nil }
 
             if let url = URL(string: plainText), url.isFileURL {
                 return .fileURL(url)
@@ -89,7 +91,10 @@ final class PasteEngine {
 
             return .fileURL(URL(fileURLWithPath: plainText))
         case .image:
-            guard let data = try? await LocalFileManager.shared.data(forRelativePath: snapshot.originalFilePath) else {
+            let imageData = await StorageManager.shared.loadImageData(id: recordID)
+            let previewData = await StorageManager.shared.loadPreviewImageData(id: recordID)
+
+            guard let data = imageData ?? previewData else {
                 return nil
             }
 
@@ -108,46 +113,45 @@ final class PasteEngine {
 
     /// 将图片格式转换后写入系统剪贴板（PNG / TIFF / JPG）
     func convertImageAndCopyToClipboard(item: ClipboardItem, targetFormat: String) {
-        guard item.contentType == .image,
-              let url = item.originalImageURL ?? item.thumbnailURL,
-              let originalImage = NSImage(contentsOf: url) else { return }
+        guard item.contentType == .image else { return }
 
-        let pb = NSPasteboard.general
+        Task {
+            let imageData = await StorageManager.shared.loadImageData(id: item.id)
+            let previewData = await StorageManager.shared.loadPreviewImageData(id: item.id)
 
-        guard let tiffRepresentation = originalImage.tiffRepresentation,
-              let bitmapImageRep = NSBitmapImageRep(data: tiffRepresentation) else { return }
+            guard let sourceData = imageData ?? previewData,
+                  let originalImage = NSImage(data: sourceData),
+                  let tiffRepresentation = originalImage.tiffRepresentation,
+                  let bitmapImageRep = NSBitmapImageRep(data: tiffRepresentation) else {
+                return
+            }
 
-        let convertedData: Data?
-        let pbType: NSPasteboard.PasteboardType
+            let convertedData: Data?
+            let pbType: NSPasteboard.PasteboardType
 
-        switch targetFormat {
-        case "PNG":
-            convertedData = bitmapImageRep.representation(using: .png, properties: [:])
-            pbType = .png
-        case "TIFF":
-            convertedData = tiffRepresentation
-            pbType = .tiff
-        case "JPG":
-            convertedData = bitmapImageRep.representation(using: .jpeg, properties: [.compressionFactor: 0.8])
-            pbType = NSPasteboard.PasteboardType("public.jpeg")
-        default:
-            convertedData = bitmapImageRep.representation(using: .png, properties: [:])
-            pbType = .png
+            switch targetFormat {
+            case "PNG":
+                convertedData = bitmapImageRep.representation(using: .png, properties: [:])
+                pbType = .png
+            case "TIFF":
+                convertedData = tiffRepresentation
+                pbType = .tiff
+            case "JPG":
+                convertedData = bitmapImageRep.representation(using: .jpeg, properties: [.compressionFactor: 0.8])
+                pbType = NSPasteboard.PasteboardType("public.jpeg")
+            default:
+                convertedData = bitmapImageRep.representation(using: .png, properties: [:])
+                pbType = .png
+            }
+
+            guard let finalData = convertedData else { return }
+
+            ClipboardMonitor.shared.isIgnoredNextChange = true
+            pasteboard.clearContents()
+            pasteboard.setData(finalData, forType: pbType)
+            NSSound(named: "Pop")?.play()
         }
-
-        guard let finalData = convertedData else { return }
-
-        ClipboardMonitor.shared.isIgnoredNextChange = true
-        pb.clearContents()
-        pb.setData(finalData, forType: pbType)
-        NSSound(named: "Pop")?.play()
     }
-}
-
-private struct ClipboardRecordSnapshot: Sendable {
-    let typeRawValue: String
-    let plainText: String?
-    let originalFilePath: String?
 }
 
 private enum PastePayload: Sendable {

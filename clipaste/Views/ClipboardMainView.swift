@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct ClipboardMainView: View {
+    @EnvironmentObject private var runtimeStore: ClipboardRuntimeStore
     @StateObject var viewModel = ClipboardViewModel()
     @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
     @AppStorage("appTheme") private var appTheme: AppTheme = .system
@@ -8,7 +9,7 @@ struct ClipboardMainView: View {
 
     @State private var localEventMonitor: Any?
     @State private var viewRebuildToken: Bool = false
-    private let searchService = TypeToSearchService()
+    private let searchService = TypeToSearchService.shared
 
     var body: some View {
         Group {
@@ -36,7 +37,7 @@ struct ClipboardMainView: View {
                     }
             }
         }
-        .id(viewRebuildToken)
+        .id("\(runtimeStore.rootIdentity)-\(viewRebuildToken)")
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.clear)
         .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))
@@ -199,4 +200,5 @@ struct ClipboardMainView: View {
 
 #Preview {
     ClipboardMainView()
+        .environmentObject(ClipboardRuntimeStore.shared)
 }

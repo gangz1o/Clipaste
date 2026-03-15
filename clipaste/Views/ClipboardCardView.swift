@@ -164,31 +164,26 @@ struct ClipboardCardView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if item.contentType == .image {
             // ── 图片：等比例完整显示，绝不裁切原图 ──────────────────────
-            if let url = item.thumbnailURL {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let img):
-                        ZStack {
-                            // 棋盘格背景：为透明图片提供可视化底色
-                            CheckerboardBackground()
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
-                            img.resizable()
-                                .aspectRatio(contentMode: .fit)
+            ZStack {
+                CheckerboardBackground()
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                ClipboardThumbnailView(itemID: item.id, maxPixelSize: 480) {
+                    Group {
+                        if item.hasImagePreview || item.hasImageData {
+                            ProgressView()
+                                .progressViewStyle(.circular)
+                                .tint(.secondary)
+                        } else {
+                            Image(systemName: "photo")
+                                .font(.title2)
+                                .foregroundColor(.secondary.opacity(0.8))
                         }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    case .empty:
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .tint(.secondary)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    default:
-                        Image(systemName: "photo")
-                            .font(.title2)
-                            .foregroundColor(.secondary.opacity(0.8))
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let parsedColor = item.fastParsedColor {
             // ── 颜色块：全卡片沉浸式填充 ──────────────────────────────────
             ZStack {

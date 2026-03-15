@@ -5,19 +5,8 @@ struct ClipboardQuickLookView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if item.contentType == .image,
-               let url = item.originalImageURL ?? item.thumbnailURL,
-               let data = try? Data(contentsOf: url),
-               let img = NSImage(data: data) {
-                // 图片预览：优先读取 Originals/ 下的全尺寸高清原图
-                Image(nsImage: img)
-                    .resizable()
-                    .interpolation(.high)
-                    .antialiased(true)
-                    .aspectRatio(contentMode: .fit)
-                    .frame(maxWidth: 600, maxHeight: 600)
-                    .padding(16)
-
+            if item.contentType == .image {
+                ClipboardQuickLookImageView(itemID: item.id)
             } else if let parsedColor = item.fastParsedColor {
                 // 颜色预览：大色块 + 对比色等宽文字
                 ZStack {
@@ -57,4 +46,3 @@ struct ClipboardQuickLookView: View {
         // Popover 原生自带材质背景，无需额外设置
     }
 }
-

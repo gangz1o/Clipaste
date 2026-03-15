@@ -22,13 +22,10 @@ class ClipboardViewModel: ObservableObject {
     @Published var selectedGroupId: String? = nil
     @Published var draggedGroup: ClipboardGroupItem? = nil
 
-    private let clipboardMonitor: ClipboardMonitor
     private var cancellables: Set<AnyCancellable> = []
     private var filterGeneration: UInt = 0
 
-    init(clipboardMonitor: ClipboardMonitor? = nil) {
-        self.clipboardMonitor = clipboardMonitor ?? ClipboardMonitor.shared
-
+    init(clipboardMonitor _: ClipboardMonitor? = nil) {
         // 保留旧的固定分组（横版 UI 兼容）
         self.groups = [
             ClipboardGroup(id: UUID(), name: "链接", iconName: "link")
@@ -43,8 +40,6 @@ class ClipboardViewModel: ObservableObject {
 
         loadData()
         loadCustomGroups()
-        self.clipboardMonitor.startMonitoring()
-        triggerAutoCleanup()
         setupFilterPipeline()
     }
 
@@ -528,29 +523,33 @@ class ClipboardViewModel: ObservableObject {
     func editImage(item: ClipboardItem) {
         guard item.contentType == .image else { return }
 
-        // 获取原图 URL（优先 originalImageURL，fallback 到 thumbnailURL）
-        guard let sourceURL = item.originalImageURL ?? item.thumbnailURL else {
-            print("❌ [editImage] 找不到原图文件: \(item.id)")
-            return
+        Task.detached(priority: .userInitiated) {
+            let imageData = await StorageManager.shared.loadImageData(id: item.id)
+            let previewData = await StorageManager.shared.loadPreviewImageData(id: item.id)
+
+            guard let sourceData = imageData ?? previewData else {
+                print("❌ [editImage] 找不到原图数据: \(item.id)")
+                return
+            }
+
+            let tempDir = FileManager.default.temporaryDirectory
+                .appendingPathComponent("clipaste_image_edit", isDirectory: true)
+            try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+
+            let fileExtension = ImageProcessor.preferredFileExtension(for: item.imageUTType)
+            let tempURL = tempDir.appendingPathComponent("\(UUID().uuidString).\(fileExtension)")
+
+            do {
+                try sourceData.write(to: tempURL, options: .atomic)
+            } catch {
+                print("❌ [editImage] 写入临时图片失败: \(error)")
+                return
+            }
+
+            await MainActor.run {
+                ImageEditWindowManager.shared.openEditor(tempURL: tempURL, originalItem: item, viewModel: self)
+            }
         }
-
-        // 拷贝到临时目录，防止编辑器直接修改原图
-        let tempDir = FileManager.default.temporaryDirectory
-            .appendingPathComponent("clipaste_image_edit", isDirectory: true)
-        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-
-        let ext = sourceURL.pathExtension.isEmpty ? "png" : sourceURL.pathExtension
-        let tempURL = tempDir.appendingPathComponent("\(UUID().uuidString).\(ext)")
-
-        do {
-            try FileManager.default.copyItem(at: sourceURL, to: tempURL)
-        } catch {
-            print("❌ [editImage] 拷贝原图失败: \(error)")
-            return
-        }
-
-        // 交给 ImageEditWindowManager 打开编辑器并监听保存
-        ImageEditWindowManager.shared.openEditor(tempURL: tempURL, originalItem: item, viewModel: self)
     }
 
     /// ⚠️ 原图保护：编辑结果作为全新记录入库，绝不覆盖原图
@@ -559,9 +558,8 @@ class ClipboardViewModel: ObservableObject {
             do {
                 let editedData = try Data(contentsOf: tempURL)
                 let newHash = CryptoHelper.sha256(data: editedData)
-
-                // 保存原图 + 缩略图到持久化目录
-                let savedPaths = try await LocalFileManager.shared.saveImagePayload(data: editedData, hash: newHash)
+                let previewData = ImageProcessor.generateThumbnail(from: editedData)
+                let imageMetadata = ImageProcessor.metadata(for: editedData)
 
                 // 作为全新记录写入数据库
                 StorageManager.shared.upsertRecord(
@@ -570,14 +568,12 @@ class ClipboardViewModel: ObservableObject {
                     appID: originalItem.sourceBundleIdentifier,
                     appName: originalItem.appName,
                     type: ClipboardContentType.image.rawValue,
-                    thumbnailPath: savedPaths.thumbnailPath,
-                    originalFilePath: savedPaths.originalPath
+                    previewImageData: previewData,
+                    imageData: editedData,
+                    imageMetadata: imageMetadata
                 )
 
-                // 对编辑后的图片也做 OCR
-                if let absolutePath = LocalFileManager.shared.url(forRelativePath: savedPaths.originalPath)?.path {
-                    StorageManager.shared.processOCRForImage(hash: newHash, absoluteImagePath: absolutePath)
-                }
+                StorageManager.shared.processOCRForImage(hash: newHash, imageData: editedData)
 
                 // 清理临时文件
                 try? FileManager.default.removeItem(at: tempURL)
@@ -606,9 +602,9 @@ class ClipboardViewModel: ObservableObject {
                 appIconName: item.appIconName,
                 timestamp: item.timestamp,
                 rawText: newText,
-                imagePath: item.imagePath,
-                thumbnailURL: item.thumbnailURL,
-                originalImageURL: item.originalImageURL,
+                hasImagePreview: item.hasImagePreview,
+                hasImageData: item.hasImageData,
+                imageUTType: item.imageUTType,
                 fileURL: item.fileURL,
                 groupId: item.groupId,
                 groupIDs: item.groupIDs,

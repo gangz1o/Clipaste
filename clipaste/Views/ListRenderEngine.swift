@@ -45,7 +45,7 @@ final class ListRenderEngine: ObservableObject {
             }
 
             guard let data = rtfData else {
-                await MainActor.run { [weak self = ListRenderEngine.shared] in
+                _ = await MainActor.run { [weak self = ListRenderEngine.shared] in
                     self?.inflight.remove(itemId)
                 }
                 return

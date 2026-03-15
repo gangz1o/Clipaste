@@ -45,6 +45,9 @@ class EditWindowManager: NSObject, NSWindowDelegate {
         window.makeKeyAndOrderFront(nil)
         window.makeMain() // ⚠️ 极其核心：强制成为主窗口，接管 Inspector Bar 的所有格式化动作
         NSApp.activate(ignoringOtherApps: true)
+
+        // ⚠️ 暂停盲打搜索拦截，防止编辑窗口中的键盘输入被主面板劫持
+        TypeToSearchService.shared.isPaused = true
     }
 
     // ⚠️ 极其核心：拦截窗口关闭事件，对标 PasteNow 的未保存提示
@@ -79,6 +82,11 @@ class EditWindowManager: NSObject, NSWindowDelegate {
         window.delegate = nil
         window.close()
         openWindows.removeValue(forKey: windowId)
+
+        // 所有编辑窗口关闭后恢复盲打搜索拦截
+        if openWindows.isEmpty {
+            TypeToSearchService.shared.isPaused = false
+        }
     }
 
     // 供 SwiftUI 内部点击"保存"按钮时主动调用的关闭方法

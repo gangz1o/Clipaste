@@ -27,12 +27,20 @@ extension ClipboardItem {
         // ==========================================
         // 2. 图片
         // ==========================================
-        } else if contentType == .image,
-                  let dragImageURL = preferredInternalDragImageURL {
-            provider = NSItemProvider(object: dragImageURL as NSURL)
-            if let imageData = try? Data(contentsOf: dragImageURL),
-               let image = NSImage(data: imageData) {
-                provider.registerObject(image, visibility: .all)
+        } else if contentType == .image {
+            provider = NSItemProvider()
+            let typeIdentifier = imageUTType ?? UTType.png.identifier
+            provider.registerDataRepresentation(
+                forTypeIdentifier: typeIdentifier,
+                visibility: .all
+            ) { [id] completion in
+                Task {
+                    let imageData = await StorageManager.shared.loadImageData(id: id)
+                    let previewData = await StorageManager.shared.loadPreviewImageData(id: id)
+                    let data = imageData ?? previewData
+                    completion(data, nil)
+                }
+                return nil
             }
 
         // ==========================================
@@ -65,18 +73,5 @@ extension ClipboardItem {
         }
 
         return provider
-    }
-
-    private var preferredInternalDragImageURL: URL? {
-        if let thumbnailURL {
-            return thumbnailURL
-        }
-
-        if let originalImageURL,
-           originalImageURL.pathExtension.caseInsensitiveCompare("data") != .orderedSame {
-            return originalImageURL
-        }
-
-        return originalImageURL
     }
 }

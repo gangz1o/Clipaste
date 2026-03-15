@@ -3,8 +3,8 @@ import AppKit
 
 struct OCREngine {
     // 异步提取图片文字，绝不阻塞主线程
-    static func extractText(from imagePath: String) async -> String? {
-        guard let image = NSImage(contentsOfFile: imagePath),
+    static func extractText(from imageData: Data) async -> String? {
+        guard let image = NSImage(data: imageData),
               // 极其关键：Vision 框架需要底层的 CGImage 才能工作
               let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
             return nil

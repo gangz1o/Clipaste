@@ -2,7 +2,7 @@ import SwiftUI
 
 struct AdvancedSettingsView: View {
     @EnvironmentObject private var viewModel: SettingsViewModel
-    @StateObject private var syncManager = CloudSyncManager.shared
+    @EnvironmentObject private var runtimeStore: ClipboardRuntimeStore
 
     var body: some View {
         Form {
@@ -54,7 +54,7 @@ struct AdvancedSettingsView: View {
             // ── iCloud 数据同步 ──
             Section {
                 VStack(alignment: .leading, spacing: 12) {
-                    Toggle(isOn: $syncManager.isSyncEnabled) {
+                    Toggle(isOn: syncEnabledBinding) {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("通过 iCloud 同步")
                                 .font(.system(size: 14, weight: .medium))
@@ -69,7 +69,7 @@ struct AdvancedSettingsView: View {
                     .toggleStyle(.switch)
 
                     // 当同步开启时，展现高级控制台面板
-                    if syncManager.isSyncEnabled {
+                    if runtimeStore.isSyncEnabled {
                         Divider()
                             .padding(.vertical, 4)
 
@@ -79,12 +79,12 @@ struct AdvancedSettingsView: View {
                                 Circle()
                                     .fill(syncStatusColor)
                                     .frame(width: 8, height: 8)
-                                    .opacity(syncManager.isSyncing ? 0.5 : 1.0)
+                                    .opacity(runtimeStore.isSyncing ? 0.5 : 1.0)
                                     .animation(
-                                        syncManager.isSyncing
+                                        runtimeStore.isSyncing
                                             ? Animation.easeInOut(duration: 0.8).repeatForever(autoreverses: true)
                                             : .default,
-                                        value: syncManager.isSyncing
+                                        value: runtimeStore.isSyncing
                                     )
 
                                 syncStatusText
@@ -94,22 +94,22 @@ struct AdvancedSettingsView: View {
 
                             // 立即同步按钮
                             Button {
-                                syncManager.forceSync()
+                                runtimeStore.refreshCurrentRoute()
                             } label: {
                                 Image(systemName: "arrow.triangle.2.circlepath")
                                     .font(.system(size: 12, weight: .semibold))
-                                    .rotationEffect(Angle(degrees: syncManager.isSyncing ? 360 : 0))
+                                    .rotationEffect(Angle(degrees: runtimeStore.isSyncing ? 360 : 0))
                                     .animation(
-                                        syncManager.isSyncing
+                                        runtimeStore.isSyncing
                                             ? Animation.linear(duration: 1).repeatForever(autoreverses: false)
                                             : .default,
-                                        value: syncManager.isSyncing
+                                        value: runtimeStore.isSyncing
                                     )
                             }
                             .buttonStyle(.plain)
-                            .foregroundColor(syncManager.isSyncing ? .secondary : .accentColor)
-                            .disabled(syncManager.isSyncing)
-                            .help("立即同步")
+                            .foregroundColor(runtimeStore.isSyncing ? .secondary : .accentColor)
+                            .disabled(runtimeStore.isSyncing)
+                            .help("重新连接 iCloud")
                         }
                     }
                 }
@@ -127,23 +127,30 @@ struct AdvancedSettingsView: View {
 
     // MARK: - Helpers
 
+    private var syncEnabledBinding: Binding<Bool> {
+        Binding(
+            get: { runtimeStore.isSyncEnabled },
+            set: { runtimeStore.setSyncEnabled($0) }
+        )
+    }
+
     private var syncStatusColor: Color {
-        if syncManager.isSyncing { return .blue }
-        if syncManager.syncError != nil { return .red }
+        if runtimeStore.isSyncing { return .blue }
+        if runtimeStore.syncError != nil { return .red }
         return .green
     }
 
     @ViewBuilder
     private var syncStatusText: some View {
-        if syncManager.isSyncing {
+        if runtimeStore.isSyncing {
             Text("正在同步...")
                 .font(.system(size: 12))
                 .foregroundColor(.secondary)
-        } else if let error = syncManager.syncError {
+        } else if let error = runtimeStore.syncError {
             Text("同步失败: \(error)")
                 .font(.system(size: 12))
                 .foregroundColor(.red)
-        } else if let date = syncManager.lastSyncDate {
+        } else if let date = runtimeStore.lastSyncDate {
             Text("上次同步：\(date, format: .dateTime.month().day().hour().minute())")
                 .font(.system(size: 12))
                 .foregroundColor(.secondary)
@@ -158,4 +165,5 @@ struct AdvancedSettingsView: View {
 #Preview {
     AdvancedSettingsView()
         .environmentObject(SettingsViewModel())
+        .environmentObject(ClipboardRuntimeStore.shared)
 }

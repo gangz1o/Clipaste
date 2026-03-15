@@ -57,9 +57,9 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
     let appIconName: String // Or you can use NSImage, but keeping it simple for now
     let timestamp: Date
     let rawText: String?
-    let imagePath: String?
-    let thumbnailURL: URL?
-    let originalImageURL: URL?  // QuickLook 高清预览：指向 Originals/ 下的全尺寸原图
+    let hasImagePreview: Bool
+    let hasImageData: Bool
+    let imageUTType: String?
     let fileURL: String?
     var groupIDs: [String] // 所属分组 ID 集合
     var linkTitle: String?     // 链接预览：网页标题（LinkPresentation 抓取）
@@ -84,9 +84,9 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         appIconName: String,
         timestamp: Date = Date(),
         rawText: String? = nil,
-        imagePath: String? = nil,
-        thumbnailURL: URL? = nil,
-        originalImageURL: URL? = nil,
+        hasImagePreview: Bool = false,
+        hasImageData: Bool = false,
+        imageUTType: String? = nil,
         fileURL: String? = nil,
         groupId: String? = nil,
         groupIDs: [String] = [],
@@ -108,9 +108,9 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         self.appIconName = appIconName
         self.timestamp = timestamp
         self.rawText = rawText
-        self.imagePath = imagePath
-        self.thumbnailURL = thumbnailURL
-        self.originalImageURL = originalImageURL
+        self.hasImagePreview = hasImagePreview
+        self.hasImageData = hasImageData
+        self.imageUTType = imageUTType
         self.fileURL = fileURL
         self.groupIDs = normalizedGroupIDs
         self.linkTitle = linkTitle
@@ -153,8 +153,9 @@ extension ClipboardItem {
         lhs.appIconName == rhs.appIconName &&
         lhs.timestamp == rhs.timestamp &&
         lhs.rawText == rhs.rawText &&
-        lhs.imagePath == rhs.imagePath &&
-        lhs.thumbnailURL == rhs.thumbnailURL &&
+        lhs.hasImagePreview == rhs.hasImagePreview &&
+        lhs.hasImageData == rhs.hasImageData &&
+        lhs.imageUTType == rhs.imageUTType &&
         lhs.fileURL == rhs.fileURL &&
         lhs.groupIDs == rhs.groupIDs &&
         lhs.linkTitle == rhs.linkTitle &&
@@ -174,8 +175,9 @@ extension ClipboardItem {
         hasher.combine(appIconName)
         hasher.combine(timestamp)
         hasher.combine(rawText)
-        hasher.combine(imagePath)
-        hasher.combine(thumbnailURL)
+        hasher.combine(hasImagePreview)
+        hasher.combine(hasImageData)
+        hasher.combine(imageUTType)
         hasher.combine(fileURL)
         hasher.combine(groupIDs)
         hasher.combine(linkTitle)

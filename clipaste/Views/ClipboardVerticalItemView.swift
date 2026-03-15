@@ -68,23 +68,18 @@ struct ClipboardVerticalItemView: View {
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                } else if item.contentType == .image, let url = item.thumbnailURL {
-                    AsyncImage(url: url) { phase in
-                        if case .success(let img) = phase {
-                            img.resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(maxHeight: 44)
-                                .clipShape(RoundedRectangle(cornerRadius: 4))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
-                                )
-                        } else {
-                            Image(systemName: "photo")
-                                .foregroundColor(.secondary)
-                                .frame(height: 44)
-                        }
+                } else if item.contentType == .image {
+                    ClipboardThumbnailView(itemID: item.id, maxPixelSize: 160) {
+                        Image(systemName: "photo")
+                            .foregroundColor(.secondary)
+                            .frame(height: 44)
                     }
+                    .frame(maxHeight: 44)
+                    .clipShape(RoundedRectangle(cornerRadius: 4))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
+                    )
                     .frame(maxWidth: .infinity, alignment: .center)
                 } else {
                     if parsedColor != nil {
@@ -235,14 +230,14 @@ struct ClipboardDragPreview: View {
                 .fill(Color(nsColor: .windowBackgroundColor).opacity(0.95))
                 .shadow(color: Color.black.opacity(0.2), radius: 6, y: 3)
 
-            if item.contentType == .image, let url = item.thumbnailURL,
-               let img = NSImage(contentsOf: url) {
-                // Image type: show actual thumbnail
-                Image(nsImage: img)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .frame(width: 56, height: 56)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            if item.contentType == .image {
+                ClipboardThumbnailView(itemID: item.id, maxPixelSize: 120) {
+                    Image(systemName: "photo")
+                        .foregroundColor(.secondary)
+                }
+                .aspectRatio(contentMode: .fill)
+                .frame(width: 56, height: 56)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             } else if item.contentType == .fileURL, let filePath = item.fileURL {
                 // File type: show native file icon
                 let resolvedPath: String = {

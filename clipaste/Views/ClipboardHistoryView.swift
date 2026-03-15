@@ -1,8 +1,12 @@
 import SwiftUI
+import SwiftData
 
 struct ClipboardHistoryView: View {
     var body: some View {
         ClipboardMainView()
+            .environmentObject(ClipboardRuntimeStore.shared)
+            .modelContainer(ClipboardRuntimeStore.shared.container)
+            .id(ClipboardRuntimeStore.shared.rootIdentity)
     }
 }
 

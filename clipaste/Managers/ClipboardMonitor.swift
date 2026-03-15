@@ -155,6 +155,8 @@ final class ClipboardMonitor {
     private func handleImagePayload(data: Data, appID: String?, appName: String?) {
         Task.detached(priority: .userInitiated) {
             let contentHash = CryptoHelper.sha256(data: data)
+            let previewData = ImageProcessor.generateThumbnail(from: data)
+            let imageMetadata = ImageProcessor.metadata(for: data)
 
             if await StorageManager.shared.recordExists(hash: contentHash) {
                 StorageManager.shared.upsertRecord(
@@ -163,13 +165,10 @@ final class ClipboardMonitor {
                     appID: appID,
                     appName: appName,
                     type: ClipboardContentType.image.rawValue,
-                    thumbnailPath: nil,
-                    originalFilePath: nil
+                    previewImageData: previewData,
+                    imageData: data,
+                    imageMetadata: imageMetadata
                 )
-                return
-            }
-
-            guard let savedPaths = try? await LocalFileManager.shared.saveImagePayload(data: data, hash: contentHash) else {
                 return
             }
 
@@ -179,22 +178,20 @@ final class ClipboardMonitor {
                 appID: appID,
                 appName: appName,
                 type: ClipboardContentType.image.rawValue,
-                thumbnailPath: savedPaths.thumbnailPath,
-                originalFilePath: savedPaths.originalPath
+                previewImageData: previewData,
+                imageData: data,
+                imageMetadata: imageMetadata
             )
 
-            // 静默触发后台 OCR，将图片中的文字写入 plainText 以支持全局搜索。
-            // 使用 originalPath（完整原始图片）以获得最高 OCR 识别率。
-            if let absolutePath = LocalFileManager.shared.url(forRelativePath: savedPaths.originalPath)?.path {
-                StorageManager.shared.processOCRForImage(hash: contentHash, absoluteImagePath: absolutePath)
-            }
+            StorageManager.shared.processOCRForImage(hash: contentHash, imageData: data)
         }
     }
 
     private func enqueueUpsert(
         for payload: ClipboardRecordPayload,
-        thumbnailPath: String? = nil,
-        originalFilePath: String? = nil
+        previewImageData: Data? = nil,
+        imageData: Data? = nil,
+        imageMetadata: ClipboardImageMetadata? = nil
     ) {
         StorageManager.shared.upsertRecord(
             hash: payload.hash,
@@ -202,8 +199,9 @@ final class ClipboardMonitor {
             appID: payload.appID,
             appName: payload.appName,
             type: payload.type,
-            thumbnailPath: thumbnailPath,
-            originalFilePath: originalFilePath
+            previewImageData: previewImageData,
+            imageData: imageData,
+            imageMetadata: imageMetadata
         )
 
         // 链接类型 → 触发 LinkPresentation 抓取，让链接变成漂亮的书签卡片

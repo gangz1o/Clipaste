@@ -181,6 +181,7 @@ extension AppDelegate: NSWindowDelegate {
 struct clipasteApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var settingsViewModel = SettingsViewModel()
+    @StateObject private var runtimeStore = ClipboardRuntimeStore.shared
     @AppStorage("appLanguage") private var appLanguage: AppLanguage = .auto
     @AppStorage("appTheme") private var appTheme: AppTheme = .system
 
@@ -189,7 +190,9 @@ struct clipasteApp: App {
         Settings {
             SettingsView()
                 .environmentObject(settingsViewModel)
-                .modelContainer(StorageManager.shared.container)
+                .environmentObject(runtimeStore)
+                .modelContainer(runtimeStore.container)
+                .id(runtimeStore.rootIdentity)
                 .environment(\.locale, appLanguage.locale ?? .current)
                 .preferredColorScheme(appTheme.colorScheme)
         }
@@ -199,7 +202,9 @@ struct clipasteApp: App {
         // Status Bar Menu to access app functions
         MenuBarExtra("Clipaste", image: "MenuBarIcon") {
             MenuBarExtraContent()
-            .modelContainer(StorageManager.shared.container)
+                .environmentObject(runtimeStore)
+                .modelContainer(runtimeStore.container)
+                .id(runtimeStore.rootIdentity)
         }
     }
 }

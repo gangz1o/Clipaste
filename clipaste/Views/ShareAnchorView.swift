@@ -32,38 +32,40 @@ struct ShareableModifier: ViewModifier {
     }
 
     private func showSharePicker() {
-        let objects = buildShareObjects()
-        guard !objects.isEmpty else {
-            viewModel.sharingItem = nil
-            return
+        Task {
+            let objects = await buildShareObjects()
+            guard !objects.isEmpty else {
+                await MainActor.run {
+                    viewModel.sharingItem = nil
+                }
+                return
+            }
+
+            await MainActor.run {
+                let anchorView = AnchorCapture.viewStore.object(forKey: item.id.uuidString as NSString)
+                    ?? (NSApp.keyWindow ?? NSApp.windows.first(where: { $0 is ClipboardPanel }))?.contentView
+
+                guard let anchor = anchorView else {
+                    viewModel.sharingItem = nil
+                    return
+                }
+
+                let picker = NSSharingServicePicker(items: objects)
+                picker.show(relativeTo: anchor.bounds, of: anchor, preferredEdge: .minY)
+                viewModel.sharingItem = nil
+            }
         }
-
-        // 从全局表中取回此 item 对应的 NSView
-        let anchorView = AnchorCapture.viewStore.object(forKey: item.id.uuidString as NSString)
-            ?? (NSApp.keyWindow ?? NSApp.windows.first(where: { $0 is ClipboardPanel }))?.contentView
-
-        guard let anchor = anchorView else {
-            viewModel.sharingItem = nil
-            return
-        }
-
-        let picker = NSSharingServicePicker(items: objects)
-        picker.show(relativeTo: anchor.bounds, of: anchor, preferredEdge: .minY)
-        viewModel.sharingItem = nil
     }
 
-    private func buildShareObjects() -> [Any] {
+    private func buildShareObjects() async -> [Any] {
         var objects: [Any] = []
 
         switch item.contentType {
         case .image:
-            if let url = item.originalImageURL,
-               let data = try? Data(contentsOf: url),
+            let imageData = await StorageManager.shared.loadImageData(id: item.id)
+            let previewData = await StorageManager.shared.loadPreviewImageData(id: item.id)
+            if let data = imageData ?? previewData,
                let image = NSImage(data: data) {
-                objects.append(image)
-            } else if let url = item.thumbnailURL,
-                      let data = try? Data(contentsOf: url),
-                      let image = NSImage(data: data) {
                 objects.append(image)
             }
         case .fileURL:
