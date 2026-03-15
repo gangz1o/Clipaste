@@ -88,9 +88,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		5F64DF2F2F5F09EF00608D26 /* clipaste */ = {
+		5F64DF2F2F5F09EF00608D26 /* Clipaste */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 5F64DF3D2F5F09F000608D26 /* Build configuration list for PBXNativeTarget "clipaste" */;
+			buildConfigurationList = 5F64DF3D2F5F09F000608D26 /* Build configuration list for PBXNativeTarget "Clipaste" */;
 			buildPhases = (
 				5F64DF2C2F5F09EF00608D26 /* Sources */,
 				5F64DF2D2F5F09EF00608D26 /* Frameworks */,
@@ -103,7 +103,7 @@
 			fileSystemSynchronizedGroups = (
 				5F64DF322F5F09EF00608D26 /* clipaste */,
 			);
-			name = clipaste;
+			name = Clipaste;
 			packageProductDependencies = (
 				5F64DF522F5F0C5900608D26 /* KeyboardShortcuts */,
 				5F3655462F65A05C00329A7D /* Highlightr */,
@@ -145,7 +145,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				5F64DF2F2F5F09EF00608D26 /* clipaste */,
+				5F64DF2F2F5F09EF00608D26 /* Clipaste */,
 			);
 		};
 /* End PBXProject section */
@@ -303,6 +303,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = clipaste/clipaste.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -332,7 +333,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gangz1o.clipaste;
 				PRODUCT_NAME = Clipaste;
 				REGISTER_APP_GROUPS = YES;
@@ -350,6 +351,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = clipaste/clipaste.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -379,7 +381,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gangz1o.clipaste;
 				PRODUCT_NAME = Clipaste;
 				REGISTER_APP_GROUPS = YES;
@@ -404,7 +406,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		5F64DF3D2F5F09F000608D26 /* Build configuration list for PBXNativeTarget "clipaste" */ = {
+		5F64DF3D2F5F09F000608D26 /* Build configuration list for PBXNativeTarget "Clipaste" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5F64DF3E2F5F09F000608D26 /* Debug */,

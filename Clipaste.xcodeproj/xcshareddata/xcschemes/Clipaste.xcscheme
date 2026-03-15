@@ -17,8 +17,8 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "5F64DF2F2F5F09EF00608D26"
                BuildableName = "Clipaste.app"
-               BlueprintName = "clipaste"
-               ReferencedContainer = "container:clipaste.xcodeproj">
+               BlueprintName = "Clipaste"
+               ReferencedContainer = "container:Clipaste.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -46,8 +46,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "5F64DF2F2F5F09EF00608D26"
             BuildableName = "Clipaste.app"
-            BlueprintName = "clipaste"
-            ReferencedContainer = "container:clipaste.xcodeproj">
+            BlueprintName = "Clipaste"
+            ReferencedContainer = "container:Clipaste.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -63,8 +63,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "5F64DF2F2F5F09EF00608D26"
             BuildableName = "Clipaste.app"
-            BlueprintName = "clipaste"
-            ReferencedContainer = "container:clipaste.xcodeproj">
+            BlueprintName = "Clipaste"
+            ReferencedContainer = "container:Clipaste.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
