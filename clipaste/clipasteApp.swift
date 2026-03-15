@@ -77,11 +77,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         KeyboardShortcuts.onKeyDown(for: .nextList) {
-            // TODO: implement list-switching when the feature is ready
+            NotificationCenter.default.post(name: .selectNextGroup, object: nil)
         }
 
         KeyboardShortcuts.onKeyDown(for: .prevList) {
-            // TODO: implement list-switching when the feature is ready
+            NotificationCenter.default.post(name: .selectPreviousGroup, object: nil)
         }
 
         KeyboardShortcuts.onKeyDown(for: .clearHistory) {

@@ -1,8 +1,12 @@
+import AppKit
 import SwiftUI
 
 struct AdvancedSettingsView: View {
     @EnvironmentObject private var viewModel: SettingsViewModel
     @EnvironmentObject private var runtimeStore: ClipboardRuntimeStore
+    @AppStorage("enable_smart_groups") private var isSmartGroupsEnabled: Bool = true
+    @State private var showsDiagnostics = false
+    @State private var copiedDiagnostics = false
 
     var body: some View {
         Form {
@@ -51,6 +55,16 @@ struct AdvancedSettingsView: View {
                 Text("Hold Option and double-click to temporarily reverse the current text format setting.")
             }
 
+            // ── Interface ──
+            Section {
+                Toggle("显示智能分组", isOn: $isSmartGroupsEnabled)
+                    .toggleStyle(.switch)
+            } header: {
+                Text("Interface")
+            } footer: {
+                Text("在主界面导航栏显示文本、链接、图片等预置智能分类标签。")
+            }
+
             // ── iCloud 数据同步 ──
             Section {
                 VStack(alignment: .leading, spacing: 12) {
@@ -64,9 +78,10 @@ struct AdvancedSettingsView: View {
                                 .foregroundColor(.secondary)
                                 .lineLimit(2)
                                 .fixedSize(horizontal: false, vertical: true)
-                        }
+                            }
                     }
                     .toggleStyle(.switch)
+                    .disabled(runtimeStore.isSyncing)
 
                     // 当同步开启时，展现高级控制台面板
                     if runtimeStore.isSyncEnabled {
@@ -109,9 +124,11 @@ struct AdvancedSettingsView: View {
                             .buttonStyle(.plain)
                             .foregroundColor(runtimeStore.isSyncing ? .secondary : .accentColor)
                             .disabled(runtimeStore.isSyncing)
-                            .help("重新连接 iCloud")
+                            .help("检查 iCloud 连接状态")
                         }
                     }
+
+                    diagnosticsPanel
                 }
                 .padding(.vertical, 4)
             } header: {
@@ -158,6 +175,154 @@ struct AdvancedSettingsView: View {
             Text("等待首次同步...")
                 .font(.system(size: 12))
                 .foregroundColor(.secondary)
+        }
+    }
+
+    private var diagnosticsPanel: some View {
+        DisclosureGroup(isExpanded: $showsDiagnostics) {
+            VStack(alignment: .leading, spacing: 10) {
+                HStack {
+                    Text("活动路由")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text(runtimeStore.diagnosticsSnapshot.activeRoute == "cloud" ? "iCloud" : "本地")
+                }
+
+                HStack {
+                    Text("当前开关状态")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text(runtimeStore.diagnosticsSnapshot.currentSyncEnabled ? "开启" : "关闭")
+                }
+
+                HStack {
+                    Text("排队中的切换")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text(pendingSyncDescription)
+                }
+
+                HStack {
+                    Text("本地 Runtime")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text(runtimeStore.diagnosticsSnapshot.localRuntimeReady ? "已初始化" : "未初始化")
+                }
+
+                HStack {
+                    Text("云 Runtime")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text(runtimeStore.diagnosticsSnapshot.cloudRuntimeReady ? "已初始化" : "未初始化")
+                }
+
+                HStack {
+                    Text("Runtime Generation")
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text(runtimeStore.diagnosticsSnapshot.runtimeGeneration)
+                        .font(.system(size: 11, design: .monospaced))
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("本地 Store")
+                        .foregroundColor(.secondary)
+                    Text(runtimeStore.diagnosticsSnapshot.localStorePath)
+                        .font(.system(size: 11, design: .monospaced))
+                        .textSelection(.enabled)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("云 Store")
+                        .foregroundColor(.secondary)
+                    Text(runtimeStore.diagnosticsSnapshot.cloudStorePath)
+                        .font(.system(size: 11, design: .monospaced))
+                        .textSelection(.enabled)
+                }
+
+                if let error = runtimeStore.diagnosticsSnapshot.lastError {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("最近错误")
+                            .foregroundColor(.secondary)
+                        Text(error)
+                            .font(.system(size: 11))
+                            .foregroundColor(.red)
+                            .textSelection(.enabled)
+                    }
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack {
+                        Text("最近事件")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Button(copiedDiagnostics ? "已复制" : "复制诊断信息") {
+                            copyDiagnosticsToPasteboard()
+                        }
+                        .buttonStyle(.borderless)
+                        .disabled(runtimeStore.diagnosticsEntries.isEmpty)
+                    }
+
+                    if runtimeStore.diagnosticsEntries.isEmpty {
+                        Text("暂无事件记录")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                    } else {
+                        ForEach(runtimeStore.diagnosticsEntries.prefix(8)) { entry in
+                            HStack(alignment: .top, spacing: 8) {
+                                Text(entry.timestamp, format: .dateTime.hour().minute().second())
+                                    .font(.system(size: 11, design: .monospaced))
+                                    .foregroundColor(.secondary)
+
+                                Text(entry.level.rawValue)
+                                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                                    .foregroundColor(color(for: entry.level))
+
+                                Text(entry.message)
+                                    .font(.system(size: 11))
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.top, 8)
+        } label: {
+            Text("同步诊断")
+                .font(.system(size: 12, weight: .medium))
+        }
+        .padding(.top, 2)
+    }
+
+    private var pendingSyncDescription: String {
+        guard let pending = runtimeStore.diagnosticsSnapshot.pendingSyncEnabled else {
+            return "无"
+        }
+
+        return pending ? "待开启" : "待关闭"
+    }
+
+    private func color(for level: ClipboardSyncDiagnosticLevel) -> Color {
+        switch level {
+        case .info:
+            return .secondary
+        case .warning:
+            return .orange
+        case .error:
+            return .red
+        }
+    }
+
+    private func copyDiagnosticsToPasteboard() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(runtimeStore.diagnosticsReport(), forType: .string)
+        copiedDiagnostics = true
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            copiedDiagnostics = false
         }
     }
 }

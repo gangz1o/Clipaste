@@ -116,6 +116,9 @@ final class StorageManager {
     nonisolated let container: ModelContainer
     private let storeActor: ClipboardStoreActor
     private let cleanupActor: ClipboardStoreActor
+    nonisolated private let taskLock = NSLock()
+    nonisolated(unsafe) private var activeTasks: [UUID: Task<Void, Never>] = [:]
+    nonisolated(unsafe) private var isShuttingDown = false
 
     init(modelContainer: ModelContainer) {
         self.container = modelContainer
@@ -127,6 +130,19 @@ final class StorageManager {
     func fetchItemsInBackground(searchText: String, container: ModelContainer) async -> [ClipboardItem] {
         let searcher = ClipboardSearcher(modelContainer: container)
         return await searcher.searchAndMap(searchText: searchText)
+    }
+
+    nonisolated
+    func shutdown() async {
+        let runningTasks = prepareForShutdown()
+
+        for task in runningTasks {
+            task.cancel()
+        }
+
+        for task in runningTasks {
+            _ = await task.result
+        }
     }
 
     @MainActor
@@ -159,7 +175,7 @@ final class StorageManager {
     ) {
         let actor = self.storeActor
 
-        Task.detached(priority: .userInitiated) {
+        spawnTrackedTask(priority: .userInitiated) {
             await actor.upsert(
                 hash: hash,
                 text: text,
@@ -176,7 +192,7 @@ final class StorageManager {
     nonisolated
     func performAutoCleanup(before expirationDate: Date) {
         let actor = self.cleanupActor
-        Task.detached(priority: .userInitiated) {
+        spawnTrackedTask(priority: .userInitiated) {
             await actor.cleanUpExpiredRecords(before: expirationDate)
         }
     }
@@ -184,7 +200,7 @@ final class StorageManager {
     nonisolated
     func deleteRecord(hash: String) {
         let actor = self.storeActor
-        Task.detached(priority: .userInitiated) {
+        spawnTrackedTask(priority: .userInitiated) {
             await actor.delete(hash: hash)
         }
     }
@@ -192,18 +208,20 @@ final class StorageManager {
     nonisolated
     func togglePin(hash: String, isPinned: Bool) {
         let actor = self.storeActor
-        Task.detached(priority: .userInitiated) {
+        spawnTrackedTask(priority: .userInitiated) {
             await actor.updatePinStatus(hash: hash, isPinned: isPinned)
         }
     }
 
     nonisolated
     func processOCRForImage(hash: String, imageData: Data) {
-        Task(priority: .background) {
+        spawnTrackedTask(priority: .background) {
             guard let text = await OCREngine.extractText(from: imageData) else { return }
+            guard Task.isCancelled == false else { return }
             let container = self.container
             let ocrActor = ClipboardStoreActor(modelContainer: container)
             await ocrActor.updateRecordWithOCRText(hash: hash, text: text)
+            guard Task.isCancelled == false else { return }
 
             await MainActor.run {
                 NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
@@ -213,13 +231,15 @@ final class StorageManager {
 
     nonisolated
     func processLinkMetadata(hash: String, urlString: String) {
-        Task(priority: .background) {
+        spawnTrackedTask(priority: .background) {
             let (title, iconData) = await LinkMetadataEngine.fetchMetadata(for: urlString)
             guard title != nil || iconData != nil else { return }
+            guard Task.isCancelled == false else { return }
 
             let container = self.container
             let linkActor = ClipboardStoreActor(modelContainer: container)
             await linkActor.updateRecordWithLinkMetadata(hash: hash, title: title, iconData: iconData)
+            guard Task.isCancelled == false else { return }
 
             await MainActor.run {
                 NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
@@ -229,11 +249,13 @@ final class StorageManager {
 
     nonisolated
     func processSyntaxHighlight(hash: String, text: String) {
-        Task(priority: .background) {
+        spawnTrackedTask(priority: .background) {
             guard let rtfData = await SyntaxHighlightService.shared.processAndHighlight(text: text) else { return }
+            guard Task.isCancelled == false else { return }
             let container = self.container
             let highlightActor = ClipboardStoreActor(modelContainer: container)
             await highlightActor.updateRecordWithRTFData(hash: hash, rtfData: rtfData)
+            guard Task.isCancelled == false else { return }
 
             await MainActor.run {
                 NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
@@ -244,7 +266,7 @@ final class StorageManager {
     nonisolated
     func clearAllHistory() {
         let actor = self.storeActor
-        Task.detached(priority: .userInitiated) {
+        spawnTrackedTask(priority: .userInitiated) {
             await actor.deleteAllRecords()
         }
     }
@@ -252,7 +274,7 @@ final class StorageManager {
     nonisolated
     func createGroup(name: String, systemIconName: String = "folder") {
         let actor = self.storeActor
-        Task.detached(priority: .userInitiated) {
+        spawnTrackedTask(priority: .userInitiated) {
             await actor.createGroup(name: name, systemIconName: systemIconName)
         }
     }
@@ -260,7 +282,7 @@ final class StorageManager {
     nonisolated
     func assignToGroup(hash: String, groupId: String) {
         let actor = self.storeActor
-        Task.detached(priority: .userInitiated) {
+        spawnTrackedTask(priority: .userInitiated) {
             await actor.assignRecordToGroup(recordHash: hash, groupId: groupId)
         }
     }
@@ -268,7 +290,7 @@ final class StorageManager {
     nonisolated
     func removeRecordFromGroup(hash: String, groupId: String) {
         let actor = self.storeActor
-        Task.detached(priority: .userInitiated) {
+        spawnTrackedTask(priority: .userInitiated) {
             await actor.removeRecordFromGroup(recordHash: hash, groupId: groupId)
         }
     }
@@ -276,7 +298,7 @@ final class StorageManager {
     nonisolated
     func removeRecordFromAllGroups(hash: String) {
         let actor = self.storeActor
-        Task.detached(priority: .userInitiated) {
+        spawnTrackedTask(priority: .userInitiated) {
             await actor.removeRecordFromAllGroups(recordHash: hash)
         }
     }
@@ -284,7 +306,7 @@ final class StorageManager {
     nonisolated
     func renameGroup(id: String, newName: String) {
         let actor = self.storeActor
-        Task.detached(priority: .userInitiated) {
+        spawnTrackedTask(priority: .userInitiated) {
             await actor.updateGroupName(id: id, newName: newName)
         }
     }
@@ -292,7 +314,7 @@ final class StorageManager {
     nonisolated
     func updateGroupIcon(id: String, newIcon: String) {
         let actor = self.storeActor
-        Task.detached(priority: .userInitiated) {
+        spawnTrackedTask(priority: .userInitiated) {
             await actor.updateGroupIcon(id: id, newIcon: newIcon)
         }
     }
@@ -300,7 +322,7 @@ final class StorageManager {
     nonisolated
     func deleteGroup(id: String) {
         let actor = self.storeActor
-        Task.detached(priority: .userInitiated) {
+        spawnTrackedTask(priority: .userInitiated) {
             await actor.deleteGroup(id: id)
         }
     }
@@ -308,7 +330,7 @@ final class StorageManager {
     nonisolated
     func updateGroupOrder(groupIDs: [String]) {
         let actor = self.storeActor
-        Task.detached(priority: .userInitiated) {
+        spawnTrackedTask(priority: .userInitiated) {
             await actor.updateGroupOrder(groupIDs: groupIDs)
         }
     }
@@ -320,7 +342,7 @@ final class StorageManager {
     nonisolated
     func updateRecordText(hash: String, newText: String, newRTFData: Data? = nil) {
         let actor = self.storeActor
-        Task.detached(priority: .userInitiated) {
+        spawnTrackedTask(priority: .userInitiated) {
             await actor.updateRecordText(hash: hash, newText: newText, newRTFData: newRTFData)
         }
     }
@@ -416,6 +438,41 @@ final class StorageManager {
         case .color:
             return plainText ?? "Color"
         }
+    }
+
+    nonisolated private func spawnTrackedTask(
+        priority: TaskPriority,
+        operation: @escaping @Sendable () async -> Void
+    ) {
+        let taskID = UUID()
+
+        taskLock.lock()
+        guard isShuttingDown == false else {
+            taskLock.unlock()
+            return
+        }
+
+        let task = Task.detached(priority: priority) { [weak self] in
+            defer { self?.finishTrackedTask(id: taskID) }
+            await operation()
+        }
+
+        activeTasks[taskID] = task
+        taskLock.unlock()
+    }
+
+    nonisolated private func finishTrackedTask(id: UUID) {
+        taskLock.lock()
+        activeTasks.removeValue(forKey: id)
+        taskLock.unlock()
+    }
+
+    nonisolated private func prepareForShutdown() -> [Task<Void, Never>] {
+        taskLock.lock()
+        defer { taskLock.unlock() }
+
+        isShuttingDown = true
+        return Array(activeTasks.values)
     }
 }
 

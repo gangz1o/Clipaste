@@ -1,6 +1,25 @@
 import SwiftUI
 import Combine
 
+extension Notification.Name {
+    static let selectNextGroup = Notification.Name("selectNextGroup")
+    static let selectPreviousGroup = Notification.Name("selectPreviousGroup")
+}
+
+/// 统一分组标识：将智能分类和用户分组抹平为同一类型，供游标引擎使用。
+/// UI 层绝不感知此枚举，仅 ViewModel 内部消费。
+enum UnifiedGroupSlot: Equatable {
+    case all                               // "全部"
+    case smartFilter(ClipboardContentType)  // 智能分类（文本/链接/图片）
+    case userGroup(String)                  // 用户自定义分组（id）
+}
+
+extension UserDefaults {
+    @objc dynamic var enable_smart_groups: Bool {
+        bool(forKey: "enable_smart_groups")
+    }
+}
+
 @MainActor
 class ClipboardViewModel: ObservableObject {
     @Published var items: [ClipboardItem] = []
@@ -21,6 +40,7 @@ class ClipboardViewModel: ObservableObject {
     @Published var customGroups: [ClipboardGroupItem] = []
     @Published var selectedGroupId: String? = nil
     @Published var draggedGroup: ClipboardGroupItem? = nil
+    @AppStorage("enable_smart_groups") var isSmartGroupsEnabled: Bool = true
 
     private var cancellables: Set<AnyCancellable> = []
     private var filterGeneration: UInt = 0
@@ -41,6 +61,8 @@ class ClipboardViewModel: ObservableObject {
         loadData()
         loadCustomGroups()
         setupFilterPipeline()
+        setupGroupSwitchSubscriptions()
+        setupSmartGroupsGuard()
     }
 
     // MARK: - Combine 防抖搜索管道
@@ -424,6 +446,94 @@ class ClipboardViewModel: ObservableObject {
         }
         // 4. 底层数据库真正执行删除 & 解绑
         StorageManager.shared.deleteGroup(id: group.id)
+    }
+
+    // MARK: - 分组切换引擎
+
+    /// 按 UI 导航栏视觉顺序聚合所有 Tab：[全部] + [用户分组...] + [智能分类...]
+    private var unifiedGroups: [UnifiedGroupSlot] {
+        var slots: [UnifiedGroupSlot] = [.all]
+        slots += customGroups.map { .userGroup($0.id) }
+        if isSmartGroupsEnabled {
+            slots += ClipboardContentType.filterCategories.map { .smartFilter($0) }
+        }
+        return slots
+    }
+
+    /// 供 UI 层直接消费的智能分类列表（开关关闭时为空数组，UI 无需 if-else）
+    var visibleSmartFilters: [ClipboardContentType] {
+        isSmartGroupsEnabled ? ClipboardContentType.filterCategories : []
+    }
+
+    /// 当前选中状态 → UnifiedGroupSlot 映射
+    private var currentSlot: UnifiedGroupSlot {
+        if let groupId = selectedGroupId {
+            return .userGroup(groupId)
+        }
+        if let filter = currentFilter {
+            return .smartFilter(filter)
+        }
+        return .all
+    }
+
+    /// 将 UnifiedGroupSlot 回写到两个状态变量（互斥赋值）
+    private func applySlot(_ slot: UnifiedGroupSlot) {
+        switch slot {
+        case .all:
+            currentFilter = nil
+            selectedGroupId = nil
+        case .smartFilter(let type):
+            currentFilter = type
+            selectedGroupId = nil
+        case .userGroup(let id):
+            selectedGroupId = id
+            currentFilter = nil
+        }
+    }
+
+    /// 切换到下一个分组（无缝循环）
+    func selectNextGroup() {
+        let slots = unifiedGroups
+        guard slots.count > 1 else { return }
+        let idx = slots.firstIndex(of: currentSlot) ?? 0
+        let next = (idx + 1) % slots.count
+        applySlot(slots[next])
+    }
+
+    /// 切换到上一个分组（无缝循环）
+    func selectPreviousGroup() {
+        let slots = unifiedGroups
+        guard slots.count > 1 else { return }
+        let idx = slots.firstIndex(of: currentSlot) ?? 0
+        let prev = (idx - 1 + slots.count) % slots.count
+        applySlot(slots[prev])
+    }
+
+    private func setupGroupSwitchSubscriptions() {
+        NotificationCenter.default.publisher(for: .selectNextGroup)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.selectNextGroup() }
+            .store(in: &cancellables)
+
+        NotificationCenter.default.publisher(for: .selectPreviousGroup)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in self?.selectPreviousGroup() }
+            .store(in: &cancellables)
+    }
+
+    /// 防御性焦点修正：当用户关闭智能分组开关时，如果当前选中的是智能分类，
+    /// 安全地重置到 unifiedGroups 的第一个元素（"全部"）。
+    private func setupSmartGroupsGuard() {
+        UserDefaults.standard.publisher(for: \.enable_smart_groups)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                let slots = self.unifiedGroups
+                if !slots.contains(self.currentSlot), let first = slots.first {
+                    self.applySlot(first)
+                }
+            }
+            .store(in: &cancellables)
     }
 
     // MARK: - 右键菜单动作接口

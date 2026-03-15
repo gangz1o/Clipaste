@@ -148,15 +148,15 @@ struct ClipboardHeaderView: View {
                         groupTabButton(group: group)
                     }
 
-                    // 分割线
-                    if !viewModel.customGroups.isEmpty {
+                    // 分割线（仅在自定义分组和智能分类同时存在时显示）
+                    if !viewModel.customGroups.isEmpty && !viewModel.visibleSmartFilters.isEmpty {
                         Divider()
                             .frame(height: 16)
                             .opacity(0.5)
                     }
 
                     // 区域 B：智能分类
-                    ForEach(ClipboardContentType.filterCategories, id: \.self) { type in
+                    ForEach(viewModel.visibleSmartFilters, id: \.self) { type in
                         MinimalGroupTabButton(
                             title: type.filterLabel,
                             icon: type.systemImage,
@@ -206,7 +206,7 @@ struct ClipboardHeaderView: View {
                         }
                     }
 
-                    ForEach(ClipboardContentType.filterCategories, id: \.self) { type in
+                    ForEach(viewModel.visibleSmartFilters, id: \.self) { type in
                         Button(action: {
                             viewModel.currentFilter = type
                             viewModel.selectedGroupId = nil
