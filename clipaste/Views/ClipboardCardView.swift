@@ -60,20 +60,8 @@ struct ClipboardCardView: View {
 
                     Spacer(minLength: 4)
 
-                    // 类型角标
-                    if item.isFastLink {
-                        Image(systemName: "link")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.secondary)
-                    } else if item.contentType == .fileURL {
-                        Image(systemName: "doc.fill")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                    } else if item.contentType == .image {
-                        Image(systemName: "photo")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                    }
+                    // ── Material Type Badge ────────────────────────
+                    TypeBadgeView(item: item, isCodeContent: isCodeContent)
 
                     // 智能时间：非今天显示日期前缀
                     HStack(spacing: 3) {
@@ -111,12 +99,7 @@ struct ClipboardCardView: View {
             VisualEffectView(material: .popover, blendingMode: .withinWindow)
                 .clipShape(RoundedRectangle(cornerRadius: 16))
         )
-        .overlay(alignment: .leading) {
-            // 类型颜色条
-            Rectangle()
-                .fill(typeAccentColor)
-                .frame(width: 4)
-        }
+        // (Phase 1: 彩色边线已移除，由 Material Badge 取代)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 3)
         // 空格键 QuickLook 气泡（箭头朝下，挂在卡片顶部）
@@ -185,10 +168,14 @@ struct ClipboardCardView: View {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let img):
-                        img.resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .padding(8)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        ZStack {
+                            // 棋盘格背景：为透明图片提供可视化底色
+                            CheckerboardBackground()
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                            img.resizable()
+                                .aspectRatio(contentMode: .fit)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                     case .empty:
                         ProgressView()
                             .progressViewStyle(.circular)
@@ -213,27 +200,33 @@ struct ClipboardCardView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .cornerRadius(8)
         } else if item.isFastLink {
-            // ── 链接：标题优先书签（无图标）────────────────────────────────
-            VStack(alignment: .leading, spacing: 3) {
+            // ── 链接：Safari 风格地址栏样式 ────────────────────────────────
+            VStack(alignment: .leading, spacing: 6) {
                 if let title = item.linkTitle, !title.isEmpty {
                     HighlightedText(text: title, highlight: searchHighlight,
                                     font: .system(size: 12, weight: .medium),
                                     highlightFont: .system(size: 12, weight: .bold))
                         .lineLimit(3)
                         .truncationMode(.tail)
+                }
+
+                // Safari-style URL bar
+                HStack(spacing: 5) {
+                    Image(systemName: "globe")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(.tertiary)
                     Text(previewText)
-                        .font(.system(size: 10))
+                        .font(.system(size: 10, design: .monospaced))
                         .foregroundColor(.secondary)
                         .lineLimit(1)
-                        .truncationMode(.tail)
-                } else {
-                    HighlightedText(text: previewText, highlight: searchHighlight,
-                                    font: .system(size: 12),
-                                    foregroundColor: .blue.opacity(0.85),
-                                    highlightFont: .system(size: 12, weight: .bold))
-                        .lineLimit(6)
-                        .truncationMode(.tail)
+                        .truncationMode(.middle)
                 }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.primary.opacity(0.04))
+                )
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         } else {
@@ -263,19 +256,79 @@ struct ClipboardCardView: View {
     // MARK: - Helpers
 
     private var isCodeContent: Bool {
-        ["Xcode", "Terminal"].contains(item.appName)
+        item.contentType == .code || ["Xcode", "Terminal"].contains(item.appName)
+    }
+}
+
+// MARK: - Material Type Badge
+
+/// 毛玻璃微标签 — 极致通透的内容类型胶囊
+private struct TypeBadgeView: View {
+    let item: ClipboardItem
+    let isCodeContent: Bool
+
+    private var badgeIcon: String {
+        switch item.contentType {
+        case .image:    return "photo"
+        case .fileURL:  return "doc.fill"
+        case .link:     return "link"
+        case .code:     return "curlybraces"
+        case .color:    return "paintpalette.fill"
+        case .text:
+            if item.isFastLink { return "link" }
+            if isCodeContent { return "curlybraces" }
+            return "doc.text"
+        }
     }
 
-    private var typeAccentColor: Color {
+    private var badgeLabel: String {
         switch item.contentType {
-        case .image: return .purple
-        case .fileURL: return .orange
-        case .link: return .orange
-        case .code: return .blue
-        default:
-            if item.isFastLink { return .orange }
-            if isCodeContent { return .blue }
-            return .green
+        case .image:    return "图片"
+        case .fileURL:  return "文件"
+        case .link:     return "链接"
+        case .code:     return "代码"
+        case .color:    return "颜色"
+        case .text:
+            if item.isFastLink { return "链接" }
+            if isCodeContent { return "代码" }
+            return "文本"
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: badgeIcon)
+            Text(badgeLabel)
+        }
+        .font(.system(size: 10, weight: .semibold))
+        .foregroundStyle(.secondary)
+        .padding(.horizontal, 5)
+        .padding(.vertical, 2)
+        .background(.ultraThinMaterial, in: Capsule())
+    }
+}
+
+// MARK: - Checkerboard Background (for transparent images)
+
+/// 经典灰白棋盘格 — 透明图片可视化底色
+private struct CheckerboardBackground: View {
+    let cellSize: CGFloat = 8
+    let lightColor = Color.white.opacity(0.8)
+    let darkColor = Color.gray.opacity(0.15)
+
+    var body: some View {
+        Canvas { context, size in
+            let cols = Int(ceil(size.width / cellSize))
+            let rows = Int(ceil(size.height / cellSize))
+            for row in 0..<rows {
+                for col in 0..<cols {
+                    let isEven = (row + col) % 2 == 0
+                    let rect = CGRect(x: CGFloat(col) * cellSize,
+                                      y: CGFloat(row) * cellSize,
+                                      width: cellSize, height: cellSize)
+                    context.fill(Path(rect), with: .color(isEven ? lightColor : darkColor))
+                }
+            }
         }
     }
 }
