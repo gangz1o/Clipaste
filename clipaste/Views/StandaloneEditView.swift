@@ -23,8 +23,9 @@ struct StandaloneEditView: View {
         self.viewModel = viewModel
         self.windowId = windowId
 
-        // 优先从 RTF 数据构建富文本（保留颜色、字体等属性）
-        if let rtfData = item.rtfData,
+        // ⚠️ 架构升级：从数据库按需加载 RTF，不依赖 DTO 层
+        let record = StorageManager.shared.fetchRecord(id: item.id)
+        if let rtfData = record?.rtfData,
            let attrString = try? NSAttributedString(
                data: rtfData,
                options: [.documentType: NSAttributedString.DocumentType.rtf],
@@ -96,10 +97,21 @@ struct StandaloneEditView: View {
         EditWindowManager.shared.forceClose(windowId: windowId)
     }
 
-    /// ⚠️ 上下文提权：保存时才从 NSTextView 一次性提取数据
+    /// ⚠️ 架构升级：RTF 直接写入 StorageManager，不经过 ViewModel
     private func saveData() {
         let plainText = context.getPlainText?() ?? ""
         let rtfData = context.getRTFData?()
-        viewModel.saveEditedItem(item, newText: plainText, newRTFData: rtfData)
+
+        // 1. ViewModel 仅处理纯文本的乐观 UI 更新
+        viewModel.saveEditedItem(item, newText: plainText)
+
+        // 2. RTF 数据直接持久化到数据库（绕过 ViewModel）
+        if let rtfData {
+            StorageManager.shared.updateRecordText(hash: item.contentHash, newText: plainText, newRTFData: rtfData)
+        }
+
+        // 3. 通知渲染引擎清除过期缓存
+        ListRenderEngine.shared.invalidate(id: item.id)
     }
 }
+

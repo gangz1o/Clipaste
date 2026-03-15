@@ -3,6 +3,7 @@ import SwiftUI
 struct ClipboardVerticalItemView: View {
     let item: ClipboardItem
     @ObservedObject var viewModel: ClipboardViewModel
+    @ObservedObject private var renderEngine = ListRenderEngine.shared
 
     @State private var isHovering = false
 
@@ -120,16 +121,13 @@ struct ClipboardVerticalItemView: View {
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                     } else {
-                        // 普通文本兜底：优先使用语法高亮 RTF（主题跟随系统深浅模式），否则降级为搜索高亮纯文本
-                        if item.rtfData != nil {
-                            AsyncRichTextRenderer(
-                                rtfData: item.rtfData,
-                                plainText: previewText,
-                                itemId: item.id.uuidString,
-                                maxLength: 300
-                            )
-                            .lineLimit(2)
-                            .multilineTextAlignment(.leading)
+                        // ⚠️ 渲染核心：ListRenderEngine 缓存优先
+                        // 缓存命中 → 0 延迟渲染高亮文本
+                        // 缓存未命中 → 瞬间使用纯文本垫底 + onAppear 触发后台缓存
+                        if let cached = renderEngine.cachedText(for: item.id) {
+                            Text(cached)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.leading)
                         } else {
                             HighlightedText(text: previewText, highlight: viewModel.activeSearchQuery)
                                 .lineLimit(2)
@@ -192,6 +190,8 @@ struct ClipboardVerticalItemView: View {
                     lineWidth: (parsedColor != nil || isSelected) ? 1.5 : 1.5
                 )
         )
+        // ⚠️ 生命周期钩子：卡片首次出现时触发后台缓存
+        .onAppear { renderEngine.prepareIfNeeded(for: item) }
         // 分享锚点：用 background 捕获 NSView + onChange 触发分享
         .shareable(item: item, viewModel: viewModel)
         .clipboardContextMenu(for: item, viewModel: viewModel)

@@ -4,6 +4,7 @@ struct ClipboardCardView: View {
     let item: ClipboardItem
     var onSelect: () -> Void = {}
     var viewModel: ClipboardViewModel? = nil
+    @ObservedObject private var renderEngine = ListRenderEngine.shared
 
     @State private var isHovered = false
 
@@ -134,6 +135,8 @@ struct ClipboardCardView: View {
         }
         // 分享锚点：用 background 捕获 NSView + onChange 触发分享
         .modifier(OptionalShareModifier(item: item, viewModel: viewModel))
+        // ⚠️ 生命周期钩子：卡片首次出现时触发后台缓存
+        .onAppear { renderEngine.prepareIfNeeded(for: item) }
         .clipboardContextMenu(for: item, viewModel: viewModel)
         .onDrag {
             viewModel?.draggedItemId = item.id
@@ -234,18 +237,13 @@ struct ClipboardCardView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         } else {
-            // ── 普通文本（含代码）：优先使用语法高亮 RTF（主题跟随系统深浅模式）
-            if item.rtfData != nil {
-                AsyncRichTextRenderer(
-                    rtfData: item.rtfData,
-                    plainText: previewText,
-                    itemId: item.id.uuidString,
-                    maxLength: 300
-                )
-                .lineSpacing(3)
-                .lineLimit(8)
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            // ── 普通文本（含代码）：▄▀ ListRenderEngine 缓存优先
+            if let cached = renderEngine.cachedText(for: item.id) {
+                Text(cached)
+                    .lineSpacing(3)
+                    .lineLimit(8)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             } else {
                 HighlightedText(
                     text: previewText,

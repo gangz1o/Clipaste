@@ -38,9 +38,10 @@ struct ClipboardQuickLookView: View {
                     return fullText
                 }()
 
-                // 从 rtfData 还原语法高亮的 NSAttributedString
+                // ⚠️ 架构升级：从数据库按需加载 RTF，不依赖 DTO 层
                 let highlightedAttr: NSAttributedString? = {
-                    guard let data = item.rtfData else { return nil }
+                    guard let record = StorageManager.shared.fetchRecord(id: item.id),
+                          let data = record.rtfData else { return nil }
                     return try? NSAttributedString(
                         data: data,
                         options: [.documentType: NSAttributedString.DocumentType.rtf],
@@ -56,3 +57,4 @@ struct ClipboardQuickLookView: View {
         // Popover 原生自带材质背景，无需额外设置
     }
 }
+

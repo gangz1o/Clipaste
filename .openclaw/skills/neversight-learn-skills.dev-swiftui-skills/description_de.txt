@@ -1,1 +1,0 @@
-Von Apple verfasste SwiftUI- und Plattformanleitungen, extrahiert aus Xcode. Hilft KI-Agenten, idiomatisches, Apple-natives SwiftUI mit weniger Halluzinationen zu schreiben.

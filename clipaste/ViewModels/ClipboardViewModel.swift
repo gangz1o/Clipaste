@@ -358,11 +358,11 @@ class ClipboardViewModel: ObservableObject {
         EditWindowManager.shared.openEditor(for: item, viewModel: self)
     }
 
-    /// 保存编辑后的文本和 RTF 数据（由 StandaloneEditView 通过 EditorContext 提取后调用）
-    func saveEditedItem(_ item: ClipboardItem, newText: String, newRTFData: Data? = nil) {
+    /// 保存编辑后的文本（由 StandaloneEditView 通过 EditorContext 提取后调用）
+    /// ⚠️ 架构红线：ViewModel 绝不接触 RTF 二进制。RTF 持久化由 StandaloneEditView 直接调用 StorageManager。
+    func saveEditedItem(_ item: ClipboardItem, newText: String) {
         // 1. 乐观 UI：立即更新内存中的 items
         if let idx = items.firstIndex(where: { $0.id == item.id }) {
-            // 重新构建 ClipboardItem（因为部分属性是 let 常量）
             items[idx] = ClipboardItem(
                 id: item.id,
                 contentType: item.contentType,
@@ -384,12 +384,12 @@ class ClipboardViewModel: ObservableObject {
                 linkTitle: item.linkTitle,
                 linkIconData: item.linkIconData,
                 isPinned: item.isPinned,
-                rtfData: newRTFData ?? item.rtfData
+                hasRTF: item.hasRTF
             )
         }
 
-        // 2. 持久化到数据库（同时保存纯文本和 RTF 数据）
-        StorageManager.shared.updateRecordText(hash: item.contentHash, newText: newText, newRTFData: newRTFData)
+        // 2. 持久化纯文本到数据库
+        StorageManager.shared.updateRecordText(hash: item.contentHash, newText: newText)
     }
 
     func renameItem(item: ClipboardItem) {

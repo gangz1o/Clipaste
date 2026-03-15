@@ -16,7 +16,7 @@ private struct ClipboardRecordSnapshot: Sendable {
     let linkTitle: String?
     let linkIconData: Data?
     let isPinned: Bool
-    let rtfData: Data?
+    let hasRTF: Bool          // ⚠️ 架构红线：仅轻量标记，不持有 RTF 二进制
 }
 
 nonisolated private func normalizedGroupIDs(primaryGroupID: String?, groupIdsRaw: String?) -> [String] {
@@ -76,13 +76,18 @@ actor ClipboardSearcher {
 
         let records = (try? modelContext.fetch(descriptor)) ?? []
         let snapshots = records.map { record in
-            ClipboardRecordSnapshot(
+            // ⚠️ 物理截断：plainText 最多 500 字符进入 UI 列表，严禁海量文本穿透
+            let truncatedText: String? = {
+                guard let text = record.plainText else { return nil }
+                return text.count > 500 ? String(text.prefix(500)) : text
+            }()
+            return ClipboardRecordSnapshot(
                 id: record.id,
                 contentHash: record.contentHash,
                 bundleIdentifier: record.appBundleID,
                 appName: record.appLocalizedName ?? "Unknown App",
                 timestamp: record.timestamp,
-                plainText: record.plainText,
+                plainText: truncatedText,
                 thumbnailPath: record.thumbnailPath,
                 originalFilePath: record.originalFilePath,
                 typeRawValue: record.typeRawValue,
@@ -91,7 +96,7 @@ actor ClipboardSearcher {
                 linkTitle: record.linkTitle,
                 linkIconData: record.linkIconData,
                 isPinned: record.isPinned,
-                rtfData: record.rtfData
+                hasRTF: record.rtfData != nil
             )
         }
 
@@ -363,7 +368,7 @@ final class StorageManager {
             linkTitle: record.linkTitle,
             linkIconData: record.linkIconData,
             isPinned: record.isPinned,
-            rtfData: record.rtfData
+            hasRTF: record.hasRTF
         )
     }
 
