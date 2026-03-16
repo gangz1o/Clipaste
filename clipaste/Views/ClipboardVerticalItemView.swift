@@ -133,34 +133,24 @@ struct ClipboardVerticalItemView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            // 3. 右侧：智能时间微排版
-            VStack(alignment: .trailing, spacing: 2) {
-                // 永远显示时间作为主视觉
-                Text(item.timestamp, format: .dateTime.hour().minute())
-                    .font(.system(size: 11, weight: .medium))
+            // 3. 右侧：时间 + 日期双行排版（弱化处理）
+            VStack(alignment: .trailing, spacing: 1) {
+                Text(item.timestamp.timeString)
+                    .font(.system(size: 11))
                     .foregroundColor(
-                        parsedColor.map { $0.isDark ? .white.opacity(0.8) : .black.opacity(0.6) }
+                        parsedColor.map { $0.isDark ? .white.opacity(0.6) : .black.opacity(0.45) }
                         ?? .secondary
                     )
 
-                // 只对"非今天"的历史数据展示日期，极致紧凑 9pt 弱化字体
-                if !Calendar.current.isDateInToday(item.timestamp) {
-                    Group {
-                        if Calendar.current.isDate(item.timestamp, equalTo: Date(), toGranularity: .year) {
-                            Text(item.timestamp, format: .dateTime.month(.twoDigits).day(.twoDigits))
-                        } else {
-                            Text(item.timestamp, format: .dateTime.year().month(.twoDigits).day(.twoDigits))
-                        }
-                    }
-                    .font(.system(size: 9, weight: .regular))
+                Text(item.timestamp.dateString)
+                    .font(.system(size: 9))
                     .foregroundColor(
                         parsedColor.map { $0.isDark ? .white.opacity(0.4) : .black.opacity(0.3) }
-                        ?? .secondary.opacity(0.5)
+                        ?? .secondary.opacity(0.7)
                     )
-                }
             }
             .help(item.timestamp.formatted(date: .complete, time: .standard))
-            .frame(maxWidth: 60, alignment: .trailing)
+            .frame(minWidth: 44, alignment: .trailing)
         }
         .padding(.horizontal, 12)
         .frame(height: 76)

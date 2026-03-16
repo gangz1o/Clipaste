@@ -17,11 +17,7 @@ struct AdvancedSettingsView: View {
 
                 if viewModel.autoPasteToActiveApp {
                     Button("Open Accessibility Settings…") {
-                        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") else {
-                            return
-                        }
-
-                        NSWorkspace.shared.open(url)
+                        viewModel.openAccessibilitySettings()
                     }
                     .buttonStyle(.link)
                 }

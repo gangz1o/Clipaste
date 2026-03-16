@@ -127,7 +127,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 5F64DF2B2F5F09EF00608D26 /* Build configuration list for PBXProject "Clipaste" */;
+			buildConfigurationList = 5F64DF2B2F5F09EF00608D26 /* Build configuration list for PBXProject "clipaste" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -307,7 +307,7 @@
 				CODE_SIGN_ENTITLEMENTS = clipaste/clipaste.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 6YXB9ASQXU;
 				ENABLE_APP_SANDBOX = YES;
@@ -355,7 +355,7 @@
 				CODE_SIGN_ENTITLEMENTS = clipaste/clipaste.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 3;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 6YXB9ASQXU;
 				ENABLE_APP_SANDBOX = YES;
@@ -397,7 +397,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		5F64DF2B2F5F09EF00608D26 /* Build configuration list for PBXProject "Clipaste" */ = {
+		5F64DF2B2F5F09EF00608D26 /* Build configuration list for PBXProject "clipaste" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5F64DF3B2F5F09F000608D26 /* Debug */,

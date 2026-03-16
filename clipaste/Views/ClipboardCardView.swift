@@ -63,15 +63,17 @@ struct ClipboardCardView: View {
                     // ── Material Type Badge ────────────────────────
                     TypeBadgeView(item: item, isCodeContent: isCodeContent)
 
-                    // 智能时间：非今天显示日期前缀
-                    HStack(spacing: 3) {
-                        if !Calendar.current.isDateInToday(item.timestamp) {
-                            Text(item.timestamp, format: .dateTime.month(.twoDigits).day(.twoDigits))
-                        }
-                        Text(item.timestamp, format: .dateTime.hour().minute())
+                    // 时间 + 日期双行排版（弱化处理，不喧宾夺主）
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text(item.timestamp.timeString)
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+
+                        Text(item.timestamp.dateString)
+                            .font(.system(size: 9))
+                            .foregroundColor(.secondary.opacity(0.7))
                     }
-                    .font(.system(size: 10, weight: .regular, design: .monospaced))
-                    .foregroundColor(.secondary)
+                    .frame(minWidth: 44)
                     .help(item.timestamp.formatted(date: .complete, time: .standard))
                 }
                 .padding(.horizontal, 12)

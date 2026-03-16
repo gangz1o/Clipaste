@@ -59,9 +59,7 @@ final class OnboardingViewModel: ObservableObject {
     }
 
     func openSystemSettingsForAccessibility() {
-        NSWorkspace.shared.open(
-            URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")!
-        )
+        AccessibilityPermissionCoordinator.openSystemSettings()
     }
 
     func setupLaunchAtLogin(_ enable: Bool) {

@@ -5,9 +5,17 @@ import SwiftData
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     private let onboardingDefaultsKey = "hasCompletedOnboarding"
+    private let globalShortcutNames: [KeyboardShortcuts.Name] = [
+        .toggleClipboardPanel,
+        .toggleVerticalClipboard,
+        .nextList,
+        .prevList,
+        .clearHistory
+    ]
     private var onboardingStateObserver: NSObjectProtocol?
     private var lastKnownOnboardingState = false
     private var onboardingWindow: NSWindow?
+    private var hasRegisteredGlobalShortcuts = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Pre-warm the panel so the first global shortcut does not block on panel construction.
@@ -21,7 +29,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             presentOnboardingWindow()
         }
 
-        registerGlobalShortcuts()
+        registerGlobalShortcutsIfNeeded()
 
         // Verify accessibility permission so KeyboardShortcuts can use the privileged
         // CGEventTap (session-level) instead of the degraded NSEvent global monitor.
@@ -67,7 +75,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         )
     }
 
-    private func registerGlobalShortcuts() {
+    private func registerGlobalShortcutsIfNeeded() {
+        guard !hasRegisteredGlobalShortcuts else { return }
+        hasRegisteredGlobalShortcuts = true
+
         KeyboardShortcuts.onKeyDown(for: .toggleClipboardPanel) { [weak self] in
             self?.handleTogglePanelShortcut()
         }
@@ -89,6 +100,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    private func refreshGlobalShortcuts() {
+        KeyboardShortcuts.disable(globalShortcutNames)
+        KeyboardShortcuts.enable(globalShortcutNames)
+    }
+
     /// Ensures the privileged CGEventTap (session-level) is available.
     /// Without Accessibility permission, KeyboardShortcuts falls back to
     /// NSEvent.addGlobalMonitorForEvents which is blocked by apps like Xcode
@@ -108,12 +124,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
 
-        // Permission was just requested.  Re-register the shortcut after a
-        // short delay so KeyboardShortcuts can retry with the privileged tap
-        // once the user grants access (the library re-creates the tap on the
-        // next registration call).
+        // Permission was just requested.  Refresh the already-registered
+        // shortcuts after a short delay so KeyboardShortcuts can retry with
+        // the privileged tap without appending duplicate handlers.
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            self.registerGlobalShortcuts()
+            self.refreshGlobalShortcuts()
         }
     }
 
