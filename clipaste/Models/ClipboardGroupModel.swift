@@ -23,6 +23,13 @@ final class ClipboardGroupModel {
 struct ClipboardGroupItem: Identifiable, Hashable, Sendable {
     let id: String
     let name: String
-    let systemIconName: String
+    let systemIconName: String   // icon identifier (SF Symbol name OR Assets name)
     let sortOrder: Int
+
+    /// Resolved icon type — drives the rendering path in View layer.
+    /// Custom icons are those registered in IconPickerModels' custom categories.
+    var iconType: IconType {
+        IconPickerViewModel.customIconNames.contains(systemIconName) ? .custom : .system
+    }
 }
+

@@ -614,9 +614,13 @@ struct ClipboardHeaderView: View {
                                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                                     .stroke(Color.secondary.opacity(0.25))
                             )
-                        Image(systemName: newGroupIcon)
-                            .foregroundColor(.primary)
-                            .font(.system(size: 15))
+                         IconItemView(
+                                    item: IconItem(name: newGroupIcon,
+                                                   type: IconPickerViewModel.customIconNames.contains(newGroupIcon) ? .custom : .system,
+                                                   displayName: newGroupIcon),
+                                    size: 17
+                                )
+                                .foregroundColor(.primary)
                     }
                 }
                 .buttonStyle(.plain)
@@ -662,9 +666,13 @@ struct ClipboardHeaderView: View {
                                 RoundedRectangle(cornerRadius: 6, style: .continuous)
                                     .stroke(Color.secondary.opacity(0.25))
                             )
-                        Image(systemName: editGroupIcon)
-                            .foregroundColor(.primary)
-                            .font(.system(size: 15))
+                         IconItemView(
+                                    item: IconItem(name: editGroupIcon,
+                                                   type: IconPickerViewModel.customIconNames.contains(editGroupIcon) ? .custom : .system,
+                                                   displayName: editGroupIcon),
+                                    size: 17
+                                )
+                                .foregroundColor(.primary)
                     }
                 }
                 .buttonStyle(.plain)
@@ -779,8 +787,16 @@ struct MinimalGroupTabButton: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 4) {
-                Image(systemName: icon)
-                    .font(.system(size: 11, weight: .medium))
+                if IconPickerViewModel.customIconNames.contains(icon) {
+                    Image(icon)
+                        .renderingMode(.template)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 11, height: 11)
+                } else {
+                    Image(systemName: icon)
+                        .frame(width: 11, height: 11)
+                }
                 Text(title)
                     .font(.system(size: 12, weight: .medium))
                     .lineLimit(1)

@@ -1247,6 +1247,9 @@
     "Command" : {
 
     },
+    "Common" : {
+
+    },
     "Continue" : {
       "localizations" : {
         "de" : {
@@ -1609,6 +1612,12 @@
           }
         }
       }
+    },
+    "Dev Languages" : {
+
+    },
+    "Dev Tools" : {
+
     },
     "Display Position" : {
       "localizations" : {
@@ -3115,6 +3124,9 @@
         }
       }
     },
+    "No icons found" : {
+
+    },
     "No Matches Found" : {
       "localizations" : {
         "de" : {
@@ -3800,6 +3812,7 @@
       }
     },
     "Quickly recall, search and re-paste recently copied content." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4282,6 +4295,9 @@
           }
         }
       }
+    },
+    "Search icons…" : {
+
     },
     "Search…" : {
       "localizations" : {
@@ -4850,6 +4866,9 @@
           }
         }
       }
+    },
+    "Storage" : {
+
     },
     "System" : {
       "localizations" : {
@@ -5573,6 +5592,9 @@
         }
       }
     },
+    "Work" : {
+
+    },
     "You can change this later in Settings." : {
       "localizations" : {
         "de" : {
@@ -5676,10 +5698,10 @@
     "已复制" : {
 
     },
-    "开启" : {
+    "已解锁" : {
 
     },
-    "当前 Apple ID 已拥有买断授权。" : {
+    "开启" : {
 
     },
     "当前开关状态" : {
@@ -5694,6 +5716,9 @@
     "数据同步" : {
 
     },
+    "无限历史记录、高级搜索和同步能力都已就绪。" : {
+
+    },
     "昨天" : {
 
     },
@@ -5704,6 +5729,9 @@
 
     },
     "暂无分组" : {
+
+    },
+    "更快地回顾、搜索及重新粘贴最近复制的内容。" : {
 
     },
     "未初始化" : {
