@@ -11,10 +11,6 @@ struct AdvancedSettingsView: View {
 
     var body: some View {
         Form {
-            if !storeManager.hasFullAccess {
-                proUpgradeCard
-            }
-
             // ── Paste ──
             Section {
                 Toggle("Auto-Paste to Active App on Double-Click", isOn: $viewModel.autoPasteToActiveApp)
@@ -85,6 +81,25 @@ struct AdvancedSettingsView: View {
                     }
                     .toggleStyle(.switch)
                     .disabled(runtimeStore.isSyncing)
+
+                    if !storeManager.hasFullAccess {
+                        HStack(spacing: 8) {
+                            Image(systemName: "lock.fill")
+                                .foregroundStyle(.secondary)
+
+                            Text("CloudKit 私有库同步在试用结束后需要 Clipaste Pro。")
+                                .font(.system(size: 12))
+                                .foregroundColor(.secondary)
+
+                            Spacer()
+
+                            Button("解锁 Pro") {
+                                storeManager.presentPaywall(from: .settings, highlighting: .cloudSync)
+                            }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 12, weight: .semibold))
+                        }
+                    }
 
                     // 当同步开启时，展现高级控制台面板
                     if runtimeStore.isSyncEnabled {
@@ -337,96 +352,6 @@ struct AdvancedSettingsView: View {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             copiedDiagnostics = false
-        }
-    }
-
-    private var proUpgradeCard: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            // Top: Icon & Title
-            HStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.accentColor.opacity(0.15), Color.indigo.opacity(0.05)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 32, height: 32)
-                    
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(Color.accentColor)
-                }
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Clipaste Pro")
-                        .font(.system(size: 15, weight: .bold))
-                    Text("享受 Clipaste Pro 完整体验")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
-                }
-                
-                Spacer()
-            }
-            
-            // Middle: Core features
-            HStack(spacing: 24) {
-                featureItem(icon: "paintpalette.fill", text: "多款主题")
-                featureItem(icon: "slider.horizontal.3", text: "自定义规则")
-                featureItem(icon: "clock.arrow.circlepath", text: "无限历史")
-            }
-            .padding(.vertical, 4)
-            .padding(.leading, 2)
-            
-            // Bottom: Action Button
-            Button {
-                storeManager.presentPaywall(from: .settings)
-            } label: {
-                Text("解锁 Pro 特色")
-                    .font(.system(size: 13, weight: .medium))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.regular)
-            .shadow(color: Color.accentColor.opacity(0.2), radius: 4, y: 2)
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(nsColor: .controlBackgroundColor))
-                .overlay(
-                    LinearGradient(
-                        colors: [
-                            Color.accentColor.opacity(0.1),
-                            Color.indigo.opacity(0.03),
-                            Color.clear
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(Color.primary.opacity(0.04), lineWidth: 0.5)
-                )
-                .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
-        )
-        .padding(.horizontal, 4)
-        .padding(.bottom, 8)
-    }
-
-    private func featureItem(icon: String, text: String) -> some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 12))
-                .foregroundStyle(Color.accentColor)
-            Text(text)
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
         }
     }
 }
