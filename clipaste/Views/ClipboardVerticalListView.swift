@@ -4,6 +4,7 @@ struct ClipboardVerticalListView: View {
     @ObservedObject var viewModel: ClipboardViewModel
     let items: [ClipboardItem]
     @FocusState var focusedField: ClipboardPanelFocusField?
+    @State private var showingDeleteConfirmation = false
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -27,6 +28,16 @@ struct ClipboardVerticalListView: View {
             .simultaneousGesture(TapGesture().onEnded {
                 focusedField = .clipList
             })
+            .onDeleteCommand {
+                guard !viewModel.selectedItemIDs.isEmpty else { return }
+                showingDeleteConfirmation = true
+            }
+            .alert("确认删除选中的历史吗？", isPresented: $showingDeleteConfirmation) {
+                Button("取消", role: .cancel) { }
+                Button("删除", role: .destructive) {
+                    viewModel.batchDelete()
+                }
+            }
             .onAppear {
                 scrollToPrimarySelection(with: proxy)
             }

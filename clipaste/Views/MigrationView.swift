@@ -73,7 +73,7 @@ struct MigrationView: View {
             allowsMultipleSelection: false,
             onCompletion: handleImportSelection
         )
-        .fileDialogDefaultDirectory(defaultImportDirectory)
+        .fileDialogDefaultDirectory(defaultDirectoryURL)
         .fileDialogBrowserOptions(fileDialogBrowserOptions)
     }
 
@@ -103,23 +103,31 @@ struct MigrationView: View {
         return selectedSource.idleStatusText
     }
 
-    private var defaultImportDirectory: URL? {
-        let source = selectedSource
-        guard source == .paste || source == .iCopy else { return nil }
+    private var defaultDirectoryURL: URL? {
+        let homeDirectory = FileManager.default.homeDirectoryForCurrentUser
 
-        let containersDirectory = FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent("Library", isDirectory: true)
-            .appendingPathComponent("Containers", isDirectory: true)
+        switch selectedSource {
+        case .paste:
+            return homeDirectory
+                .appendingPathComponent("Library", isDirectory: true)
+                .appendingPathComponent("Containers", isDirectory: true)
+                .appendingPathComponent("com.wiheads.paste", isDirectory: true)
+                .appendingPathComponent("Data", isDirectory: true)
+                .appendingPathComponent("Library", isDirectory: true)
+                .appendingPathComponent("Application Support", isDirectory: true)
+                .appendingPathComponent("Paste", isDirectory: true)
 
-        var isDirectory: ObjCBool = false
-        guard FileManager.default.fileExists(
-            atPath: containersDirectory.path,
-            isDirectory: &isDirectory
-        ), isDirectory.boolValue else {
+        case .iCopy:
+            return homeDirectory
+                .appendingPathComponent("Library", isDirectory: true)
+                .appendingPathComponent("Containers", isDirectory: true)
+                .appendingPathComponent("cn.better365.iCopy", isDirectory: true)
+                .appendingPathComponent("Data", isDirectory: true)
+                .appendingPathComponent("Documents", isDirectory: true)
+
+        case .pasteNow:
             return nil
         }
-
-        return containersDirectory
     }
 
     private var fileDialogBrowserOptions: FileDialogBrowserOptions {

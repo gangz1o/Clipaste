@@ -103,8 +103,6 @@ struct ClipboardHeaderView: View {
             }
 
             Spacer(minLength: 20)
-
-            horizontalTrailingControls
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 16)
@@ -130,13 +128,6 @@ struct ClipboardHeaderView: View {
             pinButton
         }
         .frame(width: 28, alignment: .leading)
-    }
-
-    private var horizontalTrailingControls: some View {
-        HStack(spacing: 0) {
-            settingsMenu
-        }
-        .frame(width: 28, alignment: .trailing)
     }
 
     private var horizontalSearchBar: some View {

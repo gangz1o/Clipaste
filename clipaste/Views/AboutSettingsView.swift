@@ -63,46 +63,68 @@ struct AboutSettingsView: View {
     }
 
     private var proUpgradeSection: some View {
-        HStack(spacing: 18) {
-            shimmeringGlyph
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(storeManager.isProUnlocked ? "Clipaste Pro 已解锁" : storeManager.accessHeadline)
-                    .font(.system(size: 20, weight: .semibold))
-                    .tracking(-0.4)
-
-                Text(
-                    storeManager.isProUnlocked
-                    ? "无限历史记录、高级搜索和同步能力都已就绪。"
-                    : "一次购买，永久解锁无限历史记录、高级搜索和同步能力。"
-                )
-                .font(.system(size: 15))
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 14) {
+            // Top: Icon & Title
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.accentColor.opacity(0.15), Color.indigo.opacity(0.05)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 32, height: 32)
+                    
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(Color.accentColor)
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(storeManager.isProUnlocked ? "Clipaste Pro 已解锁" : "Clipaste Pro")
+                        .font(.system(size: 15, weight: .bold))
+                    Text(storeManager.isProUnlocked ? "核心能力都已就绪。" : "享受 Clipaste Pro 完整体验")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
             }
-
-            Spacer(minLength: 16)
-
+            
+            // Middle: Core features
+            HStack(spacing: 24) {
+                featureItem(icon: "paintpalette.fill", text: "多款主题")
+                featureItem(icon: "slider.horizontal.3", text: "自定义规则")
+                featureItem(icon: "clock.arrow.circlepath", text: "无限历史")
+            }
+            .padding(.vertical, 4)
+            .padding(.leading, 2)
+            
+            // Bottom: Action Button / Unlocked Badge
             if storeManager.isProUnlocked {
                 Text("已解锁")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Color.accentColor)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 9)
-                    .background(.thinMaterial, in: Capsule())
-                    .overlay(
-                        Capsule()
-                            .stroke(Color.accentColor.opacity(0.16), lineWidth: 0.5)
-                    )
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+                    .background(Color.accentColor.opacity(0.1), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
             } else {
-                Button("解锁 Pro") {
+                Button {
                     storeManager.presentPaywall(from: .settings)
+                } label: {
+                    Text("解锁 Pro 特色")
+                        .font(.system(size: 13, weight: .medium))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
                 }
-                .buttonStyle(AboutUpgradeButtonStyle())
+                .buttonStyle(.borderedProminent)
+                .controlSize(.regular)
+                .shadow(color: Color.accentColor.opacity(0.2), radius: 4, y: 2)
             }
         }
-        .padding(.horizontal, 22)
-        .padding(.vertical, 20)
+        .padding(16)
         .frame(maxWidth: 520)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -110,8 +132,8 @@ struct AboutSettingsView: View {
                 .overlay(
                     LinearGradient(
                         colors: [
-                            Color.accentColor.opacity(0.12),
-                            Color.indigo.opacity(0.05),
+                            Color.accentColor.opacity(0.1),
+                            Color.indigo.opacity(0.03),
                             Color.clear
                         ],
                         startPoint: .topLeading,
@@ -119,53 +141,22 @@ struct AboutSettingsView: View {
                     )
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(Color.primary.opacity(0.04), lineWidth: 0.5)
+                )
+                .shadow(color: .black.opacity(0.05), radius: 6, y: 3)
         )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(Color.accentColor.opacity(0.3), lineWidth: 0.5)
-        )
-        .shadow(color: .black.opacity(0.04), radius: 16, y: 10)
     }
 
-    private var shimmeringGlyph: some View {
-        ZStack {
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            Color.accentColor.opacity(0.28),
-                            Color.indigo.opacity(0.12),
-                            Color.clear
-                        ],
-                        center: .center,
-                        startRadius: 0,
-                        endRadius: 34
-                    )
-                )
-                .frame(width: 58, height: 58)
-                .blur(radius: 10)
-
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(.thinMaterial)
-                .frame(width: 54, height: 54)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(Color.white.opacity(0.55), lineWidth: 0.6)
-                )
-
-            Image(systemName: "sparkles")
-                .font(.system(size: 22, weight: .semibold))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [
-                            Color.accentColor,
-                            Color.indigo
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .shadow(color: .accentColor.opacity(0.3), radius: 10, y: 2)
+    private func featureItem(icon: String, text: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 12))
+                .foregroundStyle(Color.accentColor)
+            Text(text)
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -237,34 +228,6 @@ struct AboutSettingsView: View {
         .padding(.horizontal, 18)
         .padding(.vertical, 15)
         .contentShape(Rectangle())
-    }
-}
-
-private struct AboutUpgradeButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(.white)
-            .padding(.horizontal, 18)
-            .padding(.vertical, 10)
-            .background(
-                LinearGradient(
-                    colors: [
-                        Color(red: 0.16, green: 0.46, blue: 0.92),
-                        Color(red: 0.31, green: 0.62, blue: 0.98)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ),
-                in: Capsule()
-            )
-            .overlay(
-                Capsule()
-                    .stroke(Color.white.opacity(0.35), lineWidth: 0.6)
-            )
-            .shadow(color: Color.accentColor.opacity(configuration.isPressed ? 0.12 : 0.24), radius: 14, y: 8)
-            .scaleEffect(configuration.isPressed ? 0.98 : 1)
-            .animation(.easeOut(duration: 0.16), value: configuration.isPressed)
     }
 }
 
