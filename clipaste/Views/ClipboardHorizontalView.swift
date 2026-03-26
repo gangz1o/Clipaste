@@ -4,7 +4,7 @@ struct ClipboardHorizontalView: View {
     @ObservedObject var viewModel: ClipboardViewModel
     let items: [ClipboardItem]
     @FocusState var focusedField: ClipboardPanelFocusField?
-    @State private var showingDeleteConfirmation = false
+
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -34,13 +34,7 @@ struct ClipboardHorizontalView: View {
             })
             .onDeleteCommand {
                 guard !viewModel.selectedItemIDs.isEmpty else { return }
-                showingDeleteConfirmation = true
-            }
-            .alert("Delete Selected History?", isPresented: $showingDeleteConfirmation) {
-                Button("Cancel", role: .cancel) { }
-                Button("Delete", role: .destructive) {
-                    viewModel.batchDelete()
-                }
+                viewModel.batchDelete()
             }
             .onAppear {
                 scrollToPrimarySelection(with: proxy)

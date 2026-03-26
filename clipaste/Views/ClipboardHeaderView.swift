@@ -801,7 +801,7 @@ struct MinimalGroupTabButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 4) {
+            HStack(spacing: 5) {
                 if IconPickerViewModel.customIconNames.contains(icon) {
                     Image(icon)
                         .renderingMode(.template)
@@ -820,17 +820,16 @@ struct MinimalGroupTabButton: View {
                         view.frame(maxWidth: maxTextWidth!, alignment: .leading)
                     }
             }
-            .foregroundColor(isSelected ? .accentColor : .secondary)
-            .padding(.horizontal, 10)
-            .padding(.vertical, 4)
-            .background(
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(backgroundColor)
-            )
-            .contentShape(Rectangle())
+            .foregroundStyle(foregroundStyle)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
+            .background(tabBackground)
+            .contentShape(Capsule(style: .continuous))
         }
         .buttonStyle(.plain)
         .fixedSize(horizontal: true, vertical: false)
+        .animation(.easeInOut(duration: 0.14), value: isHovered)
+        .animation(.spring(response: 0.24, dampingFraction: 0.82), value: isSelected)
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.12)) {
                 isHovered = hovering
@@ -838,16 +837,103 @@ struct MinimalGroupTabButton: View {
         }
     }
 
-    private var backgroundColor: Color {
+    private var foregroundStyle: AnyShapeStyle {
         if isSelected {
-            return .accentColor.opacity(0.12)
+            return AnyShapeStyle(Color.accentColor)
         }
+        return AnyShapeStyle(isHovered ? Color.primary.opacity(0.72) : Color.secondary)
+    }
+
+    private var tabBackground: some View {
+        Capsule(style: .continuous)
+            .fill(backgroundFillStyle)
+            .overlay {
+                Capsule(style: .continuous)
+                    .strokeBorder(borderStyle, lineWidth: borderLineWidth)
+            }
+            .overlay {
+                if isSelected {
+                    Capsule(style: .continuous)
+                        .fill(selectionHighlightStyle)
+                        .padding(1)
+                        .blendMode(.screen)
+                }
+            }
+            .shadow(color: ambientShadowColor, radius: isSelected ? 12 : 0, y: isSelected ? 5 : 0)
+            .shadow(color: accentShadowColor, radius: isSelected ? 7 : 0, y: isSelected ? 2 : 0)
+    }
+
+    private var backgroundFillStyle: AnyShapeStyle {
+        if isSelected {
+            return AnyShapeStyle(
+                LinearGradient(
+                    colors: [
+                        Color.accentColor.opacity(colorScheme == .dark ? 0.24 : 0.18),
+                        Color.accentColor.opacity(colorScheme == .dark ? 0.15 : 0.10)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+        }
+
         if isHovered {
-            return colorScheme == .dark
-                ? Color.white.opacity(0.06)
-                : Color.black.opacity(0.05)
+            return AnyShapeStyle(
+                colorScheme == .dark
+                    ? Color.white.opacity(0.08)
+                    : Color.black.opacity(0.045)
+            )
         }
-        return .clear
+
+        return AnyShapeStyle(Color.clear)
+    }
+
+    private var borderStyle: AnyShapeStyle {
+        if isSelected {
+            return AnyShapeStyle(
+                LinearGradient(
+                    colors: [
+                        Color.white.opacity(colorScheme == .dark ? 0.22 : 0.72),
+                        Color.accentColor.opacity(colorScheme == .dark ? 0.34 : 0.22)
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+        }
+
+        if isHovered {
+            return AnyShapeStyle(Color.primary.opacity(colorScheme == .dark ? 0.12 : 0.08))
+        }
+
+        return AnyShapeStyle(Color.clear)
+    }
+
+    private var selectionHighlightStyle: AnyShapeStyle {
+        AnyShapeStyle(
+            LinearGradient(
+                colors: [
+                    Color.white.opacity(colorScheme == .dark ? 0.16 : 0.58),
+                    Color.white.opacity(0)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        )
+    }
+
+    private var borderLineWidth: CGFloat {
+        isSelected ? 0.9 : (isHovered ? 0.6 : 0)
+    }
+
+    private var ambientShadowColor: Color {
+        colorScheme == .dark
+            ? Color.black.opacity(0.28)
+            : Color.black.opacity(0.08)
+    }
+
+    private var accentShadowColor: Color {
+        Color.accentColor.opacity(colorScheme == .dark ? 0.18 : 0.14)
     }
 }
 

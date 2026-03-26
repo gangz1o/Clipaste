@@ -41,90 +41,99 @@ struct ClipboardMainView: View {
         }
     }
 
-    private var configuredContent: some View {
-        panelLayoutContent
-        .id("\(runtimeStore.rootIdentity)-\(viewRebuildToken)")
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.clear)
-        .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))
-        .background(
-            ClipboardPanelWindowObserver(
-                onWindowDidBecomeKey: activatePanelInputHandling,
-                onWindowDidResignKey: deactivatePanelInputHandling
-            )
-        )
-        .background(WindowAppearanceObserver(theme: appTheme))
-        .clipShape(RoundedRectangle(cornerRadius: clipboardLayout == .vertical ? 14 : 0))
-        .preferredColorScheme(appTheme.colorScheme)
-        .edgesIgnoringSafeArea(.all)
-        .sheet(isPresented: paywallBinding) {
-            PaywallView()
-                .environmentObject(storeManager)
-        }
-        .onChange(of: clipboardLayout) {
-            NotificationCenter.default.post(
-                name: .clipboardLayoutModeChanged,
-                object: clipboardLayout
-            )
-            DispatchQueue.main.async {
-                viewRebuildToken.toggle()
-            }
-            scheduleDefaultListFocus()
-        }
-        .onChange(of: focusedField) { _, newValue in
-            searchService.isTextFieldFocused = (newValue == .searchBar)
-        }
-        .onChange(of: displayedItemIDs) { _, _ in
-            if focusedField == .clipList {
-                viewModel.ensureListSelection()
-            }
-        }
-        .onAppear {
-            searchService.onInterceptedKey = { [weak viewModel] char in
-                guard let viewModel else { return false }
-
-                let shouldEnterSearch = viewModel.handleGlobalKeyPress(char)
-                if shouldEnterSearch {
-                    focusSearchField()
-                }
-
-                return shouldEnterSearch
-            }
-            syncAccessState()
-            scheduleDefaultListFocus()
-        }
-        .onDisappear {
-            searchService.onInterceptedKey = nil
-            deactivatePanelInputHandling()
-        }
-        .onChange(of: storeManager.isTrialExpired) { _, _ in
-            syncAccessState()
-        }
-        .onChange(of: storeManager.isProUnlocked) { _, _ in
-            syncAccessState()
-        }
-        // ── ⌘, 意图通知 → 调用 SwiftUI 原生 openSettings ───────────
-        .onReceive(NotificationCenter.default.publisher(for: .openSettingsIntent)) { _ in
-            SettingsWindowCoordinator.open {
-                openSettings()
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .focusSearchFieldIntent)) { _ in
-            requestSearchFocus()
-        }
+    private var showPanelPaywall: Bool {
+        storeManager.shouldShowPaywall && storeManager.paywallSource == .panel
     }
 
-    private var paywallBinding: Binding<Bool> {
-        Binding(
-            get: {
-                storeManager.shouldShowPaywall && storeManager.paywallSource == .panel
-            },
-            set: { isPresented in
-                if !isPresented {
-                    storeManager.dismissPaywall()
+    private var configuredContent: some View {
+        panelLayoutContent
+            .overlay {
+                if showPanelPaywall {
+                    panelPaywallOverlay
                 }
             }
-        )
+            .animation(.easeInOut(duration: 0.25), value: showPanelPaywall)
+            .id("\(runtimeStore.rootIdentity)-\(viewRebuildToken)")
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Color.clear)
+            .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))
+            .background(
+                ClipboardPanelWindowObserver(
+                    onWindowDidBecomeKey: activatePanelInputHandling,
+                    onWindowDidResignKey: deactivatePanelInputHandling
+                )
+            )
+            .background(WindowAppearanceObserver(theme: appTheme))
+            .clipShape(RoundedRectangle(cornerRadius: clipboardLayout == .vertical ? 14 : 0))
+            .preferredColorScheme(appTheme.colorScheme)
+            .edgesIgnoringSafeArea(.all)
+            .onChange(of: clipboardLayout) {
+                NotificationCenter.default.post(
+                    name: .clipboardLayoutModeChanged,
+                    object: clipboardLayout
+                )
+                DispatchQueue.main.async {
+                    viewRebuildToken.toggle()
+                }
+                scheduleDefaultListFocus()
+            }
+            .onChange(of: focusedField) { _, newValue in
+                searchService.isTextFieldFocused = (newValue == .searchBar)
+            }
+            .onChange(of: displayedItemIDs) { _, _ in
+                if focusedField == .clipList {
+                    viewModel.ensureListSelection()
+                }
+            }
+            .onAppear {
+                searchService.onInterceptedKey = { [weak viewModel] char in
+                    guard let viewModel else { return false }
+
+                    let shouldEnterSearch = viewModel.handleGlobalKeyPress(char)
+                    if shouldEnterSearch {
+                        focusSearchField()
+                    }
+
+                    return shouldEnterSearch
+                }
+                syncAccessState()
+                scheduleDefaultListFocus()
+            }
+            .onDisappear {
+                searchService.onInterceptedKey = nil
+                deactivatePanelInputHandling()
+            }
+            .onChange(of: storeManager.isTrialExpired) { _, _ in
+                syncAccessState()
+            }
+            .onChange(of: storeManager.isProUnlocked) { _, _ in
+                syncAccessState()
+            }
+            // ── ⌘, 意图通知 → 调用 SwiftUI 原生 openSettings ───────────
+            .onReceive(NotificationCenter.default.publisher(for: .openSettingsIntent)) { _ in
+                SettingsWindowCoordinator.open {
+                    openSettings()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .focusSearchFieldIntent)) { _ in
+                requestSearchFocus()
+            }
+    }
+
+    private var panelPaywallOverlay: some View {
+        ZStack {
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+                .contentShape(Rectangle())
+                .onTapGesture { }
+
+            SubscriptionModalView(onClose: {
+                storeManager.dismissPaywall()
+            })
+            .environmentObject(storeManager)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .transition(.opacity.combined(with: .scale(scale: 0.95)))
     }
 
     @ViewBuilder
