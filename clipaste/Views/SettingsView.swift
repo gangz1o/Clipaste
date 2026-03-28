@@ -80,9 +80,9 @@ struct SettingsView: View {
 
                 Spacer()
             }
-            .frame(width: 76)
+            .frame(width: 86)
             .frame(maxHeight: .infinity)
-            .background(Color(nsColor: .windowBackgroundColor))
+            .background(Color.clear)
 
             // ── 右侧：内容区 ──
             Group {
@@ -100,8 +100,9 @@ struct SettingsView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(nsColor: .controlBackgroundColor))
+            .background(Color(nsColor: .controlBackgroundColor).opacity(0.4))
         }
+        .background(.ultraThinMaterial)
         .environment(\.locale, resolvedLocale)
         .frame(minWidth: 560, idealWidth: 620, maxWidth: .infinity,
                minHeight: 540, idealHeight: 580, maxHeight: .infinity)
@@ -141,26 +142,27 @@ private struct SettingsSidebarItem: View {
                 Image(systemName: tab.iconName)
                     .font(.system(size: 18, weight: isSelected ? .semibold : .regular))
                     .frame(width: 22, height: 20)
+                    .symbolRenderingMode(isSelected ? .hierarchical : .monochrome)
 
                 Text(tab.localizedTitle)
-                    .font(.system(size: 10, weight: .medium))
+                    .font(.system(size: 11, weight: isSelected ? .semibold : .medium, design: .default))
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 10)
+            .padding(.vertical, 12)
             .foregroundColor(isSelected ? .accentColor : .secondary)
             .background(
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(
                         isSelected
-                            ? Color.accentColor.opacity(0.12)
-                            : (isHovering ? Color.primary.opacity(0.04) : Color.clear)
+                            ? Color.accentColor.opacity(0.15)
+                            : (isHovering ? Color.primary.opacity(0.06) : Color.clear)
                     )
             )
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .padding(.horizontal, 8)
+        .padding(.horizontal, 6)
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.1)) {
                 isHovering = hovering

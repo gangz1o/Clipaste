@@ -9,21 +9,14 @@ private struct SettingsCard<Content: View>: View {
     @ViewBuilder let content: Content
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 6) {
             Label(title, systemImage: systemImage)
-                .font(.headline)
-                .foregroundStyle(.primary)
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-                .padding(.bottom, 12)
+                .settingsSectionTitle()
 
             content
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
+                .liquidGlassCard()
         }
-        .background(Color(.windowBackgroundColor))
-        .clipShape(.rect(cornerRadius: 10))
-        .shadow(color: .black.opacity(0.06), radius: 2, y: 1)
+        .padding(.bottom, 16)
     }
 }
 

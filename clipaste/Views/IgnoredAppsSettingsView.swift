@@ -20,30 +20,24 @@ private struct IgnoredAppsSettingsCard<Content: View>: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: 6) {
             VStack(alignment: .leading, spacing: 4) {
                 Label(title, systemImage: systemImage)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
+                    .settingsSectionTitle()
 
                 if let subtitle {
                     Text(subtitle)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
+                        .padding(.leading, 4)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 16)
-            .padding(.bottom, 12)
 
             content
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
+                .liquidGlassCard()
         }
-        .background(Color(nsColor: .windowBackgroundColor))
-        .clipShape(.rect(cornerRadius: 10))
-        .shadow(color: .black.opacity(0.06), radius: 2, y: 1)
+        .padding(.bottom, 16)
     }
 }
 
@@ -106,9 +100,6 @@ struct IgnoredAppsSettingsView: View {
                 }
 
                 ZStack {
-                    RoundedRectangle(cornerRadius: 10, style: .continuous)
-                        .fill(Color(nsColor: .controlBackgroundColor))
-
                     if viewModel.ignoredApps.isEmpty {
                         VStack(spacing: 8) {
                             Image(systemName: "app.dashed")

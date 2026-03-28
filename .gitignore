@@ -24,3 +24,10 @@ Carthage/Build/
 
 # macOS generic
 .DS_Store
+
+# openspec
+.agent/
+openspec/
+.codex/
+.cursor/
+
