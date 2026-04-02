@@ -103,6 +103,8 @@ cat > "$EXPORT_OPTIONS_PLIST" <<EOF
   <string>export</string>
   <key>method</key>
   <string>developer-id</string>
+  <key>signingCertificate</key>
+  <string>${SIGNING_IDENTITY}</string>
   <key>signingStyle</key>
   <string>automatic</string>
   <key>stripSwiftSymbols</key>
@@ -130,7 +132,6 @@ archive_args=(
   -archivePath "$ARCHIVE_PATH"
   CODE_SIGN_STYLE=Automatic
   DEVELOPMENT_TEAM="$APPLE_TEAM_ID"
-  CODE_SIGN_IDENTITY="$SIGNING_IDENTITY"
   OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
 )
 archive_args+=("${xcode_auth_args[@]}")
