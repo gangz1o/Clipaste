@@ -1,0 +1,51 @@
+name: Release DMG
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to upload assets to
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-release-dmg:
+    runs-on: macos-latest
+    env:
+      APP_NAME: Clipaste
+      SCHEME: Clipaste
+      PROJECT_PATH: clipaste.xcodeproj
+      INFO_PLIST_PATH: clipaste-Info.plist
+      APPLE_TEAM_ID: 6YXB9ASQXU
+      RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+      BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
+      P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      SIGNING_IDENTITY: ${{ secrets.SIGNING_IDENTITY }}
+      APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+      APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+      APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
+      BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Show Xcode version
+        run: xcodebuild -version
+
+      - name: Build signed and notarized DMG
+        run: |
+          chmod +x scripts/build-release-dmg.sh
+          scripts/build-release-dmg.sh
+
+      - name: Upload assets to GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "$RELEASE_TAG" build/release/*.dmg build/release/*.sha256 --clobber
