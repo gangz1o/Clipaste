@@ -43,6 +43,7 @@ SHA256_PATH="$DIST_DIR/${ARTIFACT_BASENAME}.dmg.sha256"
 
 required_env=(
   BUILD_CERTIFICATE_BASE64
+  BUILD_PROVISION_PROFILE_BASE64
   P12_PASSWORD
   KEYCHAIN_PASSWORD
   SIGNING_IDENTITY
@@ -78,11 +79,24 @@ load_profile_metadata() {
   PROFILE_NAME="$(/usr/libexec/PlistBuddy -c 'Print :Name' "$PROFILE_METADATA_PLIST")"
 }
 
+validate_release_profile() {
+  if [[ "$PROFILE_NAME" == Mac\ Team\ Provisioning\ Profile:* ]]; then
+    cat >&2 <<EOF
+BUILD_PROVISION_PROFILE_BASE64 must be a manually created Developer ID provisioning profile.
+The provided profile is Xcode-managed and cannot be used for Developer ID export:
+  Name: $PROFILE_NAME
+  UUID: $PROFILE_UUID
+EOF
+    exit 1
+  fi
+}
+
 install_profile() {
   local source_path="$1"
 
   mkdir -p "$PROFILE_INSTALL_DIR"
   load_profile_metadata "$source_path"
+  validate_release_profile
   PROVISIONING_PROFILE_PATH="$PROFILE_INSTALL_DIR/${PROFILE_UUID}.provisionprofile"
   cp "$source_path" "$PROVISIONING_PROFILE_PATH"
 }
@@ -90,11 +104,9 @@ install_profile() {
 printf '%s' "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
 printf '%s' "$APPLE_API_KEY_BASE64" | base64 --decode > "$APPSTORE_CONNECT_KEY_PATH"
 
-if [[ -n "${BUILD_PROVISION_PROFILE_BASE64:-}" ]]; then
-  mkdir -p "$PROFILE_INSTALL_DIR"
-  printf '%s' "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode > "$PROVISIONING_PROFILE_PATH"
-  install_profile "$PROVISIONING_PROFILE_PATH"
-fi
+mkdir -p "$PROFILE_INSTALL_DIR"
+printf '%s' "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode > "$PROVISIONING_PROFILE_PATH"
+install_profile "$PROVISIONING_PROFILE_PATH"
 
 security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
 security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
@@ -116,13 +128,7 @@ security set-key-partition-list \
   "$KEYCHAIN_PATH"
 
 security find-identity -v -p codesigning "$KEYCHAIN_PATH"
-
-xcode_auth_args=(
-  -allowProvisioningUpdates
-  -authenticationKeyPath "$APPSTORE_CONNECT_KEY_PATH"
-  -authenticationKeyID "$APPLE_API_KEY_ID"
-  -authenticationKeyIssuerID "$APPLE_API_ISSUER_ID"
-)
+printf 'Using provisioning profile: %s (%s)\n' "$PROFILE_NAME" "$PROFILE_UUID"
 
 archive_args=(
   xcodebuild
@@ -132,11 +138,12 @@ archive_args=(
   -destination "generic/platform=macOS"
   -derivedDataPath "$DERIVED_DATA_PATH"
   -archivePath "$ARCHIVE_PATH"
-  CODE_SIGN_STYLE=Automatic
+  CODE_SIGN_STYLE=Manual
+  CODE_SIGN_IDENTITY="$SIGNING_IDENTITY"
   DEVELOPMENT_TEAM="$APPLE_TEAM_ID"
+  PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME"
   OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
 )
-archive_args+=("${xcode_auth_args[@]}")
 archive_args+=(archive)
 
 "${archive_args[@]}"
@@ -151,16 +158,6 @@ APP_BUNDLE_IDENTIFIER="$(
   /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' \
   "$ARCHIVED_APP_PATH/Contents/Info.plist"
 )"
-
-if [[ -z "$PROFILE_UUID" ]]; then
-  ARCHIVE_EMBEDDED_PROFILE_PATH="$ARCHIVED_APP_PATH/Contents/embedded.provisionprofile"
-  if [[ ! -f "$ARCHIVE_EMBEDDED_PROFILE_PATH" ]]; then
-    echo "Archive did not contain an embedded provisioning profile and BUILD_PROVISION_PROFILE_BASE64 was not provided." >&2
-    exit 1
-  fi
-
-  install_profile "$ARCHIVE_EMBEDDED_PROFILE_PATH"
-fi
 
 cat > "$EXPORT_OPTIONS_PLIST" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
