@@ -128,7 +128,7 @@ security set-key-partition-list \
   "$KEYCHAIN_PATH"
 
 security find-identity -v -p codesigning "$KEYCHAIN_PATH"
-printf 'Using provisioning profile: %s (%s)\n' "$PROFILE_NAME" "$PROFILE_UUID"
+printf 'Using provisioning profile for export: %s (%s)\n' "$PROFILE_NAME" "$PROFILE_UUID"
 
 archive_args=(
   xcodebuild
@@ -138,10 +138,8 @@ archive_args=(
   -destination "generic/platform=macOS"
   -derivedDataPath "$DERIVED_DATA_PATH"
   -archivePath "$ARCHIVE_PATH"
-  CODE_SIGN_STYLE=Manual
-  CODE_SIGN_IDENTITY="$SIGNING_IDENTITY"
+  CODE_SIGN_STYLE=Automatic
   DEVELOPMENT_TEAM="$APPLE_TEAM_ID"
-  PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME"
   OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
 )
 archive_args+=(archive)
