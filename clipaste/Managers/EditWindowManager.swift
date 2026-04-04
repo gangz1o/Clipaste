@@ -13,6 +13,7 @@ class EditWindowManager: NSObject, NSWindowDelegate {
     // 记录正在编辑的窗口，防止重复打开 [ItemID: NSWindow]
     private var openWindows: [String: NSWindow] = [:]
 
+    @MainActor
     func openEditor(for item: ClipboardItem, viewModel: ClipboardViewModel) {
         let windowId = item.id.uuidString
 
@@ -78,6 +79,7 @@ class EditWindowManager: NSObject, NSWindowDelegate {
         return false // 拦截默认的直接关闭行为
     }
 
+    @MainActor
     private func closeAndCleanUp(windowId: String, window: NSWindow) {
         window.delegate = nil
         window.close()
