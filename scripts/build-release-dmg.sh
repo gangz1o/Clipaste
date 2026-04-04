@@ -23,8 +23,13 @@ TEMP_ROOT="${RUNNER_TEMP:-$BUILD_ROOT/tmp}"
 KEYCHAIN_PATH="$TEMP_ROOT/build-signing.keychain-db"
 CERT_PATH="$TEMP_ROOT/signing-cert.p12"
 APPSTORE_CONNECT_KEY_PATH="$TEMP_ROOT/AuthKey.p8"
-PROVISIONING_PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles/ci-release.provisionprofile"
+PROFILE_INSTALL_DIR="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
+PROVISIONING_PROFILE_PATH="$PROFILE_INSTALL_DIR/ci-release.provisionprofile"
+PROFILE_METADATA_PLIST="$TEMP_ROOT/provisioning-profile.plist"
 EXPORT_OPTIONS_PLIST="$TEMP_ROOT/ExportOptions.plist"
+
+PROFILE_UUID=""
+PROFILE_NAME=""
 
 mkdir -p "$DIST_DIR" "$TEMP_ROOT"
 rm -rf "$ARCHIVE_PATH" "$EXPORT_DIR" "$DMG_STAGING_DIR"
@@ -61,16 +66,34 @@ fi
 
 cleanup() {
   security delete-keychain "$KEYCHAIN_PATH" >/dev/null 2>&1 || true
-  rm -f "$CERT_PATH" "$APPSTORE_CONNECT_KEY_PATH" "$EXPORT_OPTIONS_PLIST"
+  rm -f "$CERT_PATH" "$APPSTORE_CONNECT_KEY_PATH" "$EXPORT_OPTIONS_PLIST" "$PROFILE_METADATA_PLIST"
 }
 trap cleanup EXIT
+
+load_profile_metadata() {
+  local profile_path="$1"
+
+  security cms -D -i "$profile_path" > "$PROFILE_METADATA_PLIST"
+  PROFILE_UUID="$(/usr/libexec/PlistBuddy -c 'Print :UUID' "$PROFILE_METADATA_PLIST")"
+  PROFILE_NAME="$(/usr/libexec/PlistBuddy -c 'Print :Name' "$PROFILE_METADATA_PLIST")"
+}
+
+install_profile() {
+  local source_path="$1"
+
+  mkdir -p "$PROFILE_INSTALL_DIR"
+  load_profile_metadata "$source_path"
+  PROVISIONING_PROFILE_PATH="$PROFILE_INSTALL_DIR/${PROFILE_UUID}.provisionprofile"
+  cp "$source_path" "$PROVISIONING_PROFILE_PATH"
+}
 
 printf '%s' "$BUILD_CERTIFICATE_BASE64" | base64 --decode > "$CERT_PATH"
 printf '%s' "$APPLE_API_KEY_BASE64" | base64 --decode > "$APPSTORE_CONNECT_KEY_PATH"
 
 if [[ -n "${BUILD_PROVISION_PROFILE_BASE64:-}" ]]; then
-  mkdir -p "$(dirname "$PROVISIONING_PROFILE_PATH")"
+  mkdir -p "$PROFILE_INSTALL_DIR"
   printf '%s' "$BUILD_PROVISION_PROFILE_BASE64" | base64 --decode > "$PROVISIONING_PROFILE_PATH"
+  install_profile "$PROVISIONING_PROFILE_PATH"
 fi
 
 security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
@@ -93,27 +116,6 @@ security set-key-partition-list \
   "$KEYCHAIN_PATH"
 
 security find-identity -v -p codesigning "$KEYCHAIN_PATH"
-
-cat > "$EXPORT_OPTIONS_PLIST" <<EOF
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>destination</key>
-  <string>export</string>
-  <key>method</key>
-  <string>developer-id</string>
-  <key>signingCertificate</key>
-  <string>${SIGNING_IDENTITY}</string>
-  <key>signingStyle</key>
-  <string>automatic</string>
-  <key>stripSwiftSymbols</key>
-  <true/>
-  <key>teamID</key>
-  <string>${APPLE_TEAM_ID}</string>
-</dict>
-</plist>
-EOF
 
 xcode_auth_args=(
   -allowProvisioningUpdates
@@ -139,6 +141,53 @@ archive_args+=(archive)
 
 "${archive_args[@]}"
 
+ARCHIVED_APP_PATH="$ARCHIVE_PATH/Products/Applications/${APP_NAME}.app"
+if [[ ! -d "$ARCHIVED_APP_PATH" ]]; then
+  echo "Failed to locate archived app bundle at $ARCHIVED_APP_PATH." >&2
+  exit 1
+fi
+
+APP_BUNDLE_IDENTIFIER="$(
+  /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' \
+  "$ARCHIVED_APP_PATH/Contents/Info.plist"
+)"
+
+if [[ -z "$PROFILE_UUID" ]]; then
+  ARCHIVE_EMBEDDED_PROFILE_PATH="$ARCHIVED_APP_PATH/Contents/embedded.provisionprofile"
+  if [[ ! -f "$ARCHIVE_EMBEDDED_PROFILE_PATH" ]]; then
+    echo "Archive did not contain an embedded provisioning profile and BUILD_PROVISION_PROFILE_BASE64 was not provided." >&2
+    exit 1
+  fi
+
+  install_profile "$ARCHIVE_EMBEDDED_PROFILE_PATH"
+fi
+
+cat > "$EXPORT_OPTIONS_PLIST" <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>destination</key>
+  <string>export</string>
+  <key>method</key>
+  <string>developer-id</string>
+  <key>provisioningProfiles</key>
+  <dict>
+    <key>${APP_BUNDLE_IDENTIFIER}</key>
+    <string>${PROFILE_UUID}</string>
+  </dict>
+  <key>signingCertificate</key>
+  <string>${SIGNING_IDENTITY}</string>
+  <key>signingStyle</key>
+  <string>manual</string>
+  <key>stripSwiftSymbols</key>
+  <true/>
+  <key>teamID</key>
+  <string>${APPLE_TEAM_ID}</string>
+</dict>
+</plist>
+EOF
+
 export_args=(
   xcodebuild
   -exportArchive
@@ -147,7 +196,6 @@ export_args=(
   -exportOptionsPlist "$EXPORT_OPTIONS_PLIST"
   OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
 )
-export_args+=("${xcode_auth_args[@]}")
 
 "${export_args[@]}"
 
