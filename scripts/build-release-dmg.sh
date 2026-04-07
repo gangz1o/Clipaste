@@ -210,7 +210,6 @@ if [[ -z "$APP_PATH" ]]; then
 fi
 
 codesign --verify --deep --strict --verbose=2 "$APP_PATH"
-spctl -a -t exec -vv "$APP_PATH"
 
 mkdir -p "$DMG_STAGING_DIR"
 cp -R "$APP_PATH" "$DMG_STAGING_DIR/"
@@ -223,6 +222,13 @@ hdiutil create \
   -format UDZO \
   "$DMG_PATH"
 
+codesign --force \
+  --sign "$SIGNING_IDENTITY" \
+  --keychain "$KEYCHAIN_PATH" \
+  "$DMG_PATH"
+
+codesign --verify --verbose=2 "$DMG_PATH"
+
 xcrun notarytool submit "$DMG_PATH" \
   --key "$APPSTORE_CONNECT_KEY_PATH" \
   --key-id "$APPLE_API_KEY_ID" \
@@ -231,6 +237,7 @@ xcrun notarytool submit "$DMG_PATH" \
 
 xcrun stapler staple "$DMG_PATH"
 xcrun stapler validate "$DMG_PATH"
+spctl -a -t open --context context:primary-signature -vv "$DMG_PATH"
 
 shasum -a 256 "$DMG_PATH" > "$SHA256_PATH"
 
