@@ -130,13 +130,6 @@ security set-key-partition-list \
 security find-identity -v -p codesigning "$KEYCHAIN_PATH"
 printf 'Using provisioning profile for export: %s (%s)\n' "$PROFILE_NAME" "$PROFILE_UUID"
 
-xcode_auth_args=(
-  -allowProvisioningUpdates
-  -authenticationKeyPath "$APPSTORE_CONNECT_KEY_PATH"
-  -authenticationKeyID "$APPLE_API_KEY_ID"
-  -authenticationKeyIssuerID "$APPLE_API_ISSUER_ID"
-)
-
 archive_args=(
   xcodebuild
   -project "$PROJECT_PATH"
@@ -145,11 +138,11 @@ archive_args=(
   -destination "generic/platform=macOS"
   -derivedDataPath "$DERIVED_DATA_PATH"
   -archivePath "$ARCHIVE_PATH"
-  CODE_SIGN_STYLE=Automatic
+  CODE_SIGN_STYLE=Manual
+  CODE_SIGN_IDENTITY="$SIGNING_IDENTITY"
   DEVELOPMENT_TEAM="$APPLE_TEAM_ID"
   OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
 )
-archive_args+=("${xcode_auth_args[@]}")
 archive_args+=(archive)
 
 "${archive_args[@]}"
@@ -199,7 +192,6 @@ export_args=(
   -exportOptionsPlist "$EXPORT_OPTIONS_PLIST"
   OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN_PATH"
 )
-export_args+=("${xcode_auth_args[@]}")
 
 "${export_args[@]}"
 
