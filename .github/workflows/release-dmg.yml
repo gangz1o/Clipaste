@@ -21,7 +21,7 @@ jobs:
       SCHEME: Clipaste
       PROJECT_PATH: clipaste.xcodeproj
       INFO_PLIST_PATH: clipaste-Info.plist
-      APPLE_TEAM_ID: 6YXB9ASQXU
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
       BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
       P12_PASSWORD: ${{ secrets.P12_PASSWORD }}

@@ -14,6 +14,8 @@ You can also run the workflow manually with `workflow_dispatch` and provide an e
 
 ## Required GitHub Secrets
 
+- `APPLE_TEAM_ID`
+  Your Apple Developer Team ID.
 - `BUILD_CERTIFICATE_BASE64`
   Base64-encoded `.p12` export of your `Developer ID Application` certificate.
 - `P12_PASSWORD`
@@ -60,5 +62,6 @@ Paste the result into `APPLE_API_KEY_BASE64`.
 ## Notes
 
 - The workflow builds using `developer-id` export and notarizes the generated `.dmg`.
-- The project currently ships with iCloud entitlements in [clipaste.entitlements](/Users/gangz1o/macos-app/clipaste/clipaste/clipaste.entitlements). If automatic provisioning fails on CI, provide `BUILD_PROVISION_PROFILE_BASE64`.
-- For public releases, confirm your release signing setup uses the correct production entitlements and Apple team configuration.
+- The project currently ships with iCloud entitlements in `clipaste/clipaste.entitlements` and `clipaste/clipaste-release.entitlements`.
+- If automatic provisioning fails on CI, provide `BUILD_PROVISION_PROFILE_BASE64`.
+- This document is maintainer-focused. Open-source contributors do not need release secrets to build the app locally.
