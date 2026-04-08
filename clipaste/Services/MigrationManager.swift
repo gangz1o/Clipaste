@@ -129,11 +129,10 @@ final class MigrationManager {
         let existingRecords = try context.fetch(FetchDescriptor<ClipboardRecord>())
         let existingGroups = try context.fetch(FetchDescriptor<ClipboardGroupModel>())
         var existingHashes = Set(existingRecords.map(\.contentHash))
-        var recordsByHash = Dictionary(uniqueKeysWithValues: existingRecords.map { ($0.contentHash, $0) })
+        var recordsByHash = Dictionary(existingRecords.map { ($0.contentHash, $0) }, uniquingKeysWith: { first, _ in first })
         var groupsByNormalizedName = Dictionary(
-            uniqueKeysWithValues: existingGroups.map {
-                (Self.normalizedGroupLookupKey(for: $0.name), $0)
-            }
+            existingGroups.map { (Self.normalizedGroupLookupKey(for: $0.name), $0) },
+            uniquingKeysWith: { first, _ in first }
         )
         var importedCount = 0
         var skippedCount = 0
@@ -444,12 +443,22 @@ private extension MigrationManager {
             sqlite3_close_v2(database)
         }
 
-        let sql = """
-        SELECT i.ZRAWPREVIEW, l.ZTITLE, i.ZCREATEDAT
-        FROM ZITEMENTITY i
-        LEFT JOIN ZLISTENTITY l ON i.ZLIST = l.Z_PK
-        WHERE i.ZRAWPREVIEW IS NOT NULL;
-        """
+        let detectedListTitleColumn = try detectPasteListTitleColumn(in: database)
+        let sql: String
+        if let detectedListTitleColumn {
+            sql = """
+            SELECT i.ZRAWPREVIEW, l.\(detectedListTitleColumn), i.ZCREATEDAT
+            FROM ZITEMENTITY i
+            LEFT JOIN ZLISTENTITY l ON i.ZLIST = l.Z_PK
+            WHERE i.ZRAWPREVIEW IS NOT NULL;
+            """
+        } else {
+            sql = """
+            SELECT i.ZRAWPREVIEW, NULL, i.ZCREATEDAT
+            FROM ZITEMENTITY i
+            WHERE i.ZRAWPREVIEW IS NOT NULL;
+            """
+        }
         var statement: OpaquePointer?
         let prepareCode = sqlite3_prepare_v2(database, sql, -1, &statement, nil)
 
@@ -1048,6 +1057,62 @@ private extension MigrationManager {
 
         for candidate in identifierCandidates {
             if let resolvedColumn = columnLookup[candidate.lowercased()] {
+                return resolvedColumn
+            }
+        }
+
+        return nil
+    }
+}
+
+// MARK: - Paste Schema Inspection
+
+private extension MigrationManager {
+    nonisolated static func detectPasteListTitleColumn(in database: OpaquePointer) throws -> String? {
+        // Check if ZLISTENTITY table exists at all
+        let tableCheckSQL = "SELECT name FROM sqlite_master WHERE type='table' AND name='ZLISTENTITY';"
+        var tableCheckStatement: OpaquePointer?
+        guard sqlite3_prepare_v2(database, tableCheckSQL, -1, &tableCheckStatement, nil) == SQLITE_OK,
+              let tableCheckStatement else {
+            return nil
+        }
+        defer { sqlite3_finalize(tableCheckStatement) }
+        guard sqlite3_step(tableCheckStatement) == SQLITE_ROW else { return nil }
+
+        let pragmaSQL = "PRAGMA table_info(ZLISTENTITY);"
+        var statement: OpaquePointer?
+        let prepareCode = sqlite3_prepare_v2(database, pragmaSQL, -1, &statement, nil)
+
+        guard prepareCode == SQLITE_OK, let statement else {
+            throw MigrationError.statementPreparationFailed(String(cString: sqlite3_errmsg(database)))
+        }
+
+        defer {
+            sqlite3_finalize(statement)
+        }
+
+        var availableColumns: [String] = []
+
+        while true {
+            let stepCode = sqlite3_step(statement)
+
+            if stepCode == SQLITE_ROW {
+                guard let rawColumnName = sqlite3_column_text(statement, 1) else { continue }
+                availableColumns.append(String(cString: rawColumnName))
+                continue
+            }
+
+            guard stepCode == SQLITE_DONE else {
+                throw MigrationError.rowIterationFailed(String(cString: sqlite3_errmsg(database)))
+            }
+            break
+        }
+
+        let titleCandidates = ["ZTITLE", "ZNAME", "ZLABEL", "ZDISPLAYNAME", "ZTAG"]
+        let columnLookup = Dictionary(uniqueKeysWithValues: availableColumns.map { ($0.uppercased(), $0) })
+
+        for candidate in titleCandidates {
+            if let resolvedColumn = columnLookup[candidate] {
                 return resolvedColumn
             }
         }
