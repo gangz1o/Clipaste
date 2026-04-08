@@ -48,6 +48,13 @@ Clipaste can migrate clipboard history from:
 
 The goal is simple: switch without losing your existing history.
 
+## 🧩 Preview
+![mf7KusniFHeaoGGP4uez83OrVpcSyUIr.webp](https://cdn.nodeimage.com/i/mf7KusniFHeaoGGP4uez83OrVpcSyUIr.webp)
+![JuRrDgvz6wfUTptWjEX1uH0zZXiI9Hjs.webp](https://cdn.nodeimage.com/i/JuRrDgvz6wfUTptWjEX1uH0zZXiI9Hjs.webp)
+![bu2Tk7GSQ6aRItJc9PpBrEQrJSt4mKGN.webp](https://cdn.nodeimage.com/i/bu2Tk7GSQ6aRItJc9PpBrEQrJSt4mKGN.webp)
+![Y3a2gv5YW0T4jHX0GxgKYGyDKPqutJmi.webp](https://cdn.nodeimage.com/i/Y3a2gv5YW0T4jHX0GxgKYGyDKPqutJmi.webp)
+![DFLr1a2kN4MJPgoWaCC2CJFvVvyeBgbo.webp](https://cdn.nodeimage.com/i/DFLr1a2kN4MJPgoWaCC2CJFvVvyeBgbo.webp)
+
 ## 🧱 Tech Stack
 
 - **SwiftUI** for the interface
