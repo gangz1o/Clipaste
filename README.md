@@ -82,3 +82,9 @@ Clipaste 支持从以下应用迁移历史数据：
 ## 🚢 发布
 
 维护者可以通过仓库内的 GitHub Actions 工作流自动生成并上传 notarized DMG，详见 [RELEASING.md](RELEASING.md)。
+
+## 💌 社区交流
+
+有问题、有想法，或者就是想和一群搞开发的人聊聊？
+
+- **论坛**：[linux.do](https://linux.do/) —— 来这里讨论、分享你的配置、反馈问题，欢迎常驻。
