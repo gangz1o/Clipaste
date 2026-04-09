@@ -94,6 +94,29 @@ ensure_sparkle_tools() {
   chmod +x "$SPARKLE_TOOLS_DIR/bin/generate_appcast"
 }
 
+rewrite_appcast_download_urls() {
+  local appcast_path="$FEED_DIR/appcast.xml"
+
+  if [[ ! -f "$appcast_path" ]]; then
+    echo "Expected appcast.xml at $appcast_path." >&2
+    exit 1
+  fi
+
+  shopt -s nullglob
+  for archive_path in "$FEED_DIR"/*.zip; do
+    local archive_name archive_tag asset_url
+    archive_name="$(basename "$archive_path")"
+    archive_tag="${archive_name#${APP_NAME}-}"
+    archive_tag="${archive_tag%.zip}"
+    asset_url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${archive_tag}/${archive_name}"
+
+    ARCHIVE_NAME="$archive_name" ASSET_URL="$asset_url" \
+      perl -0pi -e 's{url="[^"]*/\Q$ENV{ARCHIVE_NAME}\E"}{url="$ENV{ASSET_URL}"}g' \
+      "$appcast_path"
+  done
+  shopt -u nullglob
+}
+
 log "Publishing Sparkle feed for $RELEASE_TAG"
 prepare_feed_checkout
 ensure_sparkle_tools
@@ -114,6 +137,9 @@ printf '%s' "$SPARKLE_PRIVATE_KEY" | \
     --maximum-deltas 0 \
     --maximum-versions 3 \
     "$FEED_DIR"
+
+log "Rewriting appcast download URLs"
+rewrite_appcast_download_urls
 
 rm -rf "$FEED_DIR/old_updates"
 
