@@ -54,7 +54,7 @@ This update focuses on refining the clipboard panel's interaction experience, st
 - Added missing localization texts.
 - Continued to polish minor visual details to enhance overall stability and consistency.
 ]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.2/Clipaste-v1.0.2.zip" length="4256731" type="application/octet-stream" sparkle:edSignature="eUmpkT57y8nvSW+aoysBTEKYXBgq9UljVHDWUy4MDO7oZFwm1qDhqlYYDB74wYUS1nVYd0wyBjcL5RrxRseFBA=="/>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.2/Clipaste-v1.0.2.zip" length="4256797" type="application/octet-stream" sparkle:edSignature="qiHd6gKNy4lD44smamRsNFk3HiZOPoMhiTvb0/lSqJlIGRva5AcnKWPXAawSrWMh4ZFJ57N+j5+oQh0298inBg=="/>
         </item>
         <item>
             <title>1.0.1</title>
@@ -68,7 +68,7 @@ This update focuses on refining the clipboard panel's interaction experience, st
 -   🌈style: 优化部分场景下的 UI 展示
 -  🌟feat: 新增自动检测更新的能力
 ]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.2/Clipaste-v1.0.1.zip" length="4254972" type="application/octet-stream" sparkle:edSignature="p4Mgz/3+1870k9rg7YorGQ8MeQtPUjIQTO+dN9fU64x39RhRWILqs9FHUnpb6/vKE0MhcDWoP2GO4J8IFCiEAQ=="/>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.1/Clipaste-v1.0.1.zip" length="4254972" type="application/octet-stream" sparkle:edSignature="p4Mgz/3+1870k9rg7YorGQ8MeQtPUjIQTO+dN9fU64x39RhRWILqs9FHUnpb6/vKE0MhcDWoP2GO4J8IFCiEAQ=="/>
         </item>
     </channel>
 </rss>
