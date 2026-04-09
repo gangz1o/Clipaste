@@ -84,7 +84,7 @@ Clipaste 支持从以下应用迁移历史数据：
 
 维护者可以通过仓库内的 GitHub Actions 工作流自动生成并上传 notarized DMG，详见 [RELEASING.md](RELEASING.md)。
 
-## 赞助
+## ❤️ 赞助
 
 如果您觉得这个项目对您有帮助，可以考虑赞助支持我们！您的支持将帮助我们更好地维护和发展项目, 让Clipaste持续为社区创造价值。
 
