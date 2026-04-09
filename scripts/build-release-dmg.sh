@@ -31,15 +31,64 @@ EXPORT_OPTIONS_PLIST="$TEMP_ROOT/ExportOptions.plist"
 PROFILE_UUID=""
 PROFILE_NAME=""
 
+resolve_build_setting() {
+  local key="$1"
+
+  xcodebuild \
+    -project "$PROJECT_PATH" \
+    -scheme "$SCHEME" \
+    -configuration "$CONFIGURATION" \
+    -showBuildSettings 2>/dev/null |
+    awk -v key="$key" '$1 == key && $2 == "=" { print $3; exit }'
+}
+
+derive_release_build_number() {
+  local fallback="$1"
+
+  if [[ -n "${RELEASE_BUILD_NUMBER:-}" ]]; then
+    printf '%s\n' "$RELEASE_BUILD_NUMBER"
+    return
+  fi
+
+  if [[ "$RELEASE_TAG" =~ ^v?([0-9]+)\.([0-9]+)(\.([0-9]+))?$ ]]; then
+    local major="${BASH_REMATCH[1]}"
+    local minor="${BASH_REMATCH[2]}"
+    local patch="${BASH_REMATCH[4]:-0}"
+    printf '%s\n' "$(( major * 10000 + minor * 100 + patch ))"
+    return
+  fi
+
+  printf '%s\n' "$fallback"
+}
+
 mkdir -p "$DIST_DIR" "$TEMP_ROOT"
 rm -rf "$ARCHIVE_PATH" "$EXPORT_DIR" "$DMG_STAGING_DIR"
 
-VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$INFO_PLIST_PATH")"
-BUILD_NUMBER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$INFO_PLIST_PATH")"
+VERSION="$(resolve_build_setting MARKETING_VERSION)"
+if [[ -z "$VERSION" ]]; then
+  VERSION="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$INFO_PLIST_PATH")"
+fi
+
+BUILD_NUMBER="$(resolve_build_setting CURRENT_PROJECT_VERSION)"
+if [[ -z "$BUILD_NUMBER" ]]; then
+  BUILD_NUMBER="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$INFO_PLIST_PATH")"
+fi
+
 RELEASE_VERSION="$VERSION"
 if [[ "$RELEASE_TAG" =~ ^v?([0-9]+(\.[0-9]+){1,2})$ ]]; then
   RELEASE_VERSION="${BASH_REMATCH[1]}"
 fi
+
+RELEASE_BUILD_NUMBER="$(derive_release_build_number "$BUILD_NUMBER")"
+if ! [[ "$RELEASE_BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+  cat >&2 <<EOF
+Unable to determine a numeric CURRENT_PROJECT_VERSION for the release build.
+Resolved value: $RELEASE_BUILD_NUMBER
+Provide RELEASE_BUILD_NUMBER explicitly or update the project build number.
+EOF
+  exit 1
+fi
+
 ARTIFACT_VERSION="${RELEASE_TAG:-v${RELEASE_VERSION}}"
 ARTIFACT_BASENAME="${APP_NAME}-${ARTIFACT_VERSION}"
 ZIP_PATH="$DIST_DIR/${ARTIFACT_BASENAME}.zip"
@@ -153,6 +202,7 @@ archive_args=(
   -derivedDataPath "$DERIVED_DATA_PATH"
   -archivePath "$ARCHIVE_PATH"
   MARKETING_VERSION="$RELEASE_VERSION"
+  CURRENT_PROJECT_VERSION="$RELEASE_BUILD_NUMBER"
   CODE_SIGN_STYLE=Manual
   CODE_SIGN_IDENTITY="$SIGNING_IDENTITY"
   CLIPASTE_RELEASE_PROFILE_SPECIFIER="$PROFILE_NAME"
@@ -271,5 +321,5 @@ Built release artifacts:
   ZIP: $ZIP_PATH
   DMG: $DMG_PATH
   SHA256: $SHA256_PATH
-  Version: $RELEASE_VERSION ($BUILD_NUMBER)
+  Version: $RELEASE_VERSION ($RELEASE_BUILD_NUMBER)
 EOF
