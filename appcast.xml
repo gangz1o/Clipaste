@@ -1,0 +1,20 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Clipaste</title>
+        <item>
+            <title>1.0.1</title>
+            <pubDate>Thu, 09 Apr 2026 00:11:55 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.0.1</sparkle:fullReleaseNotesLink>
+            <sparkle:version>11</sparkle:version>
+            <sparkle:shortVersionString>1.0.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[-  🔥fix: 修复从第三方平台导入到Clipaste奔溃的问题
+-   🌈style: 优化部分场景下的 UI 展示
+-  🌟feat: 新增自动检测更新的能力
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.1/Clipaste-v1.0.1.zip" length="4254972" type="application/octet-stream" sparkle:edSignature="p4Mgz/3+1870k9rg7YorGQ8MeQtPUjIQTO+dN9fU64x39RhRWILqs9FHUnpb6/vKE0MhcDWoP2GO4J8IFCiEAQ=="/>
+        </item>
+    </channel>
+</rss>
