@@ -16,7 +16,7 @@ Clipaste 是一个基于 **SwiftUI** 和 **SwiftData** 构建的 macOS 剪贴板
 - 🔄 可迁移 **Paste**、**PasteNow**、**iCopy** 的历史数据
 - ↔️ UI 同时支持横向和纵向布局
 - ☁️ 支持可选的 iCloud / CloudKit 同步
-- 🆓 开源免费
+- 💕 开源免费
 
 ## 🏎️ 为什么是 Clipaste
 
