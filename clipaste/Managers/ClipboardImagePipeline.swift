@@ -45,6 +45,32 @@ final class ClipboardImagePipeline {
         return image
     }
 
+    func quickLookPreviewImage(for itemID: UUID, maxPixelSize: Int) async -> NSImage? {
+        let cacheKey = "ql-preview-\(itemID.uuidString)-\(maxPixelSize)" as NSString
+        if let cached = cache.object(forKey: cacheKey) {
+            return cached
+        }
+
+        let data: Data
+        if let previewData = await StorageManager.shared.loadPreviewImageData(id: itemID) {
+            data = previewData
+        } else if let fallbackData = await StorageManager.shared.loadOriginalImageData(id: itemID) {
+            data = fallbackData
+        } else if let imageData = await StorageManager.shared.loadImageData(id: itemID) {
+            data = imageData
+        } else {
+            return nil
+        }
+
+        let image = await Self.downsampleImageOffMain(data, maxPixelSize: maxPixelSize)
+
+        if let image {
+            cache.setObject(image, forKey: cacheKey)
+        }
+
+        return image
+    }
+
     func previewImage(for itemID: UUID, maxPixelSize: Int) async -> NSImage? {
         let cacheKey = "preview-\(itemID.uuidString)-\(maxPixelSize)" as NSString
         if let cached = cache.object(forKey: cacheKey) {

@@ -28,7 +28,7 @@ struct ClipboardGroupExport: Sendable {
     let id: String
     let name: String
     let createdAt: Date
-    let systemIconName: String
+    let systemIconName: String?
     let sortOrder: Int
 }
 
@@ -180,7 +180,7 @@ final class ClipboardStoreBootstrapper: @unchecked Sendable {
             id: group.id,
             name: group.name,
             createdAt: group.createdAt,
-            systemIconName: group.systemIconName,
+            systemIconName: ClipboardGroupIconName.normalize(group.systemIconName),
             sortOrder: group.sortOrder
         )
     }
@@ -233,7 +233,10 @@ final class ClipboardStoreBootstrapper: @unchecked Sendable {
         guard let fullData else { return nil }
 
         let previewData = previewURL.flatMap { try? Data(contentsOf: $0) }
-            ?? ImageProcessor.generateThumbnail(from: fullData)
+            ?? ImageProcessor.generateThumbnail(
+                from: fullData,
+                maxPixelSize: ClipboardImagePreviewPolicy.storedPreviewMaxPixelSize
+            )
         let metadata = ImageProcessor.metadata(for: fullData)
 
         return LegacyImageBinary(fullData: fullData, previewData: previewData, metadata: metadata)

@@ -3,6 +3,16 @@ import Combine
 import SwiftUI
 
 extension ClipboardViewModel {
+    func setupKeyboardIntentSubscriptions() {
+        NotificationCenter.default.publisher(for: .toggleFavoriteSelectionIntent)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self, self.isPanelPresentationActive else { return }
+                self.toggleFavoriteForSelection()
+            }
+            .store(in: &cancellables)
+    }
+
     func startKeyboardMonitoring() {
         stopKeyboardMonitoring()
         updateModifierFlags(from: NSEvent.modifierFlags)

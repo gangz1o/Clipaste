@@ -7,6 +7,7 @@ extension Notification.Name {
     static let selectPreviousGroup = Notification.Name("selectPreviousGroup")
     static let focusSearchFieldIntent = Notification.Name("focusSearchFieldIntent")
     static let focusListIntent = Notification.Name("focusListIntent")
+    static let toggleFavoriteSelectionIntent = Notification.Name("toggleFavoriteSelectionIntent")
 }
 
 /// 统一分组标识：将智能分类和用户分组抹平为同一类型，供游标引擎使用。
@@ -14,6 +15,7 @@ extension Notification.Name {
 enum UnifiedGroupSlot: Equatable {
     case all
     case smartFilter(ClipboardContentType)
+    case builtIn(ClipboardBuiltInGroup)
     case userGroup(String)
 }
 
@@ -31,6 +33,7 @@ final class ClipboardViewModel: ObservableObject {
     }
 
     static let initialVisibleItemBatchSize = 80
+    static let backgroundPageBatchSize = 160
 
     struct QuickLookImagePreviewState {
         let image: NSImage
@@ -42,8 +45,10 @@ final class ClipboardViewModel: ObservableObject {
     @Published var searchInput: String = ""
     @Published var activeSearchQuery: String = ""
     @Published var currentFilter: ClipboardContentType? = nil
+    @Published var selectedBuiltInGroup: ClipboardBuiltInGroup? = nil
     @Published var selectedItemIDs: Set<UUID> = []
     @Published var isInitialHistoryLoading = false
+    @Published var isLoadingMoreHistory = false
     var lastSelectedID: UUID? = nil
     @Published var quickLookItem: ClipboardItem? = nil
     @Published var highResImage: NSImage? = nil
@@ -73,10 +78,14 @@ final class ClipboardViewModel: ObservableObject {
     nonisolated(unsafe) var flagsChangedMonitor: Any?
     var currentModifierFlags: NSEvent.ModifierFlags = []
     var shouldResetSelectionToFirstDisplayedItem = false
+    var shouldAutoFollowTopItemDuringPresentation = false
     var hasPreparedPanelData = false
     var isPanelPresentationActive = false
     var needsReloadOnNextPresentation = false
     var dataLoadGeneration: UInt = 0
+    var loadedHistoryCount = 0
+    var hasLoadedFullHistory = false
+    var historyLoadTask: Task<Void, Never>? = nil
     var itemIndexByID: [UUID: Int] = [:]
     var itemIndexByHash: [String: Int] = [:]
     let settingsViewModel: SettingsViewModel
@@ -94,10 +103,13 @@ final class ClipboardViewModel: ObservableObject {
 
         setupDataSubscriptions()
         setupRecordChangeSubscriptions()
+        setupWarmCacheSubscription()
         setupFilterPipeline()
         setupGroupSwitchSubscriptions()
+        setupKeyboardIntentSubscriptions()
         setupSmartGroupsGuard()
         setupModifierPreferenceSync()
+        hydrateFromWarmCacheIfAvailable()
     }
 
     deinit {
@@ -107,5 +119,6 @@ final class ClipboardViewModel: ObservableObject {
         if let flagsChangedMonitor {
             NSEvent.removeMonitor(flagsChangedMonitor)
         }
+        historyLoadTask?.cancel()
     }
 }

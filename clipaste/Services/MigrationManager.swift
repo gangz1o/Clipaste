@@ -265,7 +265,7 @@ extension MigrationManager {
 
         let createdGroup = ClipboardGroupModel(
             name: rawGroupName,
-            systemIconName: "folder",
+            systemIconName: nil,
             sortOrder: nextSortOrder
         )
         nextSortOrder -= 1

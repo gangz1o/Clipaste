@@ -77,6 +77,10 @@ private extension ShortcutsSettingsView {
 
                 cardDivider
 
+                ShortcutRecorderRow("Toggle Favorites for Selection", name: .toggleFavoriteSelection)
+
+                cardDivider
+
                 ShortcutRecorderRow("Clear Clipboard History", name: .clearHistory)
             }
         }
@@ -124,6 +128,7 @@ private extension ShortcutsSettingsView {
                 .toggleVerticalClipboard,
                 .nextList,
                 .prevList,
+                .toggleFavoriteSelection,
                 .clearHistory
             )
         } label: {

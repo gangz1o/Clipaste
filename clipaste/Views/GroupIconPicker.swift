@@ -28,7 +28,7 @@ struct IconItemView: View {
 
 /// Grouped icon picker supporting both SF Symbols and local custom Assets.
 struct GroupIconPicker: View {
-    @Binding var selectedIcon: String
+    @Binding var selectedIcon: String?
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var vm = IconPickerViewModel()
@@ -78,6 +78,8 @@ struct GroupIconPicker: View {
             // ── Icon grid ──
             if vm.displayedIcons.isEmpty {
                 VStack(spacing: 10) {
+                    clearIconButton
+
                     Image(systemName: "magnifyingglass")
                         .font(.system(size: 28))
                         .foregroundStyle(.quaternary)
@@ -89,6 +91,8 @@ struct GroupIconPicker: View {
             } else {
                 ScrollView(showsIndicators: false) {
                     LazyVGrid(columns: columns, spacing: 16) {
+                        clearIconButton
+
                         ForEach(vm.displayedIcons) { item in
                             iconCell(item)
                         }
@@ -118,10 +122,37 @@ struct GroupIconPicker: View {
         .buttonStyle(.plain)
         .help(item.displayName)
     }
+
+    private var clearIconButton: some View {
+        let isSelected = selectedIcon == nil
+
+        return Button {
+            selectedIcon = nil
+            dismiss()
+        } label: {
+            ZStack {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(isSelected ? Color.accentColor.opacity(0.12) : Color.clear)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .stroke(isSelected ? Color.accentColor.opacity(0.5) : Color.secondary.opacity(0.18))
+                    )
+
+                Image(systemName: "square.dashed")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
+                    .frame(width: 32, height: 32)
+            }
+            .frame(width: 32, height: 32)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("No Icon")
+    }
 }
 
 // MARK: - Preview
 
 #Preview {
-    GroupIconPicker(selectedIcon: .constant("folder"))
+    GroupIconPicker(selectedIcon: .constant(nil))
 }

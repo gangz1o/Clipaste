@@ -15,7 +15,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         .toggleVerticalClipboard,
         .nextList,
         .prevList,
-        .clearHistory
+        .clearHistory,
+        .toggleFavoriteSelection
     ]
     nonisolated(unsafe) private var onboardingStateObserver: NSObjectProtocol?
     private var lastKnownOnboardingState = false
@@ -44,6 +45,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Without this, apps like Xcode that handle ⌘⇧C internally will swallow the
         // event before our monitor sees it.
         checkAndRequestAccessibility()
+
+        // 提前构建隐藏面板与其 SwiftUI 视图树，让首屏展示前就完成
+        // ViewModel 初始化、warm cache 订阅与基础窗口准备，减少第一次呼出时的白屏等待。
+        ClipboardPanelManager.shared.preparePanelIfNeeded()
 
         lastObservedAppLanguageRaw = normalizedAppLanguageStorageRaw()
 
@@ -118,7 +123,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         KeyboardShortcuts.onKeyDown(for: .clearHistory) {
-            StorageManager.shared.clearAllHistory()
+            StorageManager.shared.clearUnpinnedHistory()
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .toggleFavoriteSelection) {
+            NotificationCenter.default.post(name: .toggleFavoriteSelectionIntent, object: nil)
         }
     }
 

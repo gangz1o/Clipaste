@@ -5,10 +5,14 @@ import SwiftUI
 extension ClipboardViewModel {
     func beginPresentation() {
         isPanelPresentationActive = true
+        shouldAutoFollowTopItemDuringPresentation = true
+        clearSelection()
         resetSearchForPresentationIfNeeded()
 
         if hasPreparedPanelData == false {
             hasPreparedPanelData = true
+            hydrateFromWarmCacheIfAvailable()
+            shouldResetSelectionToFirstDisplayedItem = true
             loadData(mode: .visibleFirst)
             loadCustomGroups()
             return
@@ -16,12 +20,14 @@ extension ClipboardViewModel {
 
         guard needsReloadOnNextPresentation else { return }
         needsReloadOnNextPresentation = false
+        shouldResetSelectionToFirstDisplayedItem = true
         loadData(mode: .fullRefresh)
         loadCustomGroups()
     }
 
     func endPresentation() {
         isPanelPresentationActive = false
+        shouldAutoFollowTopItemDuringPresentation = false
     }
 
     func setupDataSubscriptions() {
@@ -50,6 +56,18 @@ extension ClipboardViewModel {
             .store(in: &cancellables)
     }
 
+    func setupWarmCacheSubscription() {
+        NotificationCenter.default.publisher(for: .clipboardWarmCacheDidChange)
+            .compactMap(\.clipboardWarmCacheChange)
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] change in
+                guard let self else { return }
+                guard change.routeKey == ClipboardRuntimeStore.shared.rootIdentity else { return }
+                self.hydrateFromWarmCacheIfAvailable()
+            }
+            .store(in: &cancellables)
+    }
+
     func reloadPanelDataAfterMigration() {
         loadData()
         loadCustomGroups()
@@ -71,6 +89,26 @@ extension ClipboardViewModel {
         Task.detached(priority: .background) {
             try? await Task.sleep(nanoseconds: 2_000_000_000)
             StorageManager.shared.performAutoCleanup(before: expirationDate)
+        }
+    }
+
+    func hydrateFromWarmCacheIfAvailable() {
+        guard searchInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              activeSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              currentFilter == nil,
+              selectedBuiltInGroup == nil,
+              selectedGroupId == nil else {
+            return
+        }
+
+        let routeKey = ClipboardRuntimeStore.shared.rootIdentity
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            guard let cachedItems = await ClipboardHistoryWarmCache.shared.snapshot(for: routeKey) else { return }
+            guard self.items.isEmpty || self.hasPreparedPanelData == false else { return }
+            self.applyLoadedItems(cachedItems)
+            self.loadedHistoryCount = cachedItems.count
+            self.hasLoadedFullHistory = cachedItems.count < ClipboardHistoryWarmCache.defaultLimit
         }
     }
 }

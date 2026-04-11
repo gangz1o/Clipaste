@@ -139,6 +139,7 @@ final class ClipboardRuntimeStore: ObservableObject {
             level: .info,
             message: "当前激活路由：\(resolvedSyncEnabled ? "cloud" : "local")，generation=\(runtimeGeneration.uuidString)"
         )
+        scheduleWarmCacheRefresh(using: runtime.storage, routeKey: rootIdentity)
 
         ClipboardMonitor.shared.startMonitoring()
         scheduleMaintenance()
@@ -235,6 +236,7 @@ final class ClipboardRuntimeStore: ObservableObject {
             try await bootstrapper.importLegacyStoreIfNeeded(into: currentRuntime.storage)
             let repairedCount = await currentRuntime.storage.repairImportedMigrationTimestampsIfNeeded()
             let repairedClassificationCount = await repairTextClassificationsIfNeeded(using: currentRuntime.storage)
+            let repairedAppIconColorCount = await repairAppIconColorsIfNeeded(using: currentRuntime.storage)
             await MainActor.run {
                 NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
             }
@@ -244,6 +246,10 @@ final class ClipboardRuntimeStore: ObservableObject {
             if repairedClassificationCount > 0 {
                 appendDiagnostic(level: .info, message: "已修复 \(repairedClassificationCount) 条文本/代码分类记录")
             }
+            if repairedAppIconColorCount > 0 {
+                appendDiagnostic(level: .info, message: "已修复 \(repairedAppIconColorCount) 条 App 图标主色记录")
+            }
+            scheduleWarmCacheRefresh(using: currentRuntime.storage, routeKey: rootIdentity)
             appendDiagnostic(level: .info, message: "启动期旧库导入检查完成")
         } catch {
             let message = CloudSyncErrorFormatter.message(for: error)
@@ -379,6 +385,7 @@ final class ClipboardRuntimeStore: ObservableObject {
         ClipboardStorageRegistry.update(storage: runtime.storage)
         ClipboardImagePipeline.shared.invalidateAll()
         NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+        scheduleWarmCacheRefresh(using: runtime.storage, routeKey: rootIdentity)
         appendDiagnostic(
             level: .info,
             message: "激活 runtime：route=\(syncEnabled ? "cloud" : "local") generation=\(runtimeGeneration.uuidString)"
@@ -434,6 +441,24 @@ final class ClipboardRuntimeStore: ObservableObject {
         }
     }
 
+    private func scheduleWarmCacheRefresh(using storage: StorageManager, routeKey: String) {
+        Task.detached(priority: .background) {
+            let warmItems = await storage.fetchItemsPage(
+                searchText: "",
+                fetchLimit: ClipboardHistoryWarmCache.defaultLimit,
+                offset: 0
+            )
+            await ClipboardHistoryWarmCache.shared.update(items: warmItems, routeKey: routeKey)
+            await MainActor.run {
+                NotificationCenter.default.post(
+                    name: .clipboardWarmCacheDidChange,
+                    object: nil,
+                    userInfo: ["routeKey": routeKey]
+                )
+            }
+        }
+    }
+
     private func repairTextClassificationsIfNeeded(using storage: StorageManager) async -> Int {
         let currentVersion = ClipboardContentClassifier.repairVersion
         let storedVersion = defaults.integer(forKey: Keys.textClassificationRepairVersion)
@@ -444,6 +469,37 @@ final class ClipboardRuntimeStore: ObservableObject {
 
         let repairedCount = await storage.repairTextClassificationsIfNeeded()
         defaults.set(currentVersion, forKey: Keys.textClassificationRepairVersion)
+        return repairedCount
+    }
+
+    private func repairAppIconColorsIfNeeded(using storage: StorageManager) async -> Int {
+        let currentVersion = 1
+        let storedVersion = defaults.integer(forKey: Keys.appIconColorRepairVersion)
+
+        guard storedVersion < currentVersion else {
+            return 0
+        }
+
+        let bundleIDs = await storage.fetchDistinctAppBundleIDsForColorRepair()
+        guard bundleIDs.isEmpty == false else {
+            defaults.set(currentVersion, forKey: Keys.appIconColorRepairVersion)
+            return 0
+        }
+
+        var colorsByBundleID: [String: String] = [:]
+        colorsByBundleID.reserveCapacity(bundleIDs.count)
+
+        for bundleID in bundleIDs {
+            guard let icon = AppIconManager.shared.getIcon(for: bundleID),
+                  let colorHex = icon.dominantColorHex() else {
+                continue
+            }
+
+            colorsByBundleID[bundleID] = colorHex
+        }
+
+        let repairedCount = await storage.repairAppIconDominantColors(using: colorsByBundleID)
+        defaults.set(currentVersion, forKey: Keys.appIconColorRepairVersion)
         return repairedCount
     }
 
@@ -618,5 +674,6 @@ private extension ClipboardRuntimeStore {
         static let syncEnabled = "enable_icloud_sync"
         static let lastSyncDate = "last_sync_date"
         static let textClassificationRepairVersion = "clipboard_text_classification_repair_version"
+        static let appIconColorRepairVersion = "clipboard_app_icon_color_repair_version"
     }
 }

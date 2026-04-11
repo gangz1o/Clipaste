@@ -235,20 +235,20 @@ private extension GeneralSettingsView {
                     .controlSize(.small)
                 }
 
-                Text("Permanently deletes all clipboard records and image caches. This cannot be undone.")
+                Text("Permanently deletes non-favorite clipboard records and image caches. Items in Favorites are kept.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.top, 8)
             }
         }
-        .alert("Clear All History?", isPresented: $showingClearAlert) {
+        .alert("Clear History?", isPresented: $showingClearAlert) {
             Button("Cancel", role: .cancel) { }
-            Button("Clear All", role: .destructive) {
-                StorageManager.shared.clearAllHistory()
+            Button("Clear History", role: .destructive) {
+                StorageManager.shared.clearUnpinnedHistory()
             }
         } message: {
-            Text("Permanently deletes all clipboard records and image caches. This cannot be undone.")
+            Text("Permanently deletes non-favorite clipboard records and image caches. Items in Favorites are kept.")
         }
     }
 }

@@ -3,6 +3,8 @@ import SwiftUI
 
 extension ClipboardViewModel {
     func handleSelection(id: UUID, isCommand: Bool, isShift: Bool) {
+        shouldAutoFollowTopItemDuringPresentation = false
+
         if isShift, let anchorID = lastSelectedID {
             let source = displayedItemsForInteraction
             if let anchorIdx = source.firstIndex(where: { $0.id == anchorID }),
@@ -22,9 +24,12 @@ extension ClipboardViewModel {
             selectedItemIDs = [id]
             lastSelectedID = id
         }
+
+        prewarmQuickLookPreviewIfNeeded()
     }
 
     func selectAll() {
+        shouldAutoFollowTopItemDuringPresentation = false
         selectedItemIDs = Set(displayedItemsForInteraction.map(\.id))
     }
 
@@ -39,6 +44,7 @@ extension ClipboardViewModel {
         if selectedItemIDs.isEmpty {
             selectedItemIDs = [firstVisible.id]
             lastSelectedID = firstVisible.id
+            prewarmQuickLookPreviewIfNeeded()
             return
         }
 
@@ -50,11 +56,13 @@ extension ClipboardViewModel {
 
         if let selectedVisibleID = displayedItemsForInteraction.first(where: { selectedItemIDs.contains($0.id) })?.id {
             lastSelectedID = selectedVisibleID
+            prewarmQuickLookPreviewIfNeeded()
             return
         }
 
         selectedItemIDs = [firstVisible.id]
         lastSelectedID = firstVisible.id
+        prewarmQuickLookPreviewIfNeeded()
     }
 
     func selectFirstDisplayedItem() {
@@ -65,6 +73,7 @@ extension ClipboardViewModel {
 
         selectedItemIDs = [firstVisible.id]
         lastSelectedID = firstVisible.id
+        prewarmQuickLookPreviewIfNeeded()
     }
 
     func userDidSelect(item: ClipboardItem) {
@@ -72,6 +81,8 @@ extension ClipboardViewModel {
     }
 
     func moveSelection(direction: Int) {
+        shouldAutoFollowTopItemDuringPresentation = false
+
         let displayedItems = displayedItemsForInteraction
         guard !displayedItems.isEmpty else { return }
 
@@ -91,6 +102,8 @@ extension ClipboardViewModel {
             selectedItemIDs = [nextID]
             lastSelectedID = nextID
         }
+
+        prewarmQuickLookPreviewIfNeeded()
     }
 
     var displayedItemsForInteraction: [ClipboardItem] {
@@ -98,7 +111,7 @@ extension ClipboardViewModel {
     }
 
     func reconcileSelectionAfterDisplayedItemsChange() {
-        if shouldResetSelectionToFirstDisplayedItem {
+        if shouldResetSelectionToFirstDisplayedItem || shouldAutoFollowTopItemDuringPresentation {
             shouldResetSelectionToFirstDisplayedItem = false
             selectFirstDisplayedItem()
             return

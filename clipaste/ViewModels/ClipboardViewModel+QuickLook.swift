@@ -33,24 +33,27 @@ extension ClipboardViewModel {
         quickLookLoadTask = nil
         quickLookRequestedItemID = item.id
 
-        if quickLookItem?.id != item.id {
-            quickLookItem = nil
+        let shouldAnimatePresentation = quickLookItem == nil
+        if shouldAnimatePresentation {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
+                quickLookItem = item
+            }
+        } else {
+            quickLookItem = item
         }
 
         if item.contentType == .image {
-            resetQuickLookImageState()
-            loadHighResolutionQuickLookImage(for: item)
+            primeQuickLookImageState(for: item)
+            loadQuickLookImagePreview(for: item)
             return
         }
 
         resetQuickLookImageState()
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
-            quickLookItem = item
-        }
+        quickLookRequestedItemID = nil
     }
 }
 
-private extension ClipboardViewModel {
+extension ClipboardViewModel {
     var quickLookPreviewCandidate: ClipboardItem? {
         if let lastSelectedID,
            selectedItemIDs.contains(lastSelectedID),
@@ -61,8 +64,7 @@ private extension ClipboardViewModel {
         return displayedItemsForInteraction.first { selectedItemIDs.contains($0.id) }
     }
 
-    func loadHighResolutionQuickLookImage(for item: ClipboardItem) {
-        let previewItem = item
+    func loadQuickLookImagePreview(for item: ClipboardItem) {
         let itemID = item.id
         let loadGeneration = quickLookLoadGeneration
         let maxPixelSize = quickLookPreviewMaxPixelSize()
@@ -75,7 +77,7 @@ private extension ClipboardViewModel {
                 }
             }
 
-            guard let image = await ClipboardImagePipeline.shared.previewImage(
+            guard let initialImage = await ClipboardQuickLookImageService.shared.loadInitialImage(
                 for: itemID,
                 maxPixelSize: maxPixelSize
             ),
@@ -87,15 +89,27 @@ private extension ClipboardViewModel {
                 return
             }
 
-            let previewState = self.makeQuickLookImagePreviewState(from: image)
+            self.applyQuickLookImageState(from: initialImage, preserveTargetSize: true)
             guard !Task.isCancelled, self.quickLookLoadGeneration == loadGeneration else { return }
+            self.quickLookRequestedItemID = nil
 
-            self.previewTargetSize = previewState.targetSize
-            self.highResImage = previewState.image
-
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) {
-                self.quickLookItem = previewItem
+            guard ClipboardQuickLookImageService.shared.shouldUpgradeInitialImage(
+                initialImage,
+                targetDisplaySize: self.previewTargetSize
+            ) else {
+                return
             }
+
+            guard let upgradedImage = await ClipboardQuickLookImageService.shared.loadUpgradedImage(
+                for: itemID,
+                maxPixelSize: maxPixelSize
+            ),
+                  !Task.isCancelled,
+                  self.quickLookLoadGeneration == loadGeneration else {
+                return
+            }
+
+            self.applyQuickLookImageState(from: upgradedImage, preserveTargetSize: true)
         }
     }
 
@@ -136,6 +150,23 @@ private extension ClipboardViewModel {
         previewTargetSize = .zero
     }
 
+    func primeQuickLookImageState(for item: ClipboardItem) {
+        highResImage = nil
+        if let imagePixelSize = item.imagePixelSize {
+            previewTargetSize = safeQuickLookPreviewSize(for: imagePixelSize)
+        } else {
+            previewTargetSize = .zero
+        }
+    }
+
+    func applyQuickLookImageState(from image: NSImage, preserveTargetSize: Bool) {
+        let previewState = makeQuickLookImagePreviewState(from: image)
+        if preserveTargetSize == false || previewTargetSize == .zero {
+            previewTargetSize = previewState.targetSize
+        }
+        highResImage = previewState.image
+    }
+
     func quickLookPreviewMaxPixelSize() -> Int {
         let visibleFrame = NSScreen.main?.visibleFrame
             ?? NSScreen.screens.first?.visibleFrame
@@ -144,12 +175,21 @@ private extension ClipboardViewModel {
             ?? NSScreen.screens.first?.backingScaleFactor
             ?? 2
 
-        let longestEdge = max(visibleFrame.width, visibleFrame.height)
-        guard longestEdge > 0 else {
-            return 2048
+        return ClipboardImagePreviewPolicy.quickLookDisplayMaxPixelSize(
+            visibleFrame: visibleFrame,
+            scaleFactor: scaleFactor
+        )
+    }
+
+    func prewarmQuickLookPreviewIfNeeded() {
+        guard let item = quickLookPreviewCandidate, item.contentType == .image else {
+            return
         }
 
-        let boundedEdge = longestEdge * 0.8 * scaleFactor
-        return max(1600, Int(boundedEdge.rounded(.up)))
+        let maxPixelSize = quickLookPreviewMaxPixelSize()
+        ClipboardQuickLookImageService.shared.prewarmInitialImage(
+            for: item.id,
+            maxPixelSize: maxPixelSize
+        )
     }
 }

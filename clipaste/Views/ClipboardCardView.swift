@@ -122,8 +122,8 @@ struct ClipboardCardView: View {
         .overlay {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
                 .stroke(
-                    isSelected ? Color.accentColor.opacity(0.48) : Color.black.opacity(0.08),
-                    lineWidth: isSelected ? 1.4 : 0.8
+                    isSelected ? Color.accentColor.opacity(0.95) : Color.black.opacity(0.08),
+                    lineWidth: isSelected ? 6 : 0.8
                 )
         }
         .clipShape(.rect(cornerRadius: 16))
@@ -149,7 +149,7 @@ struct ClipboardCardView: View {
             await refreshRichPreviewText()
         }
         .task(id: headerColorTaskKey) {
-            await refreshHeaderDominantColorHex()
+            refreshHeaderDominantColorHex()
         }
         .clipboardContextMenu(for: item, viewModel: viewModel)
         .onDrag {
@@ -184,7 +184,8 @@ struct ClipboardCardView: View {
             .fixedSize(horizontal: true, vertical: false)
             .help(item.timestamp.formatted(date: .complete, time: .standard))
         }
-        .padding(.horizontal, 12)
+        .padding(.leading, 8)
+        .padding(.trailing, 12)
         .frame(height: headerHeight)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(headerBaseColor)

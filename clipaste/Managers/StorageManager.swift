@@ -11,6 +11,8 @@ private struct ClipboardRecordSnapshot: Sendable {
     let hasPreviewImage: Bool
     let hasImageData: Bool
     let imageUTType: String?
+    let imagePixelWidth: Int?
+    let imagePixelHeight: Int?
     let typeRawValue: String
     let groupId: String?
     let groupIdsRaw: String?
@@ -55,7 +57,7 @@ nonisolated private func encodedGroupIDs(_ groupIDs: [String]) -> String? {
 
 @ModelActor
 actor ClipboardSearcher {
-    func searchAndMap(searchText: String, fetchLimit: Int? = nil) async -> [ClipboardItem] {
+    func searchAndMap(searchText: String, fetchLimit: Int? = nil, offset: Int = 0) async -> [ClipboardItem] {
         let query = searchText
         var descriptor: FetchDescriptor<ClipboardRecord>
 
@@ -79,6 +81,10 @@ actor ClipboardSearcher {
             descriptor.fetchLimit = fetchLimit
         }
 
+        if offset > 0 {
+            descriptor.fetchOffset = offset
+        }
+
         let records = (try? modelContext.fetch(descriptor)) ?? []
         let snapshots = records.map { record in
             let truncatedText: String? = {
@@ -96,6 +102,8 @@ actor ClipboardSearcher {
                 hasPreviewImage: record.previewImageData != nil,
                 hasImageData: record.imageData != nil,
                 imageUTType: record.imageUTType,
+                imagePixelWidth: record.imagePixelWidth,
+                imagePixelHeight: record.imagePixelHeight,
                 typeRawValue: record.typeRawValue,
                 groupId: record.groupId,
                 groupIdsRaw: record.groupIdsRaw,
@@ -106,9 +114,7 @@ actor ClipboardSearcher {
             )
         }
 
-        return await MainActor.run {
-            snapshots.map(StorageManager.makeClipboardItem(from:))
-        }
+        return snapshots.map { StorageManager.makeClipboardItem(from: $0) }
     }
 }
 
@@ -134,10 +140,21 @@ final class StorageManager {
     func fetchItemsInBackground(
         searchText: String,
         container: ModelContainer,
-        fetchLimit: Int? = nil
+        fetchLimit: Int? = nil,
+        offset: Int = 0
     ) async -> [ClipboardItem] {
         let searcher = ClipboardSearcher(modelContainer: container)
-        return await searcher.searchAndMap(searchText: searchText, fetchLimit: fetchLimit)
+        return await searcher.searchAndMap(searchText: searchText, fetchLimit: fetchLimit, offset: offset)
+    }
+
+    nonisolated
+    func fetchItemsPage(
+        searchText: String,
+        fetchLimit: Int,
+        offset: Int = 0
+    ) async -> [ClipboardItem] {
+        let searcher = ClipboardSearcher(modelContainer: container)
+        return await searcher.searchAndMap(searchText: searchText, fetchLimit: fetchLimit, offset: offset)
     }
 
     nonisolated
@@ -295,15 +312,15 @@ final class StorageManager {
     }
 
     nonisolated
-    func clearAllHistory() {
+    func clearUnpinnedHistory() {
         let actor = self.storeActor
         spawnTrackedTask(priority: .userInitiated) {
-            await actor.deleteAllRecords()
+            await actor.deleteUnpinnedRecords()
         }
     }
 
     nonisolated
-    func createGroup(name: String, systemIconName: String = "folder") {
+    func createGroup(name: String, systemIconName: String? = nil) {
         let actor = self.storeActor
         spawnTrackedTask(priority: .userInitiated) {
             await actor.createGroup(name: name, systemIconName: systemIconName)
@@ -343,7 +360,7 @@ final class StorageManager {
     }
 
     nonisolated
-    func updateGroupIcon(id: String, newIcon: String) {
+    func updateGroupIcon(id: String, newIcon: String?) {
         let actor = self.storeActor
         spawnTrackedTask(priority: .userInitiated) {
             await actor.updateGroupIcon(id: id, newIcon: newIcon)
@@ -400,6 +417,14 @@ final class StorageManager {
         await storeActor.repairTextClassificationsIfNeeded()
     }
 
+    func fetchDistinctAppBundleIDsForColorRepair() async -> [String] {
+        await storeActor.fetchDistinctAppBundleIDsForColorRepair()
+    }
+
+    func repairAppIconDominantColors(using colorsByBundleID: [String: String]) async -> Int {
+        await storeActor.repairAppIconDominantColors(using: colorsByBundleID)
+    }
+
     @MainActor
     func fetchAllGroups() -> [ClipboardGroupItem] {
         let context = container.mainContext
@@ -411,7 +436,7 @@ final class StorageManager {
             ClipboardGroupItem(
                 id: $0.id,
                 name: $0.name,
-                systemIconName: $0.systemIconName,
+                systemIconName: $0.resolvedSystemIconName,
                 sortOrder: $0.sortOrder
             )
         }
@@ -437,12 +462,15 @@ final class StorageManager {
         await storeActor.loadImageData(id: id)
     }
 
+    func loadRTFData(id: UUID) async -> Data? {
+        await storeActor.loadRTFData(id: id)
+    }
+
     func loadImageUTType(id: UUID) async -> String? {
         await storeActor.loadImageUTType(id: id)
     }
 
-    @MainActor
-    fileprivate static func makeClipboardItem(from record: ClipboardRecordSnapshot) -> ClipboardItem {
+    fileprivate nonisolated static func makeClipboardItem(from record: ClipboardRecordSnapshot) -> ClipboardItem {
         let type = ClipboardContentType(rawValue: record.typeRawValue) ?? .text
 
         return ClipboardItem(
@@ -460,6 +488,8 @@ final class StorageManager {
             hasImagePreview: record.hasPreviewImage,
             hasImageData: record.hasImageData,
             imageUTType: record.imageUTType,
+            imagePixelWidth: record.imagePixelWidth,
+            imagePixelHeight: record.imagePixelHeight,
             fileURL: type == .fileURL ? record.plainText : nil,
             groupId: record.groupId,
             groupIDs: normalizedGroupIDs(primaryGroupID: record.groupId, groupIdsRaw: record.groupIdsRaw),
@@ -470,7 +500,7 @@ final class StorageManager {
         )
     }
 
-    fileprivate static func makeTextPreview(plainText: String?, type: ClipboardContentType) -> String {
+    fileprivate nonisolated static func makeTextPreview(plainText: String?, type: ClipboardContentType) -> String {
         switch type {
         case .text, .link, .code:
             return plainText ?? ""
@@ -591,6 +621,8 @@ actor ClipboardStoreActor {
             hasPreviewImage: record.previewImageData != nil,
             hasImageData: record.imageData != nil,
             imageUTType: record.imageUTType,
+            imagePixelWidth: record.imagePixelWidth,
+            imagePixelHeight: record.imagePixelHeight,
             typeRawValue: record.typeRawValue,
             groupId: record.groupId,
             groupIdsRaw: record.groupIdsRaw,
@@ -737,8 +769,10 @@ actor ClipboardStoreActor {
         }
     }
 
-    func deleteAllRecords() {
-        let descriptor = FetchDescriptor<ClipboardRecord>()
+    func deleteUnpinnedRecords() {
+        let descriptor = FetchDescriptor<ClipboardRecord>(
+            predicate: #Predicate<ClipboardRecord> { $0.isPinned == false }
+        )
         do {
             let records = try modelContext.fetch(descriptor)
             guard !records.isEmpty else { return }
@@ -754,7 +788,7 @@ actor ClipboardStoreActor {
         }
     }
 
-    func createGroup(name: String, systemIconName: String = "folder") {
+    func createGroup(name: String, systemIconName: String? = nil) {
         let descriptor = FetchDescriptor<ClipboardGroupModel>()
         let groups = (try? modelContext.fetch(descriptor)) ?? []
         let minOrder = groups.map(\.sortOrder).min() ?? 0
@@ -828,7 +862,7 @@ actor ClipboardStoreActor {
             ClipboardGroupItem(
                 id: $0.id,
                 name: $0.name,
-                systemIconName: $0.systemIconName,
+                systemIconName: $0.resolvedSystemIconName,
                 sortOrder: $0.sortOrder
             )
         }
@@ -844,12 +878,12 @@ actor ClipboardStoreActor {
         }
     }
 
-    func updateGroupIcon(id: String, newIcon: String) {
+    func updateGroupIcon(id: String, newIcon: String?) {
         let descriptor = FetchDescriptor<ClipboardGroupModel>(
             predicate: #Predicate { $0.id == id }
         )
         if let group = try? modelContext.fetch(descriptor).first {
-            group.systemIconName = newIcon
+            group.systemIconName = ClipboardGroupIconName.storageValue(from: newIcon)
             try? modelContext.save()
         }
     }
@@ -1004,7 +1038,7 @@ actor ClipboardStoreActor {
         }
     }
 
-    func repairTextClassificationsIfNeeded() -> Int {
+    func repairTextClassificationsIfNeeded() async -> Int {
         let descriptor = FetchDescriptor<ClipboardRecord>()
 
         do {
@@ -1021,7 +1055,9 @@ actor ClipboardStoreActor {
                     continue
                 }
 
-                let reclassifiedType = ClipboardContentClassifier.classify(text).rawValue
+                let reclassifiedType = await MainActor.run {
+                    ClipboardContentClassifier.classify(text).rawValue
+                }
                 guard reclassifiedType != record.typeRawValue else {
                     continue
                 }
@@ -1037,6 +1073,62 @@ actor ClipboardStoreActor {
             return repairedCount
         } catch {
             print("❌ [ClipboardStoreActor] 修复文本分类失败: \(error)")
+            return 0
+        }
+    }
+
+    func fetchDistinctAppBundleIDsForColorRepair() -> [String] {
+        let descriptor = FetchDescriptor<ClipboardRecord>()
+
+        do {
+            let records = try modelContext.fetch(descriptor)
+            var orderedBundleIDs: [String] = []
+            var seenBundleIDs: Set<String> = []
+
+            for record in records {
+                guard let bundleID = record.appBundleID?.trimmingCharacters(in: .whitespacesAndNewlines),
+                      bundleID.isEmpty == false,
+                      seenBundleIDs.insert(bundleID).inserted else {
+                    continue
+                }
+
+                orderedBundleIDs.append(bundleID)
+            }
+
+            return orderedBundleIDs
+        } catch {
+            print("❌ [ClipboardStoreActor] 读取待修复 App 图标颜色失败: \(error)")
+            return []
+        }
+    }
+
+    func repairAppIconDominantColors(using colorsByBundleID: [String: String]) -> Int {
+        guard colorsByBundleID.isEmpty == false else { return 0 }
+
+        let descriptor = FetchDescriptor<ClipboardRecord>()
+
+        do {
+            let records = try modelContext.fetch(descriptor)
+            var repairedCount = 0
+
+            for record in records {
+                guard let bundleID = record.appBundleID,
+                      let repairedColor = colorsByBundleID[bundleID],
+                      record.appIconDominantColorHex != repairedColor else {
+                    continue
+                }
+
+                record.appIconDominantColorHex = repairedColor
+                repairedCount += 1
+            }
+
+            if repairedCount > 0 {
+                try modelContext.save()
+            }
+
+            return repairedCount
+        } catch {
+            print("❌ [ClipboardStoreActor] 修复 App 图标主色失败: \(error)")
             return 0
         }
     }
@@ -1072,7 +1164,7 @@ actor ClipboardStoreActor {
                 id: $0.id,
                 name: $0.name,
                 createdAt: $0.createdAt,
-                systemIconName: $0.systemIconName,
+                systemIconName: $0.resolvedSystemIconName,
                 sortOrder: $0.sortOrder
             )
         }
@@ -1087,7 +1179,7 @@ actor ClipboardStoreActor {
         for incomingGroup in payload.groups {
             if let existingGroup = groupsByID[incomingGroup.id] {
                 existingGroup.name = incomingGroup.name
-                existingGroup.systemIconName = incomingGroup.systemIconName
+                existingGroup.systemIconName = ClipboardGroupIconName.storageValue(from: incomingGroup.systemIconName)
                 existingGroup.sortOrder = incomingGroup.sortOrder
             } else {
                 let group = ClipboardGroupModel(
@@ -1207,6 +1299,14 @@ actor ClipboardStoreActor {
             return record.imageData ?? record.previewImageData
         }
         return nil
+    }
+
+    func loadRTFData(id: UUID) -> Data? {
+        var descriptor = FetchDescriptor<ClipboardRecord>(
+            predicate: #Predicate<ClipboardRecord> { record in record.id == id }
+        )
+        descriptor.fetchLimit = 1
+        return try? modelContext.fetch(descriptor).first?.rtfData
     }
 
     func loadImageUTType(id: UUID) -> String? {

@@ -52,7 +52,7 @@ extension ClipboardViewModel {
         StorageManager.shared.updateGroupOrder(groupIDs: customGroups.map(\.id))
     }
 
-    func createNewGroup(name: String, systemIconName: String = "folder") {
+    func createNewGroup(name: String, systemIconName: String? = nil) {
         StorageManager.shared.createGroup(name: name, systemIconName: systemIconName)
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 150_000_000)
@@ -77,7 +77,7 @@ extension ClipboardViewModel {
         StorageManager.shared.renameGroup(id: group.id, newName: newName)
     }
 
-    func updateGroupIcon(group: ClipboardGroupItem, newIcon: String) {
+    func updateGroupIcon(group: ClipboardGroupItem, newIcon: String?) {
         if let index = customGroups.firstIndex(where: { $0.id == group.id }) {
             customGroups[index] = ClipboardGroupItem(id: group.id, name: group.name, systemIconName: newIcon, sortOrder: group.sortOrder)
         }
@@ -107,16 +107,40 @@ extension ClipboardViewModel {
         isSmartGroupsEnabled ? ClipboardContentType.filterCategories : []
     }
 
+    var visibleBuiltInGroups: [ClipboardBuiltInGroup] {
+        [.favorites]
+    }
+
+    var isAllScopeSelected: Bool {
+        currentFilter == nil && selectedBuiltInGroup == nil && selectedGroupId == nil
+    }
+
+    func isSmartFilterSelected(_ type: ClipboardContentType) -> Bool {
+        currentFilter == type && selectedBuiltInGroup == nil && selectedGroupId == nil
+    }
+
+    func isBuiltInGroupSelected(_ group: ClipboardBuiltInGroup) -> Bool {
+        selectedBuiltInGroup == group && currentFilter == nil && selectedGroupId == nil
+    }
+
+    func isCustomGroupSelected(_ groupID: String) -> Bool {
+        selectedGroupId == groupID
+    }
+
     func showAllItems() {
-        activateDisplayedScope(filter: nil, groupID: nil)
+        activateDisplayedScope(filter: nil, builtInGroup: nil, groupID: nil)
     }
 
     func showCustomGroup(_ groupID: String) {
-        activateDisplayedScope(filter: nil, groupID: groupID)
+        activateDisplayedScope(filter: nil, builtInGroup: nil, groupID: groupID)
     }
 
     func showSmartFilter(_ type: ClipboardContentType) {
-        activateDisplayedScope(filter: type, groupID: nil)
+        activateDisplayedScope(filter: type, builtInGroup: nil, groupID: nil)
+    }
+
+    func showBuiltInGroup(_ group: ClipboardBuiltInGroup) {
+        activateDisplayedScope(filter: nil, builtInGroup: group, groupID: nil)
     }
 
     func selectNextGroup() {
@@ -165,6 +189,7 @@ private extension ClipboardViewModel {
     var unifiedGroups: [UnifiedGroupSlot] {
         var slots: [UnifiedGroupSlot] = [.all]
         slots += customGroups.map { .userGroup($0.id) }
+        slots += visibleBuiltInGroups.map { .builtIn($0) }
         if isSmartGroupsEnabled {
             slots += ClipboardContentType.filterCategories.map { .smartFilter($0) }
         }
@@ -178,6 +203,9 @@ private extension ClipboardViewModel {
         if let filter = currentFilter {
             return .smartFilter(filter)
         }
+        if let selectedBuiltInGroup {
+            return .builtIn(selectedBuiltInGroup)
+        }
         return .all
     }
 
@@ -187,18 +215,21 @@ private extension ClipboardViewModel {
             showAllItems()
         case .smartFilter(let type):
             showSmartFilter(type)
+        case .builtIn(let group):
+            showBuiltInGroup(group)
         case .userGroup(let id):
             showCustomGroup(id)
         }
     }
 
-    func activateDisplayedScope(filter: ClipboardContentType?, groupID: String?) {
-        guard currentFilter != filter || selectedGroupId != groupID else {
+    func activateDisplayedScope(filter: ClipboardContentType?, builtInGroup: ClipboardBuiltInGroup?, groupID: String?) {
+        guard currentFilter != filter || selectedBuiltInGroup != builtInGroup || selectedGroupId != groupID else {
             return
         }
 
         shouldResetSelectionToFirstDisplayedItem = true
         currentFilter = filter
+        selectedBuiltInGroup = builtInGroup
         selectedGroupId = groupID
     }
 }

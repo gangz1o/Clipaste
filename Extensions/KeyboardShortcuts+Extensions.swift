@@ -26,4 +26,9 @@ extension KeyboardShortcuts.Name {
         "clearHistory",
         default: .init(.r, modifiers: [.command, .shift])
     )
+
+    static let toggleFavoriteSelection = Self(
+        "toggleFavoriteSelection",
+        default: .init(.e, modifiers: [.control])
+    )
 }

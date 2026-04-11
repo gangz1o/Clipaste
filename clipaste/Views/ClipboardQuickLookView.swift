@@ -52,29 +52,37 @@ private struct ClipboardQuickLookTextContent: View {
                 maxHeight: 600
             )
             .padding(16)
-            .task(id: item.contentHash) { @MainActor in
-                highlightedAttr = ClipboardQuickLookTextLoader.loadHighlightedText(for: item)
+            .task(id: item.contentHash) {
+                highlightedAttr = await ClipboardQuickLookTextLoader.loadHighlightedText(for: item)
             }
     }
 }
 
 private enum ClipboardQuickLookTextLoader {
-    @MainActor
-    static func loadHighlightedText(for item: ClipboardItem) -> NSAttributedString? {
+    private static let rtfDecodeQueue = DispatchQueue(
+        label: "clipaste.quicklook-rtf",
+        qos: .userInitiated
+    )
+
+    static func loadHighlightedText(for item: ClipboardItem) async -> NSAttributedString? {
         guard item.hasRTF else {
             return nil
         }
 
-        let rtfData = StorageManager.shared.fetchRecord(id: item.id)?.rtfData
-
+        let rtfData = await StorageManager.shared.loadRTFData(id: item.id)
         guard let rtfData else {
             return nil
         }
 
-        return try? NSAttributedString(
-            data: rtfData,
-            options: [.documentType: NSAttributedString.DocumentType.rtf],
-            documentAttributes: nil
-        )
+        return await withCheckedContinuation { continuation in
+            rtfDecodeQueue.async {
+                let attributedText = try? NSAttributedString(
+                    data: rtfData,
+                    options: [.documentType: NSAttributedString.DocumentType.rtf],
+                    documentAttributes: nil
+                )
+                continuation.resume(returning: attributedText)
+            }
+        }
     }
 }

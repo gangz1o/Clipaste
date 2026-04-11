@@ -20,25 +20,37 @@ extension ClipboardViewModel {
             .switchToLatest()
             .removeDuplicates()
 
-        let dataChanges = Publishers.CombineLatest3($items, $selectedGroupId, $currentFilter)
+        let dataChanges = Publishers.CombineLatest4($items, $selectedGroupId, $currentFilter, $selectedBuiltInGroup)
 
         Publishers.CombineLatest(searchQueries, dataChanges)
-            .sink { [weak self] (query, triple) in
+            .sink { [weak self] (query, quadruple) in
                 guard let self else { return }
-                let (allItems, groupId, filter) = triple
+                let (allItems, groupId, filter, builtInGroup) = quadruple
                 self.activeSearchQuery = query
-                self.performAsyncFilter(query: query, items: allItems, groupId: groupId, typeFilter: filter)
+                self.performAsyncFilter(
+                    query: query,
+                    items: allItems,
+                    groupId: groupId,
+                    typeFilter: filter,
+                    builtInGroup: builtInGroup
+                )
             }
             .store(in: &cancellables)
     }
 
-    func performAsyncFilter(query: String, items: [ClipboardItem], groupId: String?, typeFilter: ClipboardContentType?) {
+    func performAsyncFilter(
+        query: String,
+        items: [ClipboardItem],
+        groupId: String?,
+        typeFilter: ClipboardContentType?,
+        builtInGroup: ClipboardBuiltInGroup?
+    ) {
         let cleanQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
 
         filterGeneration &+= 1
         let thisGeneration = filterGeneration
 
-        if cleanQuery.isEmpty && groupId == nil && typeFilter == nil {
+        if cleanQuery.isEmpty && groupId == nil && typeFilter == nil && builtInGroup == nil {
             self.displayedItemIDs = items.map(\.id)
             reconcileSelectionAfterDisplayedItemsChange()
             return
@@ -51,6 +63,10 @@ extension ClipboardViewModel {
                 }
 
                 if let gid = groupId, item.groupIDs.contains(gid) == false {
+                    return nil
+                }
+
+                if let builtInGroup, builtInGroup.matches(item) == false {
                     return nil
                 }
 
@@ -76,35 +92,61 @@ extension ClipboardViewModel {
     }
 
     func loadData(mode: DataLoadMode = .fullRefresh) {
-        let container = StorageManager.shared.container
         dataLoadGeneration &+= 1
         let generation = dataLoadGeneration
+        historyLoadTask?.cancel()
 
         if items.isEmpty {
             isInitialHistoryLoading = true
         }
 
-        Task(priority: .userInitiated) {
-            let searcher = ClipboardSearcher(modelContainer: container)
+        historyLoadTask = Task(priority: .userInitiated) { [weak self] in
+            guard let self else { return }
 
-            if mode == .visibleFirst {
-                let previewItems = await searcher.searchAndMap(
+            let firstPage = await StorageManager.shared.fetchItemsPage(
+                searchText: "",
+                fetchLimit: Self.initialVisibleItemBatchSize,
+                offset: 0
+            )
+
+            guard !Task.isCancelled else { return }
+            self.applyInitialHistoryPage(
+                firstPage,
+                generation: generation,
+                mode: mode
+            )
+
+            guard firstPage.count == Self.initialVisibleItemBatchSize else {
+                self.finishHistoryLoadingIfCurrent(generation: generation, loadedCount: firstPage.count)
+                return
+            }
+
+            var offset = firstPage.count
+            var totalLoaded = firstPage.count
+
+            while !Task.isCancelled {
+                let page = await StorageManager.shared.fetchItemsPage(
                     searchText: "",
-                    fetchLimit: Self.initialVisibleItemBatchSize
+                    fetchLimit: Self.backgroundPageBatchSize,
+                    offset: offset
                 )
 
                 guard !Task.isCancelled else { return }
-                guard generation == self.dataLoadGeneration else { return }
 
-                self.applyLoadedItems(previewItems)
+                if page.isEmpty {
+                    self.finishHistoryLoadingIfCurrent(generation: generation, loadedCount: totalLoaded)
+                    return
+                }
+
+                totalLoaded += page.count
+                offset += page.count
+                self.appendHistoryPage(page, generation: generation, loadedCount: totalLoaded)
+
+                if page.count < Self.backgroundPageBatchSize {
+                    self.finishHistoryLoadingIfCurrent(generation: generation, loadedCount: totalLoaded)
+                    return
+                }
             }
-
-            let mappedItems = await searcher.searchAndMap(searchText: "")
-
-            guard !Task.isCancelled else { return }
-            guard generation == self.dataLoadGeneration else { return }
-
-            self.applyLoadedItems(mappedItems)
         }
     }
 
@@ -112,7 +154,7 @@ extension ClipboardViewModel {
         replaceItems(mappedItems)
         isInitialHistoryLoading = false
 
-        if searchInput.isEmpty && currentFilter == nil && selectedGroupId == nil {
+        if searchInput.isEmpty && currentFilter == nil && selectedGroupId == nil && selectedBuiltInGroup == nil {
             displayedItemIDs = mappedItems.map(\.id)
             reconcileSelectionAfterDisplayedItemsChange()
         }
@@ -127,5 +169,43 @@ extension ClipboardViewModel {
         }
 
         reconcileSelectionAfterDisplayedItemsChange()
+    }
+
+    @MainActor
+    func applyInitialHistoryPage(_ pageItems: [ClipboardItem], generation: UInt, mode: DataLoadMode) {
+        guard generation == dataLoadGeneration else { return }
+
+        if mode == .visibleFirst, items.isEmpty == false {
+            mergeItems(pageItems, prepend: true)
+            refreshDisplayedItemsFromCurrentScope()
+            reconcileSelectionAfterDisplayedItemsChange()
+        } else {
+            applyLoadedItems(pageItems)
+        }
+
+        isInitialHistoryLoading = false
+        isLoadingMoreHistory = pageItems.count == Self.initialVisibleItemBatchSize
+        loadedHistoryCount = items.count
+        hasLoadedFullHistory = pageItems.count < Self.initialVisibleItemBatchSize
+    }
+
+    @MainActor
+    func appendHistoryPage(_ pageItems: [ClipboardItem], generation: UInt, loadedCount: Int) {
+        guard generation == dataLoadGeneration else { return }
+
+        mergeItems(pageItems, prepend: false)
+        refreshDisplayedItemsFromCurrentScope()
+        isInitialHistoryLoading = false
+        isLoadingMoreHistory = true
+        loadedHistoryCount = loadedCount
+    }
+
+    @MainActor
+    func finishHistoryLoadingIfCurrent(generation: UInt, loadedCount: Int) {
+        guard generation == dataLoadGeneration else { return }
+        isInitialHistoryLoading = false
+        isLoadingMoreHistory = false
+        loadedHistoryCount = loadedCount
+        hasLoadedFullHistory = true
     }
 }

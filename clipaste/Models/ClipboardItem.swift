@@ -17,6 +17,7 @@ enum ClipboardContentType: String, Codable {
     case code      // 智能嗅探：代码特征匹配
 
     /// Filter Bar / 溢出菜单中的智能分类标题（随 SwiftUI 语言环境解析）。
+    @MainActor
     var localizedFilterTitle: LocalizedStringResource {
         switch self {
         case .text: return LocalizedStringResource("Smart Filter Text")
@@ -44,6 +45,33 @@ enum ClipboardContentType: String, Codable {
     static let filterCategories: [ClipboardContentType] = [.text, .link, .image]
 }
 
+enum ClipboardBuiltInGroup: String, CaseIterable, Codable, Hashable, Sendable, Identifiable {
+    case favorites
+
+    var id: String { rawValue }
+
+    var localizedTitle: LocalizedStringResource {
+        switch self {
+        case .favorites:
+            return "Favorites"
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .favorites:
+            return "star.fill"
+        }
+    }
+
+    func matches(_ item: ClipboardItem) -> Bool {
+        switch self {
+        case .favorites:
+            return item.isPinned
+        }
+    }
+}
+
 /// UI-facing DTO used by the ViewModel and SwiftUI views.
 struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
     let id: UUID
@@ -60,6 +88,8 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
     let hasImagePreview: Bool
     let hasImageData: Bool
     let imageUTType: String?
+    let imagePixelWidth: Int?
+    let imagePixelHeight: Int?
     let fileURL: String?
     let resolvedFileURL: URL?
     let fileDisplayPath: String?
@@ -76,7 +106,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
     let isFastLink: Bool
     let fastParsedColor: Color?
 
-    init(
+    nonisolated init(
         id: UUID = UUID(),
         contentType: ClipboardContentType = .text,
         contentHash: String,
@@ -91,6 +121,8 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         hasImagePreview: Bool = false,
         hasImageData: Bool = false,
         imageUTType: String? = nil,
+        imagePixelWidth: Int? = nil,
+        imagePixelHeight: Int? = nil,
         fileURL: String? = nil,
         groupId: String? = nil,
         groupIDs: [String] = [],
@@ -115,6 +147,8 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         self.hasImagePreview = hasImagePreview
         self.hasImageData = hasImageData
         self.imageUTType = imageUTType
+        self.imagePixelWidth = imagePixelWidth
+        self.imagePixelHeight = imagePixelHeight
         self.fileURL = fileURL
         let resolvedFileURL = ClipboardFileReference.resolvedURL(from: fileURL)
         self.resolvedFileURL = resolvedFileURL
@@ -171,6 +205,8 @@ extension ClipboardItem {
         lhs.hasImagePreview == rhs.hasImagePreview &&
         lhs.hasImageData == rhs.hasImageData &&
         lhs.imageUTType == rhs.imageUTType &&
+        lhs.imagePixelWidth == rhs.imagePixelWidth &&
+        lhs.imagePixelHeight == rhs.imagePixelHeight &&
         lhs.fileURL == rhs.fileURL &&
         lhs.resolvedFileURL == rhs.resolvedFileURL &&
         lhs.fileDisplayPath == rhs.fileDisplayPath &&
@@ -197,6 +233,8 @@ extension ClipboardItem {
         hasher.combine(hasImagePreview)
         hasher.combine(hasImageData)
         hasher.combine(imageUTType)
+        hasher.combine(imagePixelWidth)
+        hasher.combine(imagePixelHeight)
         hasher.combine(fileURL)
         hasher.combine(resolvedFileURL)
         hasher.combine(fileDisplayPath)
@@ -212,6 +250,7 @@ extension ClipboardItem {
 
 extension ClipboardItem {
     /// 卡片角标等内容类型文案（与筛选标签共用同一套 String Catalog 键）。
+    @MainActor
     func typeBadgeTitle() -> LocalizedStringResource {
         switch contentType {
         case .text: return LocalizedStringResource("Smart Filter Text")
@@ -227,7 +266,13 @@ extension ClipboardItem {
         groupIDs.first
     }
 
-    private static func normalizedGroupIDs(primaryGroupID: String?, groupIDs: [String]) -> [String] {
+    var imagePixelSize: CGSize? {
+        guard let imagePixelWidth, let imagePixelHeight else { return nil }
+        guard imagePixelWidth > 0, imagePixelHeight > 0 else { return nil }
+        return CGSize(width: imagePixelWidth, height: imagePixelHeight)
+    }
+
+    private nonisolated static func normalizedGroupIDs(primaryGroupID: String?, groupIDs: [String]) -> [String] {
         var result: [String] = []
 
         if let primaryGroupID, !primaryGroupID.isEmpty {
@@ -245,7 +290,7 @@ extension ClipboardItem {
 // 计算属性已迁移至 init 中的存储属性，此处不再需要 extension
 
 extension ClipboardItem {
-    static func appIconName(for bundleIdentifier: String?) -> String {
+    nonisolated static func appIconName(for bundleIdentifier: String?) -> String {
         switch bundleIdentifier {
         case "com.apple.Safari":
             return "safari"

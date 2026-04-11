@@ -2,35 +2,26 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct ClipboardHeaderView: View {
-    private enum HeaderInputField: Hashable {
-        case newGroupName
-        case editGroupName
-    }
-
     @ObservedObject var viewModel: ClipboardViewModel
     @Environment(\.openSettings) private var openSettings
     @EnvironmentObject private var preferencesStore: AppPreferencesStore
     @FocusState var focusedField: ClipboardPanelFocusField?
-    @FocusState private var focusedHeaderInput: HeaderInputField?
     @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
     @AppStorage("appLanguage") private var appLanguage: AppLanguage = .auto
     @AppStorage("isPanelPinned") private var isPanelPinned: Bool = false
     @AppStorage("isMonitoringPaused") private var isMonitoringPaused: Bool = false
     @AppStorage("monitorInterval") private var monitorInterval: Double = 0.5
     @State private var isShowingNewGroupPopover = false
-    @State private var newGroupName = ""
-    @State private var newGroupIcon = "folder"
-    @State private var showIconPicker = false
+    @StateObject private var newGroupEditor = GroupEditorViewModel(mode: .create)
     @State private var targetedGroupId: String? = nil
+    @State private var targetedBuiltInGroup: ClipboardBuiltInGroup? = nil
     @State private var groupTabFrames: [String: CGRect] = [:]
     @State private var reorderTarget: GroupReorderTarget? = nil
 
     // MARK: - 重命名 / 删除分组弹窗控制
     @State private var groupToEdit: ClipboardGroupItem? = nil
-    @State private var editGroupName: String = ""
-    @State private var editGroupIcon: String = "folder"
+    @StateObject private var editGroupEditor = GroupEditorViewModel(mode: .edit)
     @State private var showEditPopover = false
-    @State private var showEditIconPicker = false
     @State private var groupToDelete: ClipboardGroupItem? = nil
     @State private var showDeleteAlert = false
 
@@ -74,10 +65,13 @@ struct ClipboardHeaderView: View {
                 .environment(\.locale, panelLocale)
         }
         .onChange(of: isShowingNewGroupPopover) { _, isShowing in
-            updatePopoverInputState(isShowing: isShowing, field: .newGroupName)
+            updatePopoverInputState(isShowing: isShowing)
         }
         .onChange(of: showEditPopover) { _, isShowing in
-            updatePopoverInputState(isShowing: isShowing, field: .editGroupName)
+            updatePopoverInputState(isShowing: isShowing)
+            if isShowing == false {
+                groupToEdit = nil
+            }
         }
         .onAppear {
             preferencesStore.refreshLaunchAtLoginStatus()
@@ -144,16 +138,26 @@ struct ClipboardHeaderView: View {
     }
 
     private var hasHorizontalScrollableGroupTabs: Bool {
-        !viewModel.customGroups.isEmpty || !viewModel.visibleSmartFilters.isEmpty
+        !viewModel.customGroups.isEmpty || !viewModel.visibleSmartFilters.isEmpty || !viewModel.visibleBuiltInGroups.isEmpty
     }
 
     private var horizontalScrollableGroupTabsWidth: CGFloat {
         let customGroupWidth = CGFloat(viewModel.customGroups.count) * 72
         let smartFilterWidth = CGFloat(viewModel.visibleSmartFilters.count) * 70
-        let mixedSectionDividerWidth: CGFloat =
-            (!viewModel.customGroups.isEmpty && !viewModel.visibleSmartFilters.isEmpty) ? 14 : 0
+        let builtInGroupWidth = CGFloat(viewModel.visibleBuiltInGroups.count) * 76
+        let customAndBuiltInDividerWidth: CGFloat =
+            (!viewModel.customGroups.isEmpty && !viewModel.visibleBuiltInGroups.isEmpty) ? 14 : 0
+        let builtInAndSmartDividerWidth: CGFloat =
+            (!viewModel.visibleBuiltInGroups.isEmpty && !viewModel.visibleSmartFilters.isEmpty) ? 14 : 0
 
-        return min(680, customGroupWidth + smartFilterWidth + mixedSectionDividerWidth)
+        return min(
+            680,
+            customGroupWidth
+                + builtInGroupWidth
+                + smartFilterWidth
+                + customAndBuiltInDividerWidth
+                + builtInAndSmartDividerWidth
+        )
     }
 
     private var horizontalLeadingControls: some View {
@@ -219,7 +223,7 @@ struct ClipboardHeaderView: View {
         MinimalGroupTabButton(
             title: .localized(LocalizedStringResource("All")),
             icon: "tray.2.fill",
-            isSelected: viewModel.currentFilter == nil && viewModel.selectedGroupId == nil,
+            isSelected: viewModel.isAllScopeSelected,
             horizontalPadding: groupTabHorizontalPadding,
             verticalPadding: groupTabVerticalPadding,
             iconSpacing: groupTabIconSpacing
@@ -255,7 +259,17 @@ struct ClipboardHeaderView: View {
             groupTabButton(group: group)
         }
 
-        if !viewModel.customGroups.isEmpty && !viewModel.visibleSmartFilters.isEmpty {
+        if !viewModel.customGroups.isEmpty && !viewModel.visibleBuiltInGroups.isEmpty {
+            Divider()
+                .frame(height: 16)
+                .opacity(0.5)
+        }
+
+        ForEach(viewModel.visibleBuiltInGroups, id: \.self) { group in
+            builtInGroupTabButton(group)
+        }
+
+        if !viewModel.visibleBuiltInGroups.isEmpty && !viewModel.visibleSmartFilters.isEmpty {
             Divider()
                 .frame(height: 16)
                 .opacity(0.5)
@@ -265,7 +279,7 @@ struct ClipboardHeaderView: View {
             MinimalGroupTabButton(
                 title: .localized(type.localizedFilterTitle),
                 icon: type.systemImage,
-                isSelected: viewModel.currentFilter == type && viewModel.selectedGroupId == nil,
+                isSelected: viewModel.isSmartFilterSelected(type),
                 horizontalPadding: groupTabHorizontalPadding,
                 verticalPadding: groupTabVerticalPadding,
                 iconSpacing: groupTabIconSpacing
@@ -277,16 +291,53 @@ struct ClipboardHeaderView: View {
 
     private var groupOverflowMenu: some View {
         Menu {
-            Text("Smart Filters")
+            Text("Built-in Groups")
 
             Button(action: {
                 selectAllGroup()
             }) {
                 HStack {
                     Label("All", systemImage: "tray.2.fill")
-                    if viewModel.currentFilter == nil && viewModel.selectedGroupId == nil {
+                    if viewModel.isAllScopeSelected {
                         Spacer()
                         Image(systemName: "checkmark")
+                    }
+                }
+            }
+
+            if !viewModel.customGroups.isEmpty {
+                Divider()
+                Text("Groups")
+
+                ForEach(viewModel.customGroups) { group in
+                    Button(action: {
+                        selectCustomGroup(group.id)
+                    }) {
+                        HStack {
+                            GroupMenuLabel(title: group.name, iconName: group.systemIconName)
+                            if viewModel.isCustomGroupSelected(group.id) {
+                                Spacer()
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            }
+
+            ForEach(viewModel.visibleBuiltInGroups, id: \.self) { group in
+                Button(action: {
+                    selectBuiltInGroup(group)
+                }) {
+                    HStack {
+                        Label {
+                            Text(group.localizedTitle)
+                        } icon: {
+                            Image(systemName: group.systemImage)
+                        }
+                        if viewModel.isBuiltInGroupSelected(group) {
+                            Spacer()
+                            Image(systemName: "checkmark")
+                        }
                     }
                 }
             }
@@ -301,28 +352,9 @@ struct ClipboardHeaderView: View {
                         } icon: {
                             Image(systemName: type.systemImage)
                         }
-                        if viewModel.currentFilter == type && viewModel.selectedGroupId == nil {
+                        if viewModel.isSmartFilterSelected(type) {
                             Spacer()
                             Image(systemName: "checkmark")
-                        }
-                    }
-                }
-            }
-
-            if !viewModel.customGroups.isEmpty {
-                Divider()
-                Text("Groups")
-
-                ForEach(viewModel.customGroups) { group in
-                    Button(action: {
-                        selectCustomGroup(group.id)
-                    }) {
-                        HStack {
-                            Label(group.name, systemImage: group.systemIconName)
-                            if viewModel.selectedGroupId == group.id {
-                                Spacer()
-                                Image(systemName: "checkmark")
-                            }
                         }
                     }
                 }
@@ -331,8 +363,7 @@ struct ClipboardHeaderView: View {
             Divider()
 
             Button(action: {
-                newGroupName = ""
-                newGroupIcon = "folder"
+                newGroupEditor.prepareForCreate()
                 isShowingNewGroupPopover = true
             }) {
                 Label("New Group…", systemImage: "plus")
@@ -380,8 +411,45 @@ struct ClipboardHeaderView: View {
 
     // MARK: - 单个分组 Tab 按钮（支持拖拽 & 右键管理）
     @ViewBuilder
+    private func builtInGroupTabButton(_ group: ClipboardBuiltInGroup) -> some View {
+        let isSelected = viewModel.isBuiltInGroupSelected(group)
+        let isDropTarget = targetedBuiltInGroup == group
+
+        MinimalGroupTabButton(
+            title: .localized(group.localizedTitle),
+            icon: group.systemImage,
+            isSelected: isSelected || isDropTarget,
+            horizontalPadding: groupTabHorizontalPadding,
+            verticalPadding: groupTabVerticalPadding,
+            iconSpacing: groupTabIconSpacing
+        ) {
+            selectBuiltInGroup(group)
+        }
+        .help(Text(group.localizedTitle))
+        .onDrop(
+            of: [
+                ClipboardDragType.item,
+                UTType.image.identifier,
+                UTType.fileURL.identifier
+            ],
+            isTargeted: Binding(
+                get: { targetedBuiltInGroup == group },
+                set: { isTargeted in
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        targetedBuiltInGroup = isTargeted ? group : nil
+                    }
+                }
+            )
+        ) { providers in
+            handleItemDrop(providers: providers) { draggedItem in
+                viewModel.addItemToBuiltInGroup(item: draggedItem, group: group)
+            }
+        }
+    }
+
+    @ViewBuilder
     private func groupTabButton(group: ClipboardGroupItem) -> some View {
-        let isSelected = viewModel.selectedGroupId == group.id
+        let isSelected = viewModel.isCustomGroupSelected(group.id)
         let isDropTarget = targetedGroupId == group.id
         let insertionEdge = reorderTarget?.groupID == group.id ? reorderTarget?.edge : nil
 
@@ -446,33 +514,13 @@ struct ClipboardHeaderView: View {
                 }
             )
         ) { providers in
-            if let draggedItemId = viewModel.draggedItemId,
-               let draggedItem = viewModel.items.first(where: { $0.id == draggedItemId }) {
+            handleItemDrop(providers: providers) { draggedItem in
                 viewModel.assignItemToGroup(item: draggedItem, group: group)
-                viewModel.draggedItemId = nil
-                return true
             }
-
-            if let provider = providers.first(where: { $0.hasItemConformingToTypeIdentifier(ClipboardDragType.item) }) {
-                provider.loadDataRepresentation(forTypeIdentifier: ClipboardDragType.item) { data, _ in
-                    if let data, let idString = String(data: data, encoding: .utf8),
-                       let uuid = UUID(uuidString: idString) {
-                        DispatchQueue.main.async {
-                            if let draggedItem = viewModel.items.first(where: { $0.id == uuid }) {
-                                viewModel.assignItemToGroup(item: draggedItem, group: group)
-                                viewModel.draggedItemId = nil
-                            }
-                        }
-                    }
-                }
-                return true
-            }
-            return false
         }
         .contextMenu {
             Button {
-                editGroupName = group.name
-                editGroupIcon = group.systemIconName
+                editGroupEditor.prepareForEditing(group: group)
                 groupToEdit = group
                 showEditPopover = true
             } label: { Label("Rename", systemImage: "pencil") }
@@ -632,127 +680,41 @@ struct ClipboardHeaderView: View {
 
     // MARK: - 新建分组弹窗
     private var newGroupPopover: some View {
-        VStack(spacing: 12) {
-            Text("New Group").lineLimit(1).minimumScaleFactor(0.8)
-                .font(.headline)
-
-            HStack(spacing: 10) {
-                // 图标选择按钮
-                Button(action: { showIconPicker = true }) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(Color(nsColor: .controlBackgroundColor))
-                            .frame(width: 32, height: 32)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .stroke(Color.secondary.opacity(0.25))
-                            )
-                         IconItemView(
-                                    item: IconItem(name: newGroupIcon,
-                                                   type: IconPickerViewModel.customIconNames.contains(newGroupIcon) ? .custom : .system,
-                                                   displayName: newGroupIcon),
-                                    size: 17
-                                )
-                                .foregroundColor(.primary)
-                    }
-                }
-                .buttonStyle(.plain)
-                .popover(isPresented: $showIconPicker) {
-                    GroupIconPicker(selectedIcon: $newGroupIcon)
-                        .environment(\.locale, panelLocale)
-                }
-
-                TextField("Group Name", text: $newGroupName)
-                    .textFieldStyle(.roundedBorder)
-                    .tint(.primary)
-                    .frame(width: 150)
-                    .focused($focusedHeaderInput, equals: .newGroupName)
-                    .onSubmit { commitNewGroup() }
-            }
-
-            Button("Create") { commitNewGroup() }
-                .buttonStyle(.borderedProminent)
-                .disabled(newGroupName.isEmpty)
+        GroupEditorPopover(viewModel: newGroupEditor) { name, iconName in
+            commitNewGroup(name: name, iconName: iconName)
         }
-        .padding(16)
     }
 
-    private func commitNewGroup() {
-        guard !newGroupName.isEmpty else { return }
-        viewModel.createNewGroup(name: newGroupName, systemIconName: newGroupIcon)
+    private func commitNewGroup(name: String, iconName: String?) {
+        viewModel.createNewGroup(name: name, systemIconName: iconName)
         isShowingNewGroupPopover = false
     }
 
     // MARK: - 编辑分组弹窗（支持修改名称 + 图标）
     private var editGroupPopover: some View {
-        VStack(spacing: 12) {
-            Text("Edit Group").lineLimit(1).minimumScaleFactor(0.8)
-                .font(.headline)
-
-            HStack(spacing: 10) {
-                // 图标选择按钮
-                Button(action: { showEditIconPicker = true }) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(Color(nsColor: .controlBackgroundColor))
-                            .frame(width: 32, height: 32)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .stroke(Color.secondary.opacity(0.25))
-                            )
-                         IconItemView(
-                                    item: IconItem(name: editGroupIcon,
-                                                   type: IconPickerViewModel.customIconNames.contains(editGroupIcon) ? .custom : .system,
-                                                   displayName: editGroupIcon),
-                                    size: 17
-                                )
-                                .foregroundColor(.primary)
-                    }
-                }
-                .buttonStyle(.plain)
-                .popover(isPresented: $showEditIconPicker) {
-                    GroupIconPicker(selectedIcon: $editGroupIcon)
-                        .environment(\.locale, panelLocale)
-                }
-
-                TextField("Group Name", text: $editGroupName)
-                    .textFieldStyle(.roundedBorder)
-                    .tint(.primary)
-                    .frame(width: 150)
-                    .focused($focusedHeaderInput, equals: .editGroupName)
-                    .onSubmit { commitEditGroup() }
-            }
-
-            Button("Save") { commitEditGroup() }
-                .buttonStyle(.borderedProminent)
-                .disabled(editGroupName.isEmpty)
+        GroupEditorPopover(viewModel: editGroupEditor) { name, iconName in
+            commitEditGroup(name: name, iconName: iconName)
         }
-        .padding(16)
     }
 
-    private func commitEditGroup() {
-        guard let group = groupToEdit, !editGroupName.isEmpty else { return }
-        if editGroupName != group.name {
-            viewModel.renameGroup(group: group, newName: editGroupName)
+    private func commitEditGroup(name: String, iconName: String?) {
+        guard let group = groupToEdit else { return }
+        if name != group.name {
+            viewModel.renameGroup(group: group, newName: name)
         }
         // 重新获取更新后的 group（名称可能已改）
         let updatedGroup = viewModel.customGroups.first(where: { $0.id == group.id }) ?? group
-        if editGroupIcon != updatedGroup.systemIconName {
-            viewModel.updateGroupIcon(group: updatedGroup, newIcon: editGroupIcon)
+        if iconName != updatedGroup.systemIconName {
+            viewModel.updateGroupIcon(group: updatedGroup, newIcon: iconName)
         }
         showEditPopover = false
     }
 
-    private func updatePopoverInputState(isShowing: Bool, field: HeaderInputField) {
+    private func updatePopoverInputState(isShowing: Bool) {
         TypeToSearchService.shared.isPaused = isShowingNewGroupPopover || showEditPopover
 
         if isShowing {
             focusedField = nil
-            DispatchQueue.main.async {
-                focusedHeaderInput = field
-            }
-        } else if focusedHeaderInput == field {
-            focusedHeaderInput = nil
         }
     }
 
@@ -779,6 +741,42 @@ struct ClipboardHeaderView: View {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
             viewModel.showSmartFilter(type)
         }
+    }
+
+    private func selectBuiltInGroup(_ group: ClipboardBuiltInGroup) {
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            viewModel.showBuiltInGroup(group)
+        }
+    }
+
+    private func handleItemDrop(
+        providers: [NSItemProvider],
+        onResolvedItem: @escaping (ClipboardItem) -> Void
+    ) -> Bool {
+        if let draggedItemId = viewModel.draggedItemId,
+           let draggedItem = viewModel.items.first(where: { $0.id == draggedItemId }) {
+            onResolvedItem(draggedItem)
+            viewModel.draggedItemId = nil
+            return true
+        }
+
+        guard let provider = providers.first(where: { $0.hasItemConformingToTypeIdentifier(ClipboardDragType.item) }) else {
+            return false
+        }
+
+        provider.loadDataRepresentation(forTypeIdentifier: ClipboardDragType.item) { data, _ in
+            if let data,
+               let idString = String(data: data, encoding: .utf8),
+               let uuid = UUID(uuidString: idString) {
+                DispatchQueue.main.async {
+                    if let draggedItem = viewModel.items.first(where: { $0.id == uuid }) {
+                        onResolvedItem(draggedItem)
+                        viewModel.draggedItemId = nil
+                    }
+                }
+            }
+        }
+        return true
     }
 }
 
@@ -808,7 +806,7 @@ struct MinimalGroupTabButton: View {
     }
 
     let title: Title
-    let icon: String
+    let icon: String?
     let isSelected: Bool
     var maxTextWidth: CGFloat? = nil
     var horizontalPadding: CGFloat = 12
@@ -821,16 +819,18 @@ struct MinimalGroupTabButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: iconSpacing) {
-                if IconPickerViewModel.customIconNames.contains(icon) {
-                    Image(icon)
-                        .renderingMode(.template)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 11, height: 11)
-                } else {
-                    Image(systemName: icon)
-                        .frame(width: 11, height: 11)
+            HStack(spacing: resolvedIconName == nil ? 0 : iconSpacing) {
+                if let resolvedIconName {
+                    if IconPickerViewModel.customIconNames.contains(resolvedIconName) {
+                        Image(resolvedIconName)
+                            .renderingMode(.template)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 11, height: 11)
+                    } else {
+                        Image(systemName: resolvedIconName)
+                            .frame(width: 11, height: 11)
+                    }
                 }
                 Group {
                     switch title {
@@ -869,6 +869,10 @@ struct MinimalGroupTabButton: View {
             return AnyShapeStyle(Color.primary)
         }
         return AnyShapeStyle(isHovered ? Color.primary : Color.secondary)
+    }
+
+    private var resolvedIconName: String? {
+        ClipboardGroupIconName.normalize(icon)
     }
 
     private var tabBackground: some View {

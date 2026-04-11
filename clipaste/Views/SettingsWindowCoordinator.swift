@@ -74,11 +74,10 @@ enum SettingsWindowCoordinator {
             object: window,
             queue: .main
         ) { _ in
+            // 已在主线程，直接同步处理，不需要额外的异步嵌套
             Task { @MainActor in
                 removeCloseObserver(for: window)
-                DispatchQueue.main.async {
-                    restoreAccessoryPolicyIfNeeded()
-                }
+                restoreAccessoryPolicyIfNeeded()
             }
         }
     }
@@ -104,6 +103,9 @@ enum SettingsWindowCoordinator {
 
         guard !hasVisibleSettingsWindow else { return }
 
+        // 必须先让 App 失去激活状态，否则在 macOS Ventura/Sonoma 上
+        // setActivationPolicy(.accessory) 可能被系统忽略，导致 Dock 图标残留。
+        NSApp.deactivate()
         NSApp.setActivationPolicy(.accessory)
         shouldRestoreAccessoryPolicy = false
     }

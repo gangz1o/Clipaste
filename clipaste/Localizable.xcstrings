@@ -581,6 +581,22 @@
         }
       }
     },
+    "Add to Favorites" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入收藏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "加入收藏"
+          }
+        }
+      }
+    },
     "Add to Group" : {
       "localizations" : {
         "de" : {
@@ -822,6 +838,46 @@
         }
       }
     },
+    "Always reset the search field each time the clipboard history panel opens." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setzt das Suchfeld jedes Mal zurück, wenn der Verlauf der Zwischenablage geöffnet wird."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réinitialise toujours le champ de recherche chaque fois que le panneau d'historique du presse-papiers s'ouvre."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボード履歴パネルを開くたびに検索フィールドをリセットします。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "클립보드 기록 패널을 열 때마다 검색 필드를 항상 초기화합니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次打开剪贴板历史面板时，都自动将搜索框恢复为空。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次開啟剪貼簿歷史面板時，都會自動將搜尋框清空。"
+          }
+        }
+      }
+    },
     "App Name" : {
       "extractionState" : "stale",
       "localizations" : {
@@ -975,46 +1031,6 @@
         }
       }
     },
-    "Always reset the search field each time the clipboard history panel opens." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Setzt das Suchfeld jedes Mal zurück, wenn der Verlauf der Zwischenablage geöffnet wird."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Réinitialise toujours le champ de recherche chaque fois que le panneau d'historique du presse-papiers s'ouvre."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "クリップボード履歴パネルを開くたびに検索フィールドをリセットします。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "클립보드 기록 패널을 열 때마다 검색 필드를 항상 초기화합니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每次打开剪贴板历史面板时，都自动将搜索框恢复为空。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每次開啟剪貼簿歷史面板時，都會自動將搜尋框清空。"
-          }
-        }
-      }
-    },
     "Automatic update checks are turned off" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1117,6 +1133,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "建置號碼"
+          }
+        }
+      }
+    },
+    "Built-in Groups" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "内建分组"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "內建分組"
           }
         }
       }
@@ -1289,6 +1321,9 @@
         }
       }
     },
+    "Choose Icon" : {
+
+    },
     "Choose the iCopy SQLite database file. Clipaste will import the text history into your current library." : {
       "localizations" : {
         "de" : {
@@ -1410,6 +1445,7 @@
       }
     },
     "Clear All" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1450,6 +1486,7 @@
       }
     },
     "Clear All History?" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1529,6 +1566,38 @@
         }
       }
     },
+    "Clear History" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除历史记录"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除歷史記錄"
+          }
+        }
+      }
+    },
+    "Clear History?" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除历史记录？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除歷史記錄？"
+          }
+        }
+      }
+    },
     "Clear History…" : {
       "localizations" : {
         "de" : {
@@ -1565,6 +1634,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "清除歷史記錄…"
+          }
+        }
+      }
+    },
+    "Clear Search When Opening Clipboard History" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suche beim Öffnen des Zwischenablageverlaufs löschen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Effacer la recherche à l’ouverture de l’historique du presse-papiers"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボード履歴を開くときに検索をクリア"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "클립보드 기록을 열 때 검색 지우기"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开剪贴板历史时清空搜索框"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟剪貼簿歷史時清空搜尋框"
           }
         }
       }
@@ -1797,86 +1906,6 @@
         }
       }
     },
-    "Loading Clipboard History…" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Zwischenablageverlauf wird geladen…"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chargement de l’historique du presse-papiers…"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "クリップボード履歴を読み込み中…"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "클립보드 기록을 불러오는 중…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在加载剪贴板历史…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在載入剪貼簿歷史…"
-          }
-        }
-      }
-    },
-    "Recent items will appear first while the full history finishes loading." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Neueste Elemente werden zuerst angezeigt, während der vollständige Verlauf weiter geladen wird."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Les éléments récents s’affichent d’abord pendant le chargement complet de l’historique."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "まず最近の項目を表示し、その間に履歴全体の読み込みを続けます。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "최근 항목을 먼저 표시하고, 전체 기록은 백그라운드에서 계속 불러옵니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "会先显示最近的项目，完整历史会在后台继续加载。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "會先顯示最近的項目，完整歷史會在背景繼續載入。"
-          }
-        }
-      }
-    },
     "Clipboard Monitoring Interval" : {
       "localizations" : {
         "de" : {
@@ -2084,46 +2113,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "繼續"
-          }
-        }
-      }
-    },
-    "Clear Search When Opening Clipboard History" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suche beim Öffnen des Zwischenablageverlaufs löschen"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Effacer la recherche à l’ouverture de l’historique du presse-papiers"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "クリップボード履歴を開くときに検索をクリア"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "클립보드 기록을 열 때 검색 지우기"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开剪贴板历史时清空搜索框"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開啟剪貼簿歷史時清空搜尋框"
           }
         }
       }
@@ -3049,6 +3038,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "失敗"
+          }
+        }
+      }
+    },
+    "Favorites" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收藏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收藏"
           }
         }
       }
@@ -4651,6 +4656,46 @@
         }
       }
     },
+    "Loading Clipboard History…" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zwischenablageverlauf wird geladen…"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chargement de l’historique du presse-papiers…"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボード履歴を読み込み中…"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "클립보드 기록을 불러오는 중…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在加载剪贴板历史…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在載入剪貼簿歷史…"
+          }
+        }
+      }
+    },
     "Local" : {
       "localizations" : {
         "zh-Hans" : {
@@ -5269,6 +5314,9 @@
         }
       }
     },
+    "No Icon" : {
+
+    },
     "No icons found" : {
       "localizations" : {
         "zh-Hans" : {
@@ -5824,6 +5872,7 @@
       }
     },
     "Permanently deletes all clipboard records and image caches. This cannot be undone." : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5859,6 +5908,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "將永久刪除所有剪貼板記錄及相關圖片快取，且無法復原。"
+          }
+        }
+      }
+    },
+    "Permanently deletes non-favorite clipboard records and image caches. Items in Favorites are kept." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "永久删除非收藏的剪贴板记录和图片缓存，收藏中的内容会被保留。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "永久刪除非收藏的剪貼簿記錄和圖片快取，收藏中的內容會被保留。"
           }
         }
       }
@@ -6568,6 +6633,62 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "最近事件"
+          }
+        }
+      }
+    },
+    "Recent items will appear first while the full history finishes loading." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neueste Elemente werden zuerst angezeigt, während der vollständige Verlauf weiter geladen wird."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Les éléments récents s’affichent d’abord pendant le chargement complet de l’historique."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "まず最近の項目を表示し、その間に履歴全体の読み込みを続けます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "최근 항목을 먼저 표시하고, 전체 기록은 백그라운드에서 계속 불러옵니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "会先显示最近的项目，完整历史会在后台继续加载。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "會先顯示最近的項目，完整歷史會在背景繼續載入。"
+          }
+        }
+      }
+    },
+    "Remove from Favorites" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移出收藏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移出收藏"
           }
         }
       }
@@ -7843,6 +7964,7 @@
       }
     },
     "Smart Filters" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9373,6 +9495,22 @@
     },
     "选择 SQLite 数据库" : {
 
+    },
+    "Toggle Favorites for Selection" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换选中项收藏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換選中項收藏"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

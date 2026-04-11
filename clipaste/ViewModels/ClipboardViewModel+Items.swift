@@ -30,6 +30,15 @@ extension ClipboardViewModel {
         rebuildItemIndexes()
     }
 
+    func mergeItems(_ incomingItems: [ClipboardItem], prepend: Bool) {
+        guard !incomingItems.isEmpty else { return }
+
+        let combined = prepend ? (incomingItems + items) : (items + incomingItems)
+        let deduplicated = deduplicatedItemsPreservingOrder(combined)
+        items = deduplicated
+        rebuildItemIndexes()
+    }
+
     func removeItems(withIDs ids: Set<UUID>) {
         guard !ids.isEmpty else { return }
 
@@ -119,6 +128,10 @@ private extension ClipboardViewModel {
             return false
         }
 
+        if let selectedBuiltInGroup, selectedBuiltInGroup.matches(item) == false {
+            return false
+        }
+
         if let selectedGroupId, item.groupIDs.contains(selectedGroupId) == false {
             return false
         }
@@ -133,5 +146,20 @@ private extension ClipboardViewModel {
         }
 
         return item.appName.range(of: query, options: [.caseInsensitive]) != nil
+    }
+
+    func deduplicatedItemsPreservingOrder(_ sourceItems: [ClipboardItem]) -> [ClipboardItem] {
+        var seenIDs: Set<UUID> = []
+        var seenHashes: Set<String> = []
+        var result: [ClipboardItem] = []
+        result.reserveCapacity(sourceItems.count)
+
+        for item in sourceItems {
+            guard seenIDs.insert(item.id).inserted else { continue }
+            guard seenHashes.insert(item.contentHash).inserted else { continue }
+            result.append(item)
+        }
+
+        return result
     }
 }

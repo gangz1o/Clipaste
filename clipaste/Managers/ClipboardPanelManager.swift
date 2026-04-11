@@ -35,6 +35,12 @@ class ClipboardPanelManager {
         setupForceHideObserver()
     }
 
+    func preparePanelIfNeeded() {
+        if panel == nil {
+            setupPanel()
+        }
+    }
+
     private func setupPanel() {
         let styleMask: NSWindow.StyleMask = [.borderless]
 

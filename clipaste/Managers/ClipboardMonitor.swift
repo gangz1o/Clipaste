@@ -278,7 +278,10 @@ final class ClipboardMonitor {
         appIconDominantColorHex: String?
     ) async {
         let contentHash = CryptoHelper.sha256(data: payload.data)
-        let previewData = ImageProcessor.generateThumbnail(from: payload.data)
+        let previewData = ImageProcessor.generateThumbnail(
+            from: payload.data,
+            maxPixelSize: ClipboardImagePreviewPolicy.storedPreviewMaxPixelSize
+        )
         let imageMetadata = ImageProcessor.metadata(for: payload.data)
         let recordExists = await StorageManager.shared.recordExists(hash: contentHash)
 

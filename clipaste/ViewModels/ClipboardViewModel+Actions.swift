@@ -52,6 +52,22 @@ extension ClipboardViewModel {
         clearSelection()
     }
 
+    func addSelectionToFavorites() {
+        batchSetFavoriteState(true)
+    }
+
+    func removeSelectionFromFavorites() {
+        batchSetFavoriteState(false)
+    }
+
+    func toggleFavoriteForSelection() {
+        let targetItems = selectedItemsForBatchAction
+        guard !targetItems.isEmpty else { return }
+
+        let shouldFavorite = targetItems.contains(where: { $0.isPinned == false })
+        batchSetFavoriteState(shouldFavorite)
+    }
+
     func batchDelete() {
         let ids = selectedItemIDs
         guard !ids.isEmpty else { return }
@@ -147,13 +163,14 @@ extension ClipboardViewModel {
     }
 
     func pinItem(item: ClipboardItem) {
-        let newPinState = !item.isPinned
+        setFavoriteState(for: item, isFavorite: !item.isPinned)
+    }
 
-        updateItem(id: item.id) { updatedItem in
-            updatedItem.isPinned = newPinState
+    func addItemToBuiltInGroup(item: ClipboardItem, group: ClipboardBuiltInGroup) {
+        switch group {
+        case .favorites:
+            setFavoriteState(for: item, isFavorite: true)
         }
-
-        StorageManager.shared.togglePin(hash: item.contentHash, isPinned: newPinState)
     }
 
     func editItemContent(item: ClipboardItem) {
@@ -197,7 +214,10 @@ extension ClipboardViewModel {
             do {
                 let editedData = try Data(contentsOf: tempURL)
                 let newHash = CryptoHelper.sha256(data: editedData)
-                let previewData = ImageProcessor.generateThumbnail(from: editedData)
+                let previewData = ImageProcessor.generateThumbnail(
+                    from: editedData,
+                    maxPixelSize: ClipboardImagePreviewPolicy.storedPreviewMaxPixelSize
+                )
                 let imageMetadata = ImageProcessor.metadata(for: editedData)
 
                 StorageManager.shared.upsertRecord(
@@ -239,6 +259,8 @@ extension ClipboardViewModel {
                 hasImagePreview: item.hasImagePreview,
                 hasImageData: item.hasImageData,
                 imageUTType: item.imageUTType,
+                imagePixelWidth: item.imagePixelWidth,
+                imagePixelHeight: item.imagePixelHeight,
                 fileURL: item.fileURL,
                 groupId: item.groupId,
                 groupIDs: item.groupIDs,
@@ -281,6 +303,35 @@ extension ClipboardViewModel {
             dismissQuickLook()
         }
         StorageManager.shared.deleteRecord(hash: item.contentHash)
+    }
+}
+
+private extension ClipboardViewModel {
+    var selectedItemsForBatchAction: [ClipboardItem] {
+        let ids = selectedItemIDs
+        guard !ids.isEmpty else { return [] }
+        return displayedItemsForInteraction.filter { ids.contains($0.id) }
+    }
+
+    func batchSetFavoriteState(_ isFavorite: Bool) {
+        let targetItems = selectedItemsForBatchAction
+        guard !targetItems.isEmpty else { return }
+
+        for item in targetItems {
+            setFavoriteState(for: item, isFavorite: isFavorite)
+        }
+
+        clearSelection()
+    }
+
+    func setFavoriteState(for item: ClipboardItem, isFavorite: Bool) {
+        guard item.isPinned != isFavorite else { return }
+
+        updateItem(id: item.id) { updatedItem in
+            updatedItem.isPinned = isFavorite
+        }
+
+        StorageManager.shared.togglePin(hash: item.contentHash, isPinned: isFavorite)
     }
 }
 

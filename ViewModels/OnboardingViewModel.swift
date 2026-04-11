@@ -116,17 +116,9 @@ final class OnboardingViewModel: ObservableObject {
     }
 
     private func finishOnboarding() {
+        // 只写入标志位，AppDelegate 通过 UserDefaults 观察者统一处理
+        // activation policy 切换和 onboarding 窗口关闭，避免双重调用产生竞态。
         hasCompletedOnboarding = true
-
-        DispatchQueue.main.async {
-            // 1. 隐藏 Dock 图标，转为纯后台代理模式
-            NSApp.setActivationPolicy(.accessory)
-
-            // 2. 找到并关闭当前的引导页窗口
-            if let window = NSApplication.shared.windows.first(where: { $0.title == "clipaste" || $0.isKeyWindow }) {
-                window.close()
-            }
-        }
     }
 
     private func applySharedState(_ updates: () -> Void) {

@@ -45,6 +45,9 @@ extension View {
     @ViewBuilder
     private func batchMenuContent(viewModel: ClipboardViewModel) -> some View {
         let count = viewModel.selectedItemIDs.count
+        let selectedItems = viewModel.displayedItemsForInteraction.filter { viewModel.selectedItemIDs.contains($0.id) }
+        let hasNonFavoriteItems = selectedItems.contains(where: { $0.isPinned == false })
+        let hasFavoriteItems = selectedItems.contains(where: { $0.isPinned })
 
         Button {
             viewModel.batchCopy()
@@ -58,6 +61,26 @@ extension View {
 
         Divider()
 
+        if hasNonFavoriteItems {
+            Button {
+                viewModel.addSelectionToFavorites()
+            } label: {
+                Label("Add to Favorites", systemImage: "star.fill")
+            }
+        }
+
+        if hasFavoriteItems {
+            Button {
+                viewModel.removeSelectionFromFavorites()
+            } label: {
+                Label("Remove from Favorites", systemImage: "star.slash")
+            }
+        }
+
+        if hasNonFavoriteItems || hasFavoriteItems {
+            Divider()
+        }
+
         Menu {
             if viewModel.customGroups.isEmpty {
                 Text("No Groups")
@@ -67,7 +90,7 @@ extension View {
                     Button {
                         viewModel.batchAssignToGroup(groupId: group.id)
                     } label: {
-                        Label(group.name, systemImage: group.systemIconName)
+                        GroupMenuLabel(title: group.name, iconName: group.systemIconName)
                     }
                 }
             }
@@ -134,7 +157,7 @@ extension View {
                     Button {
                         viewModel.assignItemToGroup(item: item, group: group)
                     } label: {
-                        Label(group.name, systemImage: group.systemIconName)
+                        GroupMenuLabel(title: group.name, iconName: group.systemIconName)
                     }
                 }
             }
@@ -148,6 +171,15 @@ extension View {
             }
         } label: {
             Label("Add to Group", systemImage: "folder.badge.plus")
+        }
+
+        Button {
+            viewModel.pinItem(item: item)
+        } label: {
+            Label(
+                item.isPinned ? "Remove from Favorites" : "Add to Favorites",
+                systemImage: item.isPinned ? "star.slash" : "star.fill"
+            )
         }
 
         Divider()

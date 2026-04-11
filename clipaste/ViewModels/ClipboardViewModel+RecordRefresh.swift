@@ -22,6 +22,14 @@ extension ClipboardViewModel {
     }
 
     func refreshRecordAfterStoreChange(_ change: ClipboardRecordChange) async {
+        let previousFirstVisibleID = displayedItemsForInteraction.first?.id
+        let shouldFollowTopInsertion =
+            change.kind == .upsert &&
+            selectedItemIDs.count == 1 &&
+            previousFirstVisibleID != nil &&
+            selectedItemIDs.contains(previousFirstVisibleID!) &&
+            lastSelectedID == previousFirstVisibleID
+
         if change.kind == .delete {
             removeItem(withHash: change.contentHash)
             reconcileSelectionAfterDisplayedItemsChange()
@@ -35,6 +43,12 @@ extension ClipboardViewModel {
 
         upsertItem(item, shouldResort: change.kind.requiresResort)
         reconcileSelectionAfterDisplayedItemsChange()
+
+        if shouldFollowTopInsertion,
+           let previousFirstVisibleID,
+           displayedItemsForInteraction.first?.id != previousFirstVisibleID {
+            selectFirstDisplayedItem()
+        }
     }
 }
 

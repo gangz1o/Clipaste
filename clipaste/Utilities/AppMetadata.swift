@@ -1,20 +1,17 @@
 import Foundation
 
 enum AppMetadata {
-    private static let fallbackDisplayName = "Clipaste"
-    private static let fallbackVersion = "-"
-
     nonisolated
     static var displayName: String {
         if let displayName = trimmedValue(for: "CFBundleDisplayName") {
-            return displayName
+            return displayName 
         }
 
         if let bundleName = trimmedValue(for: "CFBundleName") {
             return bundleName
         }
 
-        return fallbackDisplayName
+        return "Clipaste"
     }
 
     nonisolated
@@ -26,7 +23,7 @@ enum AppMetadata {
     static func normalizedVersion(from rawValue: String?) -> String {
         guard let trimmedValue = rawValue?.trimmingCharacters(in: .whitespacesAndNewlines),
               !trimmedValue.isEmpty else {
-            return fallbackVersion
+            return "-"
         }
 
         let sanitizedValue: String
