@@ -4,9 +4,9 @@ struct ClipboardCardView: View {
     let item: ClipboardItem
     @ObservedObject var viewModel: ClipboardViewModel
     var quickPasteIndex: Int? = nil
-    @ObservedObject private var renderEngine = ListRenderEngine.shared
 
     @State private var isHovered = false
+    @State private var richPreviewText: AttributedString?
 
     private var isSelected: Bool {
         viewModel.selectedItemIDs.contains(item.id)
@@ -25,6 +25,10 @@ struct ClipboardCardView: View {
 
     private var showsQuickPasteBadge: Bool {
         quickPasteNumber != nil && viewModel.isQuickPasteModifierHeld
+    }
+
+    private var richTextTaskKey: String {
+        "\(item.id.uuidString)-\(item.contentHash)-\(item.hasRTF)"
     }
 
     private var watermarkIcon: NSImage? {
@@ -152,8 +156,9 @@ struct ClipboardCardView: View {
         }
         // 分享锚点：用 background 捕获 NSView + onChange 触发分享
         .modifier(OptionalShareModifier(item: item, viewModel: viewModel))
-        // ⚠️ 生命周期钩子：卡片首次出现时触发后台缓存
-        .onAppear { renderEngine.prepareIfNeeded(for: item) }
+        .task(id: richTextTaskKey) {
+            await refreshRichPreviewText()
+        }
         .clipboardContextMenu(for: item, viewModel: viewModel)
         .onDrag {
             viewModel.draggedItemId = item.id
@@ -272,8 +277,8 @@ struct ClipboardCardView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         } else {
             // ── 普通文本（含代码）：▄▀ ListRenderEngine 缓存优先
-            if let cached = renderEngine.cachedText(for: item.id) {
-                Text(cached)
+            if let richPreviewText {
+                Text(richPreviewText)
                     .lineSpacing(3)
                     .lineLimit(8)
                     .multilineTextAlignment(.leading)
@@ -298,6 +303,17 @@ struct ClipboardCardView: View {
 
     private var isCodeContent: Bool {
         item.contentType == .code || ["Xcode", "Terminal"].contains(item.appName)
+    }
+
+    @MainActor
+    private func refreshRichPreviewText() async {
+        richPreviewText = ListRenderEngine.shared.cachedText(for: item.id)
+
+        guard richPreviewText == nil else {
+            return
+        }
+
+        richPreviewText = await ListRenderEngine.shared.prepareText(for: item)
     }
 }
 

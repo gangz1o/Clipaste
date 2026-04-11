@@ -44,7 +44,6 @@ struct ClipboardMainView: View {
 
     private var configuredContent: some View {
         panelLayoutContent
-            .id("\(runtimeStore.rootIdentity)-\(clipboardLayout.rawValue)")
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.clear)
             .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))
@@ -57,7 +56,7 @@ struct ClipboardMainView: View {
             .background(WindowAppearanceObserver(theme: appTheme))
             .clipShape(RoundedRectangle(cornerRadius: clipboardLayout == .vertical ? 14 : 0))
             .preferredColorScheme(appTheme.colorScheme)
-            .edgesIgnoringSafeArea(.all)
+            .ignoresSafeArea()
             .onChange(of: clipboardLayout) {
                 // Only resize the AppKit panel after the AppStorage-backed SwiftUI layout
                 // has already switched, avoiding a one-frame stretch of the old content.
@@ -334,11 +333,11 @@ struct ClipboardMainView: View {
     }
 
     private var displayedItems: [ClipboardItem] {
-        return viewModel.filteredItems
+        viewModel.displayedItems
     }
 
     private var displayedItemIDs: [UUID] {
-        displayedItems.map(\.id)
+        viewModel.displayedItemIDs
     }
 
     @ViewBuilder

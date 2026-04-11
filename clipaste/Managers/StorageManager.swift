@@ -232,7 +232,14 @@ final class StorageManager {
             guard Task.isCancelled == false else { return }
 
             await MainActor.run {
-                NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+                NotificationCenter.default.post(
+                    name: .clipboardRecordDidChange,
+                    object: nil,
+                    userInfo: [
+                        "contentHash": hash,
+                        "kind": ClipboardRecordChangeKind.enrichment.rawValue
+                    ]
+                )
             }
         }
     }
@@ -250,7 +257,14 @@ final class StorageManager {
             guard Task.isCancelled == false else { return }
 
             await MainActor.run {
-                NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+                NotificationCenter.default.post(
+                    name: .clipboardRecordDidChange,
+                    object: nil,
+                    userInfo: [
+                        "contentHash": hash,
+                        "kind": ClipboardRecordChangeKind.enrichment.rawValue
+                    ]
+                )
             }
         }
     }
@@ -266,7 +280,14 @@ final class StorageManager {
             guard Task.isCancelled == false else { return }
 
             await MainActor.run {
-                NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+                NotificationCenter.default.post(
+                    name: .clipboardRecordDidChange,
+                    object: nil,
+                    userInfo: [
+                        "contentHash": hash,
+                        "kind": ClipboardRecordChangeKind.enrichment.rawValue
+                    ]
+                )
             }
         }
     }
@@ -357,6 +378,16 @@ final class StorageManager {
 
     func fetchGroups() async -> [ClipboardGroupItem] {
         await storeActor.fetchAllGroups()
+    }
+
+    func fetchItem(hash: String) async -> ClipboardItem? {
+        guard let snapshot = await storeActor.fetchRecordSnapshot(hash: hash) else {
+            return nil
+        }
+
+        return await MainActor.run {
+            StorageManager.makeClipboardItem(from: snapshot)
+        }
     }
 
     func repairImportedMigrationTimestampsIfNeeded() async -> Int {
@@ -527,6 +558,43 @@ actor ClipboardStoreActor {
         }
     }
 
+    fileprivate func fetchRecordSnapshot(hash: String) -> ClipboardRecordSnapshot? {
+        var descriptor = FetchDescriptor<ClipboardRecord>(
+            predicate: #Predicate<ClipboardRecord> { record in
+                record.contentHash == hash
+            }
+        )
+        descriptor.fetchLimit = 1
+
+        guard let record = try? modelContext.fetch(descriptor).first else {
+            return nil
+        }
+
+        let truncatedText: String? = {
+            guard let text = record.plainText else { return nil }
+            return text.count > 500 ? String(text.prefix(500)) : text
+        }()
+
+        return ClipboardRecordSnapshot(
+            id: record.id,
+            contentHash: record.contentHash,
+            bundleIdentifier: record.appBundleID,
+            appName: record.appLocalizedName ?? "Unknown App",
+            timestamp: record.timestamp,
+            plainText: truncatedText,
+            hasPreviewImage: record.previewImageData != nil,
+            hasImageData: record.imageData != nil,
+            imageUTType: record.imageUTType,
+            typeRawValue: record.typeRawValue,
+            groupId: record.groupId,
+            groupIdsRaw: record.groupIdsRaw,
+            linkTitle: record.linkTitle,
+            linkIconData: record.linkIconData,
+            isPinned: record.isPinned,
+            hasRTF: record.rtfData != nil
+        )
+    }
+
     func recordExists(hash: String) -> Bool {
         var descriptor = FetchDescriptor<ClipboardRecord>(
             predicate: #Predicate<ClipboardRecord> { record in
@@ -604,7 +672,14 @@ actor ClipboardStoreActor {
             }
 
             try modelContext.save()
-            NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+            NotificationCenter.default.post(
+                name: .clipboardRecordDidChange,
+                object: nil,
+                userInfo: [
+                    "contentHash": hash,
+                    "kind": ClipboardRecordChangeKind.upsert.rawValue
+                ]
+            )
         } catch {
             print("❌ [ClipboardStoreActor] 写入失败: \(error)")
         }
@@ -639,6 +714,14 @@ actor ClipboardStoreActor {
             if let recordToDelete = try modelContext.fetch(descriptor).first {
                 modelContext.delete(recordToDelete)
                 try modelContext.save()
+                NotificationCenter.default.post(
+                    name: .clipboardRecordDidChange,
+                    object: nil,
+                    userInfo: [
+                        "contentHash": hash,
+                        "kind": ClipboardRecordChangeKind.delete.rawValue
+                    ]
+                )
             }
         } catch {
             print("❌ [ClipboardStoreActor] 删除失败: \(error)")
@@ -819,7 +902,14 @@ actor ClipboardStoreActor {
             if let record = try modelContext.fetch(descriptor).first {
                 record.timestamp = Date()
                 try modelContext.save()
-                NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+                NotificationCenter.default.post(
+                    name: .clipboardRecordDidChange,
+                    object: nil,
+                    userInfo: [
+                        "contentHash": record.contentHash,
+                        "kind": ClipboardRecordChangeKind.reorder.rawValue
+                    ]
+                )
             }
         } catch {
             print("❌ [ClipboardStoreActor] 置顶时写入失败: \(error)")
@@ -853,7 +943,14 @@ actor ClipboardStoreActor {
                     record.rtfData = newRTFData
                 }
                 try modelContext.save()
-                NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+                NotificationCenter.default.post(
+                    name: .clipboardRecordDidChange,
+                    object: nil,
+                    userInfo: [
+                        "contentHash": hash,
+                        "kind": ClipboardRecordChangeKind.content.rawValue
+                    ]
+                )
             }
         } catch {
             print("❌ [ClipboardStoreActor] 编辑保存失败: \(error)")

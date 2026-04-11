@@ -62,11 +62,18 @@ struct ShareableModifier: ViewModifier {
 
         switch item.contentType {
         case .image:
-            let imageData = await StorageManager.shared.loadImageData(id: item.id)
-            let previewData = await StorageManager.shared.loadPreviewImageData(id: item.id)
-            if let data = imageData ?? previewData,
-               let image = NSImage(data: data) {
-                objects.append(image)
+            if let originalData = await StorageManager.shared.loadOriginalImageData(id: item.id),
+               let stagedURL = await ShareImageFileStager.stageImageFile(
+                    data: originalData,
+                    utTypeIdentifier: await StorageManager.shared.loadImageUTType(id: item.id),
+                    itemID: item.id
+               ) {
+                objects.append(stagedURL)
+            } else if let previewImage = await ClipboardImagePipeline.shared.previewImage(
+                for: item.id,
+                maxPixelSize: 2048
+            ) {
+                objects.append(previewImage)
             }
         case .fileURL:
             if let url = item.resolvedFileURL {
@@ -81,6 +88,43 @@ struct ShareableModifier: ViewModifier {
         }
 
         return objects
+    }
+}
+
+private enum ShareImageFileStager {
+    private static let stagingQueue = DispatchQueue(
+        label: "clipaste.share-image-stager",
+        qos: .utility
+    )
+
+    static func stageImageFile(
+        data: Data,
+        utTypeIdentifier: String?,
+        itemID: UUID
+    ) async -> URL? {
+        await withCheckedContinuation { continuation in
+            stagingQueue.async {
+                let directoryURL = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("clipaste-share", isDirectory: true)
+
+                do {
+                    try FileManager.default.createDirectory(
+                        at: directoryURL,
+                        withIntermediateDirectories: true
+                    )
+
+                    let fileExtension = ImageProcessor.preferredFileExtension(for: utTypeIdentifier)
+                    let fileURL = directoryURL.appendingPathComponent(
+                        "\(itemID.uuidString).\(fileExtension)"
+                    )
+
+                    try data.write(to: fileURL, options: .atomic)
+                    continuation.resume(returning: fileURL)
+                } catch {
+                    continuation.resume(returning: nil)
+                }
+            }
+        }
     }
 }
 

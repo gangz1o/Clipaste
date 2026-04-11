@@ -184,8 +184,10 @@ class ClipboardPanelManager {
         // 横版贴底无需阴影（否则顶部出现边框线）；竖版浮窗保留阴影
         panel.hasShadow = (layout == .vertical)
         applyPanelMovability(for: layout, panel: panel)
-        panel.contentView?.layoutSubtreeIfNeeded()
-        panel.displayIfNeeded()
+
+        DispatchQueue.main.async { [weak panel] in
+            panel?.displayIfNeeded()
+        }
     }
 
     // MARK: - Show / Hide

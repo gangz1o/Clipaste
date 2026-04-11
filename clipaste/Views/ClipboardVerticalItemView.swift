@@ -4,9 +4,9 @@ struct ClipboardVerticalItemView: View {
     let item: ClipboardItem
     @ObservedObject var viewModel: ClipboardViewModel
     let quickPasteIndex: Int?
-    @ObservedObject private var renderEngine = ListRenderEngine.shared
 
     @State private var isHovering = false
+    @State private var richPreviewText: AttributedString?
 
     private var isSelected: Bool {
         viewModel.selectedItemIDs.contains(item.id)
@@ -31,6 +31,10 @@ struct ClipboardVerticalItemView: View {
 
     private var showsQuickPasteBadge: Bool {
         quickPasteNumber != nil && viewModel.isQuickPasteModifierHeld
+    }
+
+    private var richTextTaskKey: String {
+        "\(item.id.uuidString)-\(item.contentHash)-\(item.hasRTF)"
     }
 
     private var rowFillStyle: AnyShapeStyle {
@@ -85,8 +89,9 @@ struct ClipboardVerticalItemView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(rowBorderColor, lineWidth: 1.5)
             )
-            // ⚠️ 生命周期钩子：卡片首次出现时触发后台缓存
-            .onAppear { renderEngine.prepareIfNeeded(for: item) }
+            .task(id: richTextTaskKey) {
+                await refreshRichPreviewText()
+            }
             .background { quickPasteShortcutBackground }
             // 分享锚点：用 background 捕获 NSView + onChange 触发分享
             .shareable(item: item, viewModel: viewModel)
@@ -217,8 +222,8 @@ struct ClipboardVerticalItemView: View {
                         // ⚠️ 渲染核心：ListRenderEngine 缓存优先
                         // 缓存命中 → 0 延迟渲染高亮文本
                         // 缓存未命中 → 瞬间使用纯文本垫底 + onAppear 触发后台缓存
-                        if let cached = renderEngine.cachedText(for: item.id) {
-                            Text(cached)
+                        if let richPreviewText {
+                            Text(richPreviewText)
                                 .lineLimit(2)
                                 .multilineTextAlignment(.leading)
                         } else {
@@ -274,6 +279,17 @@ struct ClipboardVerticalItemView: View {
             )
             .transition(.opacity)
         }
+    }
+
+    @MainActor
+    private func refreshRichPreviewText() async {
+        richPreviewText = ListRenderEngine.shared.cachedText(for: item.id)
+
+        guard richPreviewText == nil else {
+            return
+        }
+
+        richPreviewText = await ListRenderEngine.shared.prepareText(for: item)
     }
 }
 

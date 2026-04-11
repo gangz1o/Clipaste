@@ -234,7 +234,7 @@ struct ClipboardHeaderView: View {
         }
         .padding(.horizontal, isVerticalLayout ? 1 : 2)
         .fixedSize(horizontal: true, vertical: false)
-        .coordinateSpace(name: GroupBarDropSpace.name)
+        .coordinateSpace(.named(GroupBarDropSpace.name))
         .onPreferenceChange(GroupTabFramePreferenceKey.self) { frames in
             groupTabFrames = frames
         }
@@ -943,6 +943,10 @@ struct FreeScrollWheelView<Content: View>: NSViewRepresentable {
         self.content = content()
     }
 
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
     func makeNSView(context: Context) -> _FreeScrollNSScrollView {
         let scrollView = _FreeScrollNSScrollView()
         scrollView.hasHorizontalScroller = false
@@ -966,7 +970,34 @@ struct FreeScrollWheelView<Content: View>: NSViewRepresentable {
 
     func updateNSView(_ nsView: _FreeScrollNSScrollView, context: Context) {
         if let hostingView = nsView.documentView as? NSHostingView<Content> {
-            hostingView.rootView = content
+            context.coordinator.scheduleRootViewUpdate(for: hostingView, rootView: content)
+        }
+    }
+
+    static func dismantleNSView(_ nsView: _FreeScrollNSScrollView, coordinator: Coordinator) {
+        coordinator.cancelPendingUpdate()
+    }
+
+    final class Coordinator {
+        private var pendingUpdate: DispatchWorkItem?
+
+        func scheduleRootViewUpdate<HostedContent: View>(
+            for hostingView: NSHostingView<HostedContent>,
+            rootView: HostedContent
+        ) {
+            pendingUpdate?.cancel()
+
+            let workItem = DispatchWorkItem {
+                hostingView.rootView = rootView
+            }
+
+            pendingUpdate = workItem
+            DispatchQueue.main.async(execute: workItem)
+        }
+
+        func cancelPendingUpdate() {
+            pendingUpdate?.cancel()
+            pendingUpdate = nil
         }
     }
 }
