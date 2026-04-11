@@ -29,8 +29,10 @@ struct GroupEditorPopover: View {
             HStack(spacing: 8) {
                 Spacer(minLength: 0)
 
-                Button(viewModel.submitTitle) {
+                Button {
                     submitIfPossible()
+                } label: {
+                    Text(viewModel.submitTitle)
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(viewModel.canSubmit == false)

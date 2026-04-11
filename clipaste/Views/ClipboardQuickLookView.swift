@@ -58,6 +58,7 @@ private struct ClipboardQuickLookTextContent: View {
     }
 }
 
+@MainActor
 private enum ClipboardQuickLookTextLoader {
     private static let rtfDecodeQueue = DispatchQueue(
         label: "clipaste.quicklook-rtf",
