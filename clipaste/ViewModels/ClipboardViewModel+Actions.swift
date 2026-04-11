@@ -72,15 +72,26 @@ extension ClipboardViewModel {
         let ids = selectedItemIDs
         guard !ids.isEmpty else { return }
 
-        let hashesToDelete = displayedItemsForInteraction
-            .filter { ids.contains($0.id) }
-            .map(\.contentHash)
-
-        withAnimation(.easeOut(duration: 0.2)) {
-            removeItems(withIDs: ids)
+        let targetItems = displayedItemsForInteraction.filter { ids.contains($0.id) }
+        let protectedItems = targetItems.filter(\.isPinned)
+        let deletableItems = targetItems.filter { $0.isPinned == false }
+        guard !deletableItems.isEmpty else {
+            selectedItemIDs = Set(protectedItems.map(\.id))
+            lastSelectedID = protectedItems.first?.id
+            showFavoritesDeletionBlockedNotice()
+            print("🛡️ 已跳过 \(protectedItems.count) 条收藏记录，未执行删除")
+            return
         }
 
-        if let qlItem = quickLookItem, ids.contains(qlItem.id) {
+        let idsToDelete = Set(deletableItems.map(\.id))
+        let protectedIDs = Set(protectedItems.map(\.id))
+        let hashesToDelete = deletableItems.map(\.contentHash)
+
+        withAnimation(.easeOut(duration: 0.2)) {
+            removeItems(withIDs: idsToDelete)
+        }
+
+        if let qlItem = quickLookItem, idsToDelete.contains(qlItem.id) {
             dismissQuickLook()
         }
 
@@ -88,8 +99,14 @@ extension ClipboardViewModel {
             StorageManager.shared.deleteRecord(hash: hash)
         }
 
-        clearSelection()
-        print("✅ 批量删除 \(hashesToDelete.count) 条记录")
+        if protectedIDs.isEmpty {
+            clearSelection()
+        } else {
+            selectedItemIDs = protectedIDs
+            lastSelectedID = displayedItemsForInteraction.first(where: { protectedIDs.contains($0.id) })?.id
+            showFavoritesPreservedNotice(deletedCount: hashesToDelete.count, preservedCount: protectedItems.count)
+        }
+        print("✅ 批量删除 \(hashesToDelete.count) 条记录，保留 \(protectedItems.count) 条收藏记录")
     }
 
     func pasteToActiveApp(item: ClipboardItem) {
@@ -292,6 +309,11 @@ extension ClipboardViewModel {
     }
 
     func deleteItem(item: ClipboardItem) {
+        guard item.isPinned == false else {
+            showFavoritesDeletionBlockedNotice()
+            print("🛡️ 已阻止删除收藏记录: \(item.id)")
+            return
+        }
         withAnimation(.easeOut(duration: 0.2)) {
             removeItems(withIDs: [item.id])
         }
@@ -307,6 +329,43 @@ extension ClipboardViewModel {
 }
 
 private extension ClipboardViewModel {
+    var operationNoticeLocale: Locale {
+        let language = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "appLanguage") ?? "") ?? .auto
+        return language.locale ?? .current
+    }
+
+    func showFavoritesDeletionBlockedNotice() {
+        showOperationNotice(
+            String(
+                localized: "Items in Favorites can't be deleted. Remove them from Favorites first.",
+                locale: operationNoticeLocale
+            )
+        )
+    }
+
+    func showFavoritesPreservedNotice(deletedCount: Int, preservedCount: Int) {
+        let format = String(
+            localized: "Deleted %lld items. Kept %lld item(s) in Favorites.",
+            locale: operationNoticeLocale
+        )
+        let message = withVaList([deletedCount, preservedCount]) { pointer in
+            NSString(format: format, locale: operationNoticeLocale, arguments: pointer) as String
+        }
+        showOperationNotice(message)
+    }
+
+    func showOperationNotice(_ message: String) {
+        operationNoticeHideTask?.cancel()
+        operationNotice = message
+
+        operationNoticeHideTask = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(2.4))
+            guard Task.isCancelled == false else { return }
+            self?.operationNotice = nil
+            self?.operationNoticeHideTask = nil
+        }
+    }
+
     var selectedItemsForBatchAction: [ClipboardItem] {
         let ids = selectedItemIDs
         guard !ids.isEmpty else { return [] }

@@ -54,9 +54,18 @@ struct ClipboardMainView: View {
                 )
             )
             .background(WindowAppearanceObserver(theme: appTheme))
+            .overlay(alignment: .top) {
+                if let operationNotice = viewModel.operationNotice {
+                    ClipboardOperationNoticeView(message: operationNotice)
+                        .padding(.top, clipboardLayout == .vertical ? 72 : 52)
+                        .padding(.horizontal, 12)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
+            }
             .clipShape(RoundedRectangle(cornerRadius: clipboardLayout == .vertical ? 14 : 0))
             .preferredColorScheme(appTheme.colorScheme)
             .ignoresSafeArea()
+            .animation(.spring(response: 0.24, dampingFraction: 0.9), value: viewModel.operationNotice != nil)
             .onChange(of: clipboardLayout) {
                 // Only resize the AppKit panel after the AppStorage-backed SwiftUI layout
                 // has already switched, avoiding a one-frame stretch of the old content.

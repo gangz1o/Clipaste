@@ -51,6 +51,7 @@ final class ClipboardViewModel: ObservableObject {
     @Published var isLoadingMoreHistory = false
     var lastSelectedID: UUID? = nil
     @Published var quickLookItem: ClipboardItem? = nil
+    @Published var operationNotice: String? = nil
     @Published var highResImage: NSImage? = nil
     @Published var previewTargetSize: CGSize = .zero
     @Published var sharingItem: ClipboardItem? = nil
@@ -88,6 +89,7 @@ final class ClipboardViewModel: ObservableObject {
     var historyLoadTask: Task<Void, Never>? = nil
     var itemIndexByID: [UUID: Int] = [:]
     var itemIndexByHash: [String: Int] = [:]
+    var operationNoticeHideTask: Task<Void, Never>? = nil
     let settingsViewModel: SettingsViewModel
 
     init(
@@ -113,6 +115,7 @@ final class ClipboardViewModel: ObservableObject {
     }
 
     deinit {
+        operationNoticeHideTask?.cancel()
         if let keyDownMonitor {
             NSEvent.removeMonitor(keyDownMonitor)
         }

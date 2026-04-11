@@ -48,6 +48,7 @@ extension View {
         let selectedItems = viewModel.displayedItemsForInteraction.filter { viewModel.selectedItemIDs.contains($0.id) }
         let hasNonFavoriteItems = selectedItems.contains(where: { $0.isPinned == false })
         let hasFavoriteItems = selectedItems.contains(where: { $0.isPinned })
+        let deletableCount = selectedItems.filter { $0.isPinned == false }.count
 
         Button {
             viewModel.batchCopy()
@@ -113,7 +114,7 @@ extension View {
         } label: {
             ClipboardCountMenuLabel(
                 formatKey: "Delete %lld Items",
-                count: count,
+                count: deletableCount,
                 systemImage: "trash"
             )
         }
