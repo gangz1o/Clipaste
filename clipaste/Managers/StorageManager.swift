@@ -176,6 +176,7 @@ final class StorageManager {
         text: String?,
         appID: String?,
         appName: String?,
+        appIconDominantColorHex: String? = nil,
         type: String,
         previewImageData: Data? = nil,
         imageData: Data? = nil,
@@ -189,6 +190,7 @@ final class StorageManager {
                 text: text,
                 appID: appID,
                 appName: appName,
+                appIconDominantColorHex: appIconDominantColorHex,
                 type: type,
                 previewImageData: previewImageData,
                 imageData: imageData,
@@ -392,6 +394,10 @@ final class StorageManager {
 
     func repairImportedMigrationTimestampsIfNeeded() async -> Int {
         await storeActor.repairImportedMigrationTimestampsIfNeeded()
+    }
+
+    func repairTextClassificationsIfNeeded() async -> Int {
+        await storeActor.repairTextClassificationsIfNeeded()
     }
 
     @MainActor
@@ -616,6 +622,7 @@ actor ClipboardStoreActor {
         text: String?,
         appID: String?,
         appName: String?,
+        appIconDominantColorHex: String?,
         type: String,
         previewImageData: Data?,
         imageData: Data?,
@@ -635,6 +642,7 @@ actor ClipboardStoreActor {
                 existingRecord.typeRawValue = type
                 existingRecord.appBundleID = appID
                 existingRecord.appLocalizedName = appName
+                existingRecord.appIconDominantColorHex = appIconDominantColorHex
 
                 if let text {
                     existingRecord.plainText = text
@@ -666,7 +674,8 @@ actor ClipboardStoreActor {
                     imageData: imageData,
                     imageMetadata: imageMetadata,
                     appBundleID: appID,
-                    appLocalizedName: appName
+                    appLocalizedName: appName,
+                    appIconDominantColorHex: appIconDominantColorHex
                 )
                 modelContext.insert(newRecord)
             }
@@ -995,6 +1004,43 @@ actor ClipboardStoreActor {
         }
     }
 
+    func repairTextClassificationsIfNeeded() -> Int {
+        let descriptor = FetchDescriptor<ClipboardRecord>()
+
+        do {
+            let records = try modelContext.fetch(descriptor)
+            var repairedCount = 0
+
+            for record in records {
+                guard let text = record.plainText?.trimmingCharacters(in: .whitespacesAndNewlines),
+                      text.isEmpty == false else {
+                    continue
+                }
+
+                guard textBasedTypes.contains(record.typeRawValue) else {
+                    continue
+                }
+
+                let reclassifiedType = ClipboardContentClassifier.classify(text).rawValue
+                guard reclassifiedType != record.typeRawValue else {
+                    continue
+                }
+
+                record.typeRawValue = reclassifiedType
+                repairedCount += 1
+            }
+
+            if repairedCount > 0 {
+                try modelContext.save()
+            }
+
+            return repairedCount
+        } catch {
+            print("❌ [ClipboardStoreActor] 修复文本分类失败: \(error)")
+            return 0
+        }
+    }
+
     func exportStore() -> ClipboardStoreExport {
         let records = ((try? modelContext.fetch(FetchDescriptor<ClipboardRecord>())) ?? []).map {
             ClipboardRecordExport(
@@ -1011,6 +1057,7 @@ actor ClipboardStoreActor {
                 imagePixelHeight: $0.imagePixelHeight,
                 appBundleID: $0.appBundleID,
                 appLocalizedName: $0.appLocalizedName,
+                appIconDominantColorHex: $0.appIconDominantColorHex,
                 groupId: $0.groupId,
                 groupIdsRaw: $0.groupIdsRaw,
                 linkTitle: $0.linkTitle,
@@ -1063,6 +1110,7 @@ actor ClipboardStoreActor {
                 existingRecord.typeRawValue = incomingRecord.typeRawValue
                 existingRecord.appBundleID = incomingRecord.appBundleID ?? existingRecord.appBundleID
                 existingRecord.appLocalizedName = incomingRecord.appLocalizedName ?? existingRecord.appLocalizedName
+                existingRecord.appIconDominantColorHex = incomingRecord.appIconDominantColorHex ?? existingRecord.appIconDominantColorHex
                 existingRecord.plainText = incomingRecord.plainText ?? existingRecord.plainText
                 existingRecord.previewImageData = incomingRecord.previewImageData ?? existingRecord.previewImageData
                 existingRecord.imageData = incomingRecord.imageData ?? existingRecord.imageData
@@ -1118,6 +1166,7 @@ actor ClipboardStoreActor {
                     imageMetadata: importedImageMetadata,
                     appBundleID: incomingRecord.appBundleID,
                     appLocalizedName: incomingRecord.appLocalizedName,
+                    appIconDominantColorHex: incomingRecord.appIconDominantColorHex,
                     groupId: incomingRecord.groupId,
                     groupIdsRaw: incomingRecord.groupIdsRaw,
                     linkTitle: incomingRecord.linkTitle,
@@ -1166,5 +1215,17 @@ actor ClipboardStoreActor {
         )
         descriptor.fetchLimit = 1
         return try? modelContext.fetch(descriptor).first?.imageUTType
+    }
+}
+
+private extension ClipboardStoreActor {
+    nonisolated static let textBasedTypes: Set<String> = [
+        ClipboardContentType.text.rawValue,
+        ClipboardContentType.code.rawValue,
+        ClipboardContentType.link.rawValue
+    ]
+
+    var textBasedTypes: Set<String> {
+        Self.textBasedTypes
     }
 }

@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct ClipboardCardView: View {
@@ -7,6 +8,7 @@ struct ClipboardCardView: View {
 
     @State private var isHovered = false
     @State private var richPreviewText: AttributedString?
+    @State private var appIconDominantColorHex: String?
 
     private var isSelected: Bool {
         viewModel.selectedItemIDs.contains(item.id)
@@ -31,7 +33,42 @@ struct ClipboardCardView: View {
         "\(item.id.uuidString)-\(item.contentHash)-\(item.hasRTF)"
     }
 
-    private var watermarkIcon: NSImage? {
+    private var headerColorTaskKey: String {
+        "\(item.id.uuidString)-\(item.contentHash)-\(item.timestamp.timeIntervalSince1970)"
+    }
+
+    private var headerBaseColor: Color {
+        if let storedColor = Color(clipasteHex: appIconDominantColorHex) {
+            return storedColor
+        }
+
+        if let iconColorHex = resolvedAppIcon?.dominantColorHex(),
+           let iconColor = Color(clipasteHex: iconColorHex) {
+            return iconColor
+        }
+
+        return Color(nsColor: .darkGray)
+    }
+
+    private var headerTimestampText: String {
+        "\(item.timestamp.dateString) \(item.timestamp.timeString)"
+    }
+
+    private var headerShape: UnevenRoundedRectangle {
+        UnevenRoundedRectangle(
+            topLeadingRadius: 16,
+            bottomLeadingRadius: 0,
+            bottomTrailingRadius: 0,
+            topTrailingRadius: 16,
+            style: .continuous
+        )
+    }
+
+    private var headerHeight: CGFloat {
+        52
+    }
+
+    private var resolvedAppIcon: NSImage? {
         if let icon = item.appIcon {
             return icon
         }
@@ -45,75 +82,21 @@ struct ClipboardCardView: View {
 
     // MARK: - Body
     var body: some View {
-        ZStack {
-            // ── 水印层：App 图标，最底层──────────────────────────────────
-            if let icon = watermarkIcon {
-                Image(nsImage: icon)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 220, height: 220)
-                    .saturation(0)
-                    .opacity(0.06)
-                    .blur(radius: 5)
-                    .offset(x: 30, y: 30)
-                    .clipped()
-                    .allowsHitTesting(false)
-            }
+        VStack(alignment: .leading, spacing: 0) {
+            cardHeader
 
-            VStack(alignment: .leading, spacing: 0) {
-                // ── Header：App 图标 + 名称 + 时间 ─────────────────────────
-                HStack(alignment: .center, spacing: 8) {
-                    AppIconView(appBundleID: item.sourceBundleIdentifier, size: 32)
+            ZStack {
+                Color(nsColor: .textBackgroundColor)
 
-                    Text(item.appName)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
-
-                    Spacer(minLength: 4)
-
-                    // ── Material Type Badge ────────────────────────
-                    TypeBadgeView(item: item, isCodeContent: isCodeContent)
-
-                    // 时间 + 日期双行排版（弱化处理，不喧宾夺主）
-                    VStack(alignment: .trailing, spacing: 1) {
-                        Text(item.timestamp.timeString)
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-
-                        Text(item.timestamp.dateString)
-                            .font(.system(size: 9))
-                            .foregroundColor(.secondary.opacity(0.7))
-                            .lineLimit(1)
-                    }
-                    .fixedSize(horizontal: true, vertical: false)
-                    .help(item.timestamp.formatted(date: .complete, time: .standard))
-                }
-                .padding(.horizontal, 12)
-                .padding(.top, 12)
-                .padding(.bottom, 10)
-
-                // ── Body：内容区域 ─────────────────────────────────────────
                 contentBody
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.horizontal, 12)
+                    .padding(.top, 12)
                     .padding(.bottom, 12)
             }
         }
-        // 横版大卡片固定尺寸
         .frame(width: 240, height: 240)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(
-                    isSelected
-                    ? Color.accentColor.opacity(0.12)
-                    : Color(nsColor: .windowBackgroundColor).opacity(0.5)
-                )
-        )
-        .background(
-            VisualEffectView(material: .popover, blendingMode: .withinWindow)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-        )
+        .background(Color(nsColor: .windowBackgroundColor))
         .background {
             if let quickPasteIndex {
                 QuickPasteShortcutHost(
@@ -136,8 +119,14 @@ struct ClipboardCardView: View {
                 .transition(.opacity)
             }
         }
-        // (Phase 1: 彩色边线已移除，由 Material Badge 取代)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(
+                    isSelected ? Color.accentColor.opacity(0.48) : Color.black.opacity(0.08),
+                    lineWidth: isSelected ? 1.4 : 0.8
+                )
+        }
+        .clipShape(.rect(cornerRadius: 16))
         .shadow(color: Color.black.opacity(0.08), radius: 6, x: 0, y: 3)
         .animation(.easeInOut(duration: 0.15), value: showsQuickPasteBadge)
         // 空格键 QuickLook 气泡（箭头朝下，挂在卡片顶部）
@@ -159,6 +148,9 @@ struct ClipboardCardView: View {
         .task(id: richTextTaskKey) {
             await refreshRichPreviewText()
         }
+        .task(id: headerColorTaskKey) {
+            await refreshHeaderDominantColorHex()
+        }
         .clipboardContextMenu(for: item, viewModel: viewModel)
         .onDrag {
             viewModel.draggedItemId = item.id
@@ -167,6 +159,41 @@ struct ClipboardCardView: View {
             ClipboardDragPreview(item: item)
         }
         .modifier(ClipboardCardActionModifier(item: item, viewModel: viewModel))
+    }
+
+    private var cardHeader: some View {
+        HStack(alignment: .center, spacing: 0) {
+            AppIconView(appBundleID: item.sourceBundleIdentifier, size: headerHeight)
+                .clipShape(.rect(cornerRadius: 10))
+                .shadow(color: Color.black.opacity(0.18), radius: 2, x: 0, y: 1)
+
+            Spacer(minLength: 12)
+
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(item.typeBadgeTitle())
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(.white)
+                    .lineLimit(1)
+
+                Text(headerTimestampText)
+                    .font(.caption)
+                    .foregroundStyle(Color.white.opacity(0.82))
+                    .lineLimit(1)
+            }
+            .multilineTextAlignment(.trailing)
+            .fixedSize(horizontal: true, vertical: false)
+            .help(item.timestamp.formatted(date: .complete, time: .standard))
+        }
+        .padding(.horizontal, 12)
+        .frame(height: headerHeight)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(headerBaseColor)
+        .clipShape(headerShape)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(Color.white.opacity(0.10))
+                .frame(height: 0.5)
+        }
     }
 
     // MARK: - Content Body
@@ -302,7 +329,14 @@ struct ClipboardCardView: View {
     // MARK: - Helpers
 
     private var isCodeContent: Bool {
-        item.contentType == .code || ["Xcode", "Terminal"].contains(item.appName)
+        item.contentType == .code
+    }
+
+    @MainActor
+    private func refreshHeaderDominantColorHex() {
+        appIconDominantColorHex = StorageManager.shared
+            .fetchRecord(id: item.id)?
+            .appIconDominantColorHex
     }
 
     @MainActor
@@ -317,37 +351,23 @@ struct ClipboardCardView: View {
     }
 }
 
-// MARK: - Material Type Badge
+private extension Color {
+    init?(clipasteHex hex: String?) {
+        guard let hex else { return nil }
 
-/// 毛玻璃微标签 — 极致通透的内容类型胶囊
-private struct TypeBadgeView: View {
-    let item: ClipboardItem
-    let isCodeContent: Bool
+        let sanitized = hex
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "#", with: "")
 
-    private var badgeIcon: String {
-        switch item.contentType {
-        case .image:    return "photo"
-        case .fileURL:  return "doc.fill"
-        case .link:     return "link"
-        case .code:     return "curlybraces"
-        case .color:    return "paintpalette.fill"
-        case .text:
-            if item.isFastLink { return "link" }
-            if isCodeContent { return "curlybraces" }
-            return "doc.text"
+        guard sanitized.count == 6, let value = UInt64(sanitized, radix: 16) else {
+            return nil
         }
-    }
 
-    var body: some View {
-        HStack(spacing: 3) {
-            Image(systemName: badgeIcon)
-            Text(item.typeBadgeTitle(isCodeHeuristic: isCodeContent))
-        }
-        .font(.system(size: 10, weight: .semibold))
-        .foregroundStyle(.secondary)
-        .padding(.horizontal, 5)
-        .padding(.vertical, 2)
-        .background(.ultraThinMaterial, in: Capsule())
+        self = Color(
+            red: Double((value & 0xFF0000) >> 16) / 255.0,
+            green: Double((value & 0x00FF00) >> 8) / 255.0,
+            blue: Double(value & 0x0000FF) / 255.0
+        )
     }
 }
 

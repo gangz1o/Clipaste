@@ -14,9 +14,7 @@ final class SyntaxHighlightService: @unchecked Sendable {
     /// ⚠️ Smart Sniffer 专用：同步判断文本是否具有代码特征。
     /// 录入时由 ClipboardMonitor 调用，决定 typeRawValue 的打标。
     static func looksLikeCode(_ text: String) -> Bool {
-        guard text.count >= 10 else { return false }
-        let codeCharacters = CharacterSet(charactersIn: "{}()=<>:;/$#@\"'[]\\|&!%^*+~`")
-        return text.rangeOfCharacter(from: codeCharacters) != nil
+        ClipboardContentClassifier.isLikelyCode(text)
     }
 
     // 注意：Highlightr 实例的创建开销较大，保持为单例复用
@@ -56,9 +54,7 @@ final class SyntaxHighlightService: @unchecked Sendable {
         // 浅色模式用苹果原生的 xcode 主题(字是黑的)，深色用 atom-one-dark(字是白的)
         let themeName = isDarkMode ? "atom-one-dark" : "xcode"
 
-        // 代码特征字符集
-        let codeCharacters = CharacterSet(charactersIn: "{}()=<>:;/$#@\"'[]\\|&!%^*+~`")
-        let looksLikeCode = text.rangeOfCharacter(from: codeCharacters) != nil
+        let looksLikeCode = ClipboardContentClassifier.shouldHighlightAsCode(text)
 
         // ⚠️ AI DEV WARNING: PERFORMANCE GUARD - DO NOT REMOVE
         // 内存泄压阀：无论是代码还是普通文本，送入 RTF 转换管线的数据严格截断到 maxHighlightLength。

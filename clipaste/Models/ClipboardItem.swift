@@ -212,12 +212,9 @@ extension ClipboardItem {
 
 extension ClipboardItem {
     /// 卡片角标等内容类型文案（与筛选标签共用同一套 String Catalog 键）。
-    func typeBadgeTitle(isCodeHeuristic: Bool) -> LocalizedStringResource {
+    func typeBadgeTitle() -> LocalizedStringResource {
         switch contentType {
-        case .text:
-            if isFastLink { return LocalizedStringResource("Smart Filter Link") }
-            if isCodeHeuristic { return LocalizedStringResource("Smart Filter Code") }
-            return LocalizedStringResource("Smart Filter Text")
+        case .text: return LocalizedStringResource("Smart Filter Text")
         case .image: return LocalizedStringResource("Smart Filter Image")
         case .fileURL: return LocalizedStringResource("Smart Filter File")
         case .color: return LocalizedStringResource("Smart Filter Color")

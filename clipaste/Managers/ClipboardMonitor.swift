@@ -138,26 +138,29 @@ final class ClipboardMonitor {
         let sourceApplication = NSWorkspace.shared.frontmostApplication
         let appID = sourceApplication?.bundleIdentifier
         let appName = sourceApplication?.localizedName
+        let sourceAppIconData = sourceApplication?.icon?.tiffRepresentation
 
         if let appID, ignoredBundleIdentifiers.contains(appID) {
             return
         }
 
         guard let pasteboardItems = pasteboard.pasteboardItems, !pasteboardItems.isEmpty else { return }
+        var recordPayloads: [ClipboardRecordPayload] = []
+        var imagePayloads: [ClipboardImagePayload] = []
 
         for pasteboardItem in pasteboardItems {
             if let imageData = imageData(from: pasteboardItem) {
-                handleImagePayload(data: imageData, appID: appID, appName: appName)
+                imagePayloads.append(ClipboardImagePayload(data: imageData, appID: appID, appName: appName))
                 continue
             }
 
             if let imageData = imageDataFromFileURL(from: pasteboardItem) {
-                handleImagePayload(data: imageData, appID: appID, appName: appName)
+                imagePayloads.append(ClipboardImagePayload(data: imageData, appID: appID, appName: appName))
                 continue
             }
 
             if let payload = makeFileURLPayload(from: pasteboardItem, appID: appID, appName: appName) {
-                enqueueUpsert(for: payload)
+                recordPayloads.append(payload)
                 continue
             }
 
@@ -165,7 +168,19 @@ final class ClipboardMonitor {
                 continue
             }
 
-            enqueueUpsert(for: payload)
+            recordPayloads.append(payload)
+        }
+
+        guard imagePayloads.isEmpty == false || recordPayloads.isEmpty == false else {
+            return
+        }
+
+        Task.detached(priority: .userInitiated) {
+            await Self.persistCapturedPayloads(
+                recordPayloads: recordPayloads,
+                imagePayloads: imagePayloads,
+                sourceAppIconData: sourceAppIconData
+            )
         }
     }
 
@@ -216,23 +231,7 @@ final class ClipboardMonitor {
     /// 优先级：link → code → text 兜底。
     /// ⚠️ 架构红线：此方法仅在录入时执行一次，结果持久化入库，UI 层绝不做运行时判断。
     private static func sniffTextType(_ text: String) -> ClipboardContentType {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-
-        // 1. Link 判断：合法 URL（http:// 或 https://）
-        if let url = URL(string: trimmed),
-           let scheme = url.scheme?.lowercased(),
-           (scheme == "http" || scheme == "https"),
-           url.host != nil {
-            return .link
-        }
-
-        // 2. Code 判断：复用 SyntaxHighlightService 的特征匹配
-        if SyntaxHighlightService.looksLikeCode(text) {
-            return .code
-        }
-
-        // 3. 兜底：纯文本
-        return .text
+        ClipboardContentClassifier.classify(text)
     }
 
     private func imageData(from pasteboardItem: NSPasteboardItem) -> Data? {
@@ -252,75 +251,100 @@ final class ClipboardMonitor {
         return ClipboardFileReference.loadImageData(from: fileURLString)
     }
 
-    private func handleImagePayload(data: Data, appID: String?, appName: String?) {
-        Task.detached(priority: .userInitiated) {
-            let contentHash = CryptoHelper.sha256(data: data)
-            let previewData = ImageProcessor.generateThumbnail(from: data)
-            let imageMetadata = ImageProcessor.metadata(for: data)
+    private nonisolated static func persistCapturedPayloads(
+        recordPayloads: [ClipboardRecordPayload],
+        imagePayloads: [ClipboardImagePayload],
+        sourceAppIconData: Data?
+    ) async {
+        let appIconDominantColorHex = sourceAppIconData.flatMap(Self.extractDominantColorHex(from:))
 
-            if await StorageManager.shared.recordExists(hash: contentHash) {
-                StorageManager.shared.upsertRecord(
-                    hash: contentHash,
-                    text: nil,
-                    appID: appID,
-                    appName: appName,
-                    type: ClipboardContentType.image.rawValue,
-                    previewImageData: previewData,
-                    imageData: data,
-                    imageMetadata: imageMetadata
-                )
-                return
-            }
-
-            StorageManager.shared.upsertRecord(
-                hash: contentHash,
-                text: nil,
-                appID: appID,
-                appName: appName,
-                type: ClipboardContentType.image.rawValue,
-                previewImageData: previewData,
-                imageData: data,
-                imageMetadata: imageMetadata
+        for imagePayload in imagePayloads {
+            await persistImagePayload(
+                imagePayload,
+                appIconDominantColorHex: appIconDominantColorHex
             )
+        }
 
-            StorageManager.shared.processOCRForImage(hash: contentHash, imageData: data)
+        for recordPayload in recordPayloads {
+            persistRecordPayload(
+                recordPayload,
+                appIconDominantColorHex: appIconDominantColorHex
+            )
         }
     }
 
-    private func enqueueUpsert(
-        for payload: ClipboardRecordPayload,
-        previewImageData: Data? = nil,
-        imageData: Data? = nil,
-        imageMetadata: ClipboardImageMetadata? = nil
+    private nonisolated static func persistImagePayload(
+        _ payload: ClipboardImagePayload,
+        appIconDominantColorHex: String?
+    ) async {
+        let contentHash = CryptoHelper.sha256(data: payload.data)
+        let previewData = ImageProcessor.generateThumbnail(from: payload.data)
+        let imageMetadata = ImageProcessor.metadata(for: payload.data)
+        let recordExists = await StorageManager.shared.recordExists(hash: contentHash)
+
+        StorageManager.shared.upsertRecord(
+            hash: contentHash,
+            text: nil,
+            appID: payload.appID,
+            appName: payload.appName,
+            appIconDominantColorHex: appIconDominantColorHex,
+            type: ClipboardContentType.image.rawValue,
+            previewImageData: previewData,
+            imageData: payload.data,
+            imageMetadata: imageMetadata
+        )
+
+        guard recordExists == false else {
+            return
+        }
+
+        StorageManager.shared.processOCRForImage(hash: contentHash, imageData: payload.data)
+    }
+
+    private nonisolated static func persistRecordPayload(
+        _ payload: ClipboardRecordPayload,
+        appIconDominantColorHex: String?
     ) {
         StorageManager.shared.upsertRecord(
             hash: payload.hash,
             text: payload.text,
             appID: payload.appID,
             appName: payload.appName,
-            type: payload.type,
-            previewImageData: previewImageData,
-            imageData: imageData,
-            imageMetadata: imageMetadata
+            appIconDominantColorHex: appIconDominantColorHex,
+            type: payload.type
         )
 
         // 链接类型 → 触发 LinkPresentation 抓取，让链接变成漂亮的书签卡片
         if payload.type == ClipboardContentType.link.rawValue,
            let text = payload.text {
-            StorageManager.shared.processLinkMetadata(hash: payload.hash, urlString: text.trimmingCharacters(in: .whitespacesAndNewlines))
-            // 链接同样触发高亮（部分 URL 可能包含代码参数）
+            StorageManager.shared.processLinkMetadata(
+                hash: payload.hash,
+                urlString: text.trimmingCharacters(in: .whitespacesAndNewlines)
+            )
             StorageManager.shared.processSyntaxHighlight(hash: payload.hash, text: text)
         }
 
         // 代码/纯文本 → 静默触发后台语法高亮
         if (payload.type == ClipboardContentType.text.rawValue || payload.type == ClipboardContentType.code.rawValue),
            let text = payload.text {
-            // 兼容旧逻辑：纯文本中如果恰好是 URL，也触发 LinkPresentation
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
             if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
-                StorageManager.shared.processLinkMetadata(hash: payload.hash, urlString: text.trimmingCharacters(in: .whitespacesAndNewlines))
+                StorageManager.shared.processLinkMetadata(
+                    hash: payload.hash,
+                    urlString: text.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
             }
             StorageManager.shared.processSyntaxHighlight(hash: payload.hash, text: text)
+        }
+    }
+
+    private nonisolated static func extractDominantColorHex(from iconData: Data) -> String? {
+        autoreleasepool {
+            guard let image = NSImage(data: iconData) else {
+                return nil
+            }
+
+            return image.dominantColorHex()
         }
     }
 }
@@ -336,12 +360,24 @@ private extension ClipboardMonitor {
     }
 }
 
-private struct ClipboardRecordPayload {
+private struct ClipboardRecordPayload: Sendable {
     let hash: String
     let text: String?
     let appID: String?
     let appName: String?
     let type: String
+}
+
+private struct ClipboardImagePayload: Sendable {
+    let data: Data
+    let appID: String?
+    let appName: String?
+
+    init(data: Data, appID: String? = nil, appName: String? = nil) {
+        self.data = data
+        self.appID = appID
+        self.appName = appName
+    }
 }
 
 extension Notification.Name {

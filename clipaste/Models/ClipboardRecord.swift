@@ -16,6 +16,7 @@ final class ClipboardRecord {
     var imagePixelHeight: Int?
     var appBundleID: String?
     var appLocalizedName: String?
+    var appIconDominantColorHex: String?
     var groupId: String? // 所属分组 ID
     var groupIdsRaw: String? // 多分组兼容存储(JSON)
     var linkTitle: String? // 链接预览：网页标题
@@ -34,6 +35,7 @@ final class ClipboardRecord {
         imageMetadata: ClipboardImageMetadata? = nil,
         appBundleID: String? = nil,
         appLocalizedName: String? = nil,
+        appIconDominantColorHex: String? = nil,
         groupId: String? = nil,
         groupIdsRaw: String? = nil,
         linkTitle: String? = nil,
@@ -54,6 +56,7 @@ final class ClipboardRecord {
         self.imagePixelHeight = imageMetadata?.pixelHeight
         self.appBundleID = appBundleID
         self.appLocalizedName = appLocalizedName
+        self.appIconDominantColorHex = appIconDominantColorHex
         self.groupId = groupId
         self.groupIdsRaw = groupIdsRaw
         self.linkTitle = linkTitle

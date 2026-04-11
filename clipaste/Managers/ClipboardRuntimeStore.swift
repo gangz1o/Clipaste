@@ -234,11 +234,15 @@ final class ClipboardRuntimeStore: ObservableObject {
         do {
             try await bootstrapper.importLegacyStoreIfNeeded(into: currentRuntime.storage)
             let repairedCount = await currentRuntime.storage.repairImportedMigrationTimestampsIfNeeded()
+            let repairedClassificationCount = await repairTextClassificationsIfNeeded(using: currentRuntime.storage)
             await MainActor.run {
                 NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
             }
             if repairedCount > 0 {
                 appendDiagnostic(level: .info, message: "已修复 \(repairedCount) 条迁移记录的时间戳基准错误")
+            }
+            if repairedClassificationCount > 0 {
+                appendDiagnostic(level: .info, message: "已修复 \(repairedClassificationCount) 条文本/代码分类记录")
             }
             appendDiagnostic(level: .info, message: "启动期旧库导入检查完成")
         } catch {
@@ -430,6 +434,19 @@ final class ClipboardRuntimeStore: ObservableObject {
         }
     }
 
+    private func repairTextClassificationsIfNeeded(using storage: StorageManager) async -> Int {
+        let currentVersion = ClipboardContentClassifier.repairVersion
+        let storedVersion = defaults.integer(forKey: Keys.textClassificationRepairVersion)
+
+        guard storedVersion < currentVersion else {
+            return 0
+        }
+
+        let repairedCount = await storage.repairTextClassificationsIfNeeded()
+        defaults.set(currentVersion, forKey: Keys.textClassificationRepairVersion)
+        return repairedCount
+    }
+
     private func appendDiagnostic(level: ClipboardSyncDiagnosticLevel, message: String) {
         diagnosticsEntries.insert(
             ClipboardSyncDiagnosticEntry(level: level, message: message),
@@ -600,5 +617,6 @@ private extension ClipboardRuntimeStore {
     enum Keys {
         static let syncEnabled = "enable_icloud_sync"
         static let lastSyncDate = "last_sync_date"
+        static let textClassificationRepairVersion = "clipboard_text_classification_repair_version"
     }
 }

@@ -15,6 +15,7 @@ struct ClipboardRecordExport: Sendable {
     let imagePixelHeight: Int?
     let appBundleID: String?
     let appLocalizedName: String?
+    let appIconDominantColorHex: String?
     let groupId: String?
     let groupIdsRaw: String?
     let linkTitle: String?
@@ -207,6 +208,7 @@ final class ClipboardStoreBootstrapper: @unchecked Sendable {
             imagePixelHeight: imageBinary?.metadata.pixelHeight,
             appBundleID: record.appBundleID,
             appLocalizedName: record.appLocalizedName,
+            appIconDominantColorHex: nil,
             groupId: record.groupId,
             groupIdsRaw: record.groupIdsRaw,
             linkTitle: record.linkTitle,
