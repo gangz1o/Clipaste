@@ -90,6 +90,16 @@ Clipaste 支持从以下应用迁移历史数据：
 
 维护者可以通过仓库内的 GitHub Actions 工作流自动生成并上传 notarized DMG，详见 [RELEASING.md](RELEASING.md)。
 
+## 🌟 Star历史
+
+<a href="https://www.star-history.com/?repos=gangz1o%2FClipaste&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=gangz1o/Clipaste&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=gangz1o/Clipaste&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=gangz1o/Clipaste&type=date&legend=top-left" />
+ </picture>
+</a>
+
 ## ❤️ 赞助
 
 如果您觉得这个项目对您有帮助，可以考虑赞助支持我们！您的支持将帮助我们更好地维护和发展项目, 让Clipaste持续为社区创造价值。
