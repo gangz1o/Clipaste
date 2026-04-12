@@ -89,6 +89,16 @@ If you fork this project and want to distribute your own build, you will also ne
 
 Maintainers can generate and upload a notarized DMG using the GitHub Actions workflow documented in [RELEASING.md](RELEASING.md).
 
+## 🌟 Star History
+
+<a href="https://www.star-history.com/?repos=gangz1o%2FClipaste&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=gangz1o/Clipaste&type=date&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=gangz1o/Clipaste&type=date&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=gangz1o/Clipaste&type=date&legend=top-left" />
+ </picture>
+</a>
+
 ## ❤️ Sponsorship
 
 If you find this project helpful, please consider sponsoring us! Your support will help us better maintain and develop the project, allowing Clipaste to continue creating value for the community.
