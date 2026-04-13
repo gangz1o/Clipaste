@@ -3,6 +3,47 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>1.0.4</title>
+            <pubDate>Mon, 13 Apr 2026 17:14:01 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.0.4</sparkle:fullReleaseNotesLink>
+            <sparkle:version>10004</sparkle:version>
+            <sparkle:shortVersionString>1.0.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[
+
+🆕 新增功能
+
+- ✨ 新增「标题添加」功能，支持通过标题快速搜索内容，查找更高效
+
+🎨 界面优化
+
+- 🧭 优化竖版剪切板 UI，视觉与操作体验更流畅
+- 🎬 优化剪切板开启动画，过渡更加自然
+
+🐛 问题修复
+
+- 🔧 修复滚动时被强制居中的问题，浏览体验更自由
+
+---
+
+
+🆕 New Features
+
+- ✨ Added Title Support — you can now add titles and search content by title for faster retrieval
+
+🎨 Improvements
+
+- 🧭 Refined vertical clipboard UI for a smoother and more intuitive experience
+- 🎬 Improved clipboard opening animations with more natural transitions
+
+🐛 Bug Fixes
+
+- 🔧 Fixed the issue where scrolling was forcibly centered, enabling more flexible navigation
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.4/Clipaste-v1.0.4.zip" length="4503958" type="application/octet-stream" sparkle:edSignature="Ly+zc4vNb5uefZYRNINTxEi0zbU7QbIK004ex9FywTyp+EXXdZccThTNEnNdRwz7kFjrVpOJgUAf/aWswKAcAg=="/>
+        </item>
+        <item>
             <title>1.0.3</title>
             <pubDate>Sat, 11 Apr 2026 10:08:31 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -91,20 +132,6 @@ This update focuses on refining the clipboard panel's interaction experience, st
 - Continued to polish minor visual details to enhance overall stability and consistency.
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.2/Clipaste-v1.0.2.zip" length="4256797" type="application/octet-stream" sparkle:edSignature="qiHd6gKNy4lD44smamRsNFk3HiZOPoMhiTvb0/lSqJlIGRva5AcnKWPXAawSrWMh4ZFJ57N+j5+oQh0298inBg=="/>
-        </item>
-        <item>
-            <title>1.0.1</title>
-            <pubDate>Thu, 09 Apr 2026 00:11:55 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.0.1</sparkle:fullReleaseNotesLink>
-            <sparkle:version>11</sparkle:version>
-            <sparkle:shortVersionString>1.0.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[-  🔥fix: 修复从第三方平台导入到Clipaste奔溃的问题
--   🌈style: 优化部分场景下的 UI 展示
--  🌟feat: 新增自动检测更新的能力
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.1/Clipaste-v1.0.1.zip" length="4254972" type="application/octet-stream" sparkle:edSignature="p4Mgz/3+1870k9rg7YorGQ8MeQtPUjIQTO+dN9fU64x39RhRWILqs9FHUnpb6/vKE0MhcDWoP2GO4J8IFCiEAQ=="/>
         </item>
     </channel>
 </rss>
