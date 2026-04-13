@@ -62,6 +62,7 @@ final class ClipboardViewModel: ObservableObject {
     @Published var customGroups: [ClipboardGroupItem] = []
     @Published var selectedGroupId: String? = nil
     @Published var draggedGroup: ClipboardGroupItem? = nil
+    @Published var titleEditorItem: ClipboardItem? = nil
     @Published var quickPasteModifier: ModifierKey = ModifierKey.quickPastePreference()
     @Published var plainTextModifier: ModifierKey = ModifierKey.plainTextPreference()
     @Published var isQuickPasteModifierHeld: Bool = false
@@ -92,6 +93,7 @@ final class ClipboardViewModel: ObservableObject {
     var itemIndexByID: [UUID: Int] = [:]
     var itemIndexByHash: [String: Int] = [:]
     var operationNoticeHideTask: Task<Void, Never>? = nil
+    var suppressedPasteItemIDs: Set<UUID> = []
     let settingsViewModel: SettingsViewModel
 
     init(

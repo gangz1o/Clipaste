@@ -132,6 +132,11 @@ struct ClipboardMainView: View {
             .onReceive(NotificationCenter.default.publisher(for: .focusListIntent)) { _ in
                 requestListFocusPreservingSelection()
             }
+            .sheet(item: titleEditorItemBinding, onDismiss: viewModel.dismissTitleEditor) { item in
+                ClipboardItemTitleEditorSheet(item: item) { title in
+                    viewModel.saveCustomTitle(for: item, title: title)
+                }
+            }
     }
 
     @ViewBuilder
@@ -243,6 +248,19 @@ struct ClipboardMainView: View {
             guard pendingListFocusGeneration == generation else { return }
             _ = applyPendingListFocusIfPossible()
         }
+    }
+
+    private var titleEditorItemBinding: Binding<ClipboardItem?> {
+        Binding(
+            get: { viewModel.titleEditorItem },
+            set: { newValue in
+                if let newValue {
+                    viewModel.titleEditorItem = newValue
+                } else {
+                    viewModel.dismissTitleEditor()
+                }
+            }
+        )
     }
 
     @discardableResult

@@ -203,7 +203,7 @@ extension View {
         Button {
             viewModel.renameItem(item: item)
         } label: {
-            Label("Add Title", systemImage: "character.cursor.ibeam")
+            Label(item.hasCustomTitle ? "Edit Title" : "Add Title", systemImage: "character.cursor.ibeam")
         }
 
         Divider()

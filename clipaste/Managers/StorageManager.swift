@@ -16,6 +16,7 @@ private struct ClipboardRecordSnapshot: Sendable {
     let typeRawValue: String
     let groupId: String?
     let groupIdsRaw: String?
+    let customTitle: String?
     let linkTitle: String?
     let linkIconData: Data?
     let isPinned: Bool
@@ -107,6 +108,7 @@ actor ClipboardSearcher {
                 typeRawValue: record.typeRawValue,
                 groupId: record.groupId,
                 groupIdsRaw: record.groupIdsRaw,
+                customTitle: record.customTitle,
                 linkTitle: record.linkTitle,
                 linkIconData: record.linkIconData,
                 isPinned: record.isPinned,
@@ -395,6 +397,14 @@ final class StorageManager {
         }
     }
 
+    nonisolated
+    func updateRecordCustomTitle(hash: String, customTitle: String?) {
+        let actor = self.storeActor
+        spawnTrackedTask(priority: .userInitiated) {
+            await actor.updateRecordCustomTitle(hash: hash, customTitle: customTitle)
+        }
+    }
+
     func fetchGroups() async -> [ClipboardGroupItem] {
         await storeActor.fetchAllGroups()
     }
@@ -478,7 +488,11 @@ final class StorageManager {
             contentType: type,
             contentHash: record.contentHash,
             textPreview: makeTextPreview(plainText: record.plainText, type: type),
-            searchableText: record.plainText,
+            searchableText: ClipboardItem.searchableTextValue(
+                plainText: record.plainText,
+                customTitle: record.customTitle,
+                linkTitle: record.linkTitle
+            ),
             sourceBundleIdentifier: record.bundleIdentifier,
             appName: record.appName,
             appIcon: nil,
@@ -493,6 +507,7 @@ final class StorageManager {
             fileURL: type == .fileURL ? record.plainText : nil,
             groupId: record.groupId,
             groupIDs: normalizedGroupIDs(primaryGroupID: record.groupId, groupIdsRaw: record.groupIdsRaw),
+            customTitle: record.customTitle,
             linkTitle: record.linkTitle,
             linkIconData: record.linkIconData,
             isPinned: record.isPinned,
@@ -594,6 +609,32 @@ actor ClipboardStoreActor {
         }
     }
 
+    func updateRecordCustomTitle(hash: String, customTitle: String?) {
+        var descriptor = FetchDescriptor<ClipboardRecord>(
+            predicate: #Predicate<ClipboardRecord> { $0.contentHash == hash }
+        )
+        descriptor.fetchLimit = 1
+
+        do {
+            if let record = try modelContext.fetch(descriptor).first {
+                let normalizedTitle = customTitle?
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                record.customTitle = normalizedTitle?.isEmpty == false ? normalizedTitle : nil
+                try modelContext.save()
+                NotificationCenter.default.post(
+                    name: .clipboardRecordDidChange,
+                    object: nil,
+                    userInfo: [
+                        "contentHash": hash,
+                        "kind": ClipboardRecordChangeKind.content.rawValue
+                    ]
+                )
+            }
+        } catch {
+            print("❌ [ClipboardStoreActor] 标题更新失败: \(error)")
+        }
+    }
+
     fileprivate func fetchRecordSnapshot(hash: String) -> ClipboardRecordSnapshot? {
         var descriptor = FetchDescriptor<ClipboardRecord>(
             predicate: #Predicate<ClipboardRecord> { record in
@@ -626,6 +667,7 @@ actor ClipboardStoreActor {
             typeRawValue: record.typeRawValue,
             groupId: record.groupId,
             groupIdsRaw: record.groupIdsRaw,
+            customTitle: record.customTitle,
             linkTitle: record.linkTitle,
             linkIconData: record.linkIconData,
             isPinned: record.isPinned,
@@ -1152,6 +1194,7 @@ actor ClipboardStoreActor {
                 appIconDominantColorHex: $0.appIconDominantColorHex,
                 groupId: $0.groupId,
                 groupIdsRaw: $0.groupIdsRaw,
+                customTitle: $0.customTitle,
                 linkTitle: $0.linkTitle,
                 linkIconData: $0.linkIconData,
                 isPinned: $0.isPinned,
@@ -1210,6 +1253,7 @@ actor ClipboardStoreActor {
                 existingRecord.imageByteCount = incomingRecord.imageByteCount ?? existingRecord.imageByteCount
                 existingRecord.imagePixelWidth = incomingRecord.imagePixelWidth ?? existingRecord.imagePixelWidth
                 existingRecord.imagePixelHeight = incomingRecord.imagePixelHeight ?? existingRecord.imagePixelHeight
+                existingRecord.customTitle = incomingRecord.customTitle ?? existingRecord.customTitle
                 existingRecord.linkTitle = incomingRecord.linkTitle ?? existingRecord.linkTitle
                 existingRecord.linkIconData = incomingRecord.linkIconData ?? existingRecord.linkIconData
                 existingRecord.rtfData = incomingRecord.rtfData ?? existingRecord.rtfData
@@ -1261,6 +1305,7 @@ actor ClipboardStoreActor {
                     appIconDominantColorHex: incomingRecord.appIconDominantColorHex,
                     groupId: incomingRecord.groupId,
                     groupIdsRaw: incomingRecord.groupIdsRaw,
+                    customTitle: incomingRecord.customTitle,
                     linkTitle: incomingRecord.linkTitle,
                     linkIconData: incomingRecord.linkIconData,
                     isPinned: incomingRecord.isPinned,

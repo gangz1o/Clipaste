@@ -55,6 +55,7 @@
 				5FBF2F272F5F0F2700EB1ED9 /* Views */,
 				5F64DF322F5F09EF00608D26 /* clipaste */,
 				5F64DF312F5F09EF00608D26 /* Products */,
+				5FE11B872F8D36DE00D2943E /* Recovered References */,
 			);
 			sourceTree = "<group>";
 		};
@@ -88,6 +89,14 @@
 			children = (
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		5FE11B872F8D36DE00D2943E /* Recovered References */ = {
+			isa = PBXGroup;
+			children = (
+				4A9D7F5C3567C41000A4B221 /* AppIntents.framework */,
+			);
+			name = "Recovered References";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

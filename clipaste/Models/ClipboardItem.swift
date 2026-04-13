@@ -96,6 +96,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
     let fileDisplayName: String?
     let fileRepresentsImage: Bool
     var groupIDs: [String] // 所属分组 ID 集合
+    var customTitle: String? // 用户手动添加的标题
     var linkTitle: String?     // 链接预览：网页标题（LinkPresentation 抓取）
     var linkIconData: Data?    // 链接预览：网站图标数据
     var isPinned: Bool         // 固定状态
@@ -126,6 +127,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         fileURL: String? = nil,
         groupId: String? = nil,
         groupIDs: [String] = [],
+        customTitle: String? = nil,
         linkTitle: String? = nil,
         linkIconData: Data? = nil,
         isPinned: Bool = false,
@@ -162,6 +164,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         }
         self.fileRepresentsImage = resolvedFileURL.map { ClipboardFileReference.isLikelyImageFileURL($0) } ?? false
         self.groupIDs = normalizedGroupIDs
+        self.customTitle = customTitle
         self.linkTitle = linkTitle
         self.linkIconData = linkIconData
         self.isPinned = isPinned
@@ -213,6 +216,7 @@ extension ClipboardItem {
         lhs.fileDisplayName == rhs.fileDisplayName &&
         lhs.fileRepresentsImage == rhs.fileRepresentsImage &&
         lhs.groupIDs == rhs.groupIDs &&
+        lhs.customTitle == rhs.customTitle &&
         lhs.linkTitle == rhs.linkTitle &&
         lhs.linkIconData == rhs.linkIconData &&
         lhs.isPinned == rhs.isPinned &&
@@ -241,6 +245,7 @@ extension ClipboardItem {
         hasher.combine(fileDisplayName)
         hasher.combine(fileRepresentsImage)
         hasher.combine(groupIDs)
+        hasher.combine(customTitle)
         hasher.combine(linkTitle)
         hasher.combine(linkIconData)
         hasher.combine(isPinned)
@@ -266,6 +271,19 @@ extension ClipboardItem {
         groupIDs.first
     }
 
+    var trimmedCustomTitle: String? {
+        let normalized = customTitle?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let normalized, normalized.isEmpty == false else {
+            return nil
+        }
+        return normalized
+    }
+
+    var hasCustomTitle: Bool {
+        trimmedCustomTitle != nil
+    }
+
     var imagePixelSize: CGSize? {
         guard let imagePixelWidth, let imagePixelHeight else { return nil }
         guard imagePixelWidth > 0, imagePixelHeight > 0 else { return nil }
@@ -284,6 +302,26 @@ extension ClipboardItem {
         }
 
         return result
+    }
+}
+
+extension ClipboardItem {
+    nonisolated static func searchableTextValue(
+        plainText: String?,
+        customTitle: String?,
+        linkTitle: String?
+    ) -> String? {
+        let candidates = [customTitle, plainText, linkTitle]
+            .compactMap {
+                $0?.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            .filter { $0.isEmpty == false }
+
+        guard candidates.isEmpty == false else {
+            return nil
+        }
+
+        return candidates.joined(separator: "\n")
     }
 }
 

@@ -19,6 +19,7 @@ final class ClipboardRecord {
     var appIconDominantColorHex: String?
     var groupId: String? // 所属分组 ID
     var groupIdsRaw: String? // 多分组兼容存储(JSON)
+    var customTitle: String? // 用户手动添加的标题
     var linkTitle: String? // 链接预览：网页标题
     @Attribute(.externalStorage) var linkIconData: Data? // 链接预览：网站图标数据
     var isPinned: Bool = false // 固定状态
@@ -38,6 +39,7 @@ final class ClipboardRecord {
         appIconDominantColorHex: String? = nil,
         groupId: String? = nil,
         groupIdsRaw: String? = nil,
+        customTitle: String? = nil,
         linkTitle: String? = nil,
         linkIconData: Data? = nil,
         isPinned: Bool = false,
@@ -59,6 +61,7 @@ final class ClipboardRecord {
         self.appIconDominantColorHex = appIconDominantColorHex
         self.groupId = groupId
         self.groupIdsRaw = groupIdsRaw
+        self.customTitle = customTitle
         self.linkTitle = linkTitle
         self.linkIconData = linkIconData
         self.isPinned = isPinned

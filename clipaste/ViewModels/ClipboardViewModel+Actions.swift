@@ -2,6 +2,10 @@ import AppKit
 import SwiftUI
 
 extension ClipboardViewModel {
+    func suppressNextPaste(for itemID: UUID) {
+        suppressedPasteItemIDs.insert(itemID)
+    }
+
     func batchCopy() {
         let ids = selectedItemIDs
         guard !ids.isEmpty else { return }
@@ -110,6 +114,10 @@ extension ClipboardViewModel {
     }
 
     func pasteToActiveApp(item: ClipboardItem) {
+        if suppressedPasteItemIDs.remove(item.id) != nil {
+            return
+        }
+
         print("🚀 触发双击事件: \(item.id)")
 
         selectedItemIDs = [item.id]
@@ -266,7 +274,11 @@ extension ClipboardViewModel {
                 contentType: item.contentType,
                 contentHash: item.contentHash,
                 textPreview: newText,
-                searchableText: newText,
+                searchableText: ClipboardItem.searchableTextValue(
+                    plainText: newText,
+                    customTitle: item.customTitle,
+                    linkTitle: item.linkTitle
+                ),
                 sourceBundleIdentifier: item.sourceBundleIdentifier,
                 appName: item.appName,
                 appIcon: item.appIcon,
@@ -281,6 +293,7 @@ extension ClipboardViewModel {
                 fileURL: item.fileURL,
                 groupId: item.groupId,
                 groupIDs: item.groupIDs,
+                customTitle: item.customTitle,
                 linkTitle: item.linkTitle,
                 linkIconData: item.linkIconData,
                 isPinned: item.isPinned,
@@ -293,7 +306,26 @@ extension ClipboardViewModel {
     }
 
     func renameItem(item: ClipboardItem) {
-        print("执行：重命名/添加标题 - \(item.id)")
+        titleEditorItem = item
+    }
+
+    func dismissTitleEditor() {
+        titleEditorItem = nil
+    }
+
+    func saveCustomTitle(for item: ClipboardItem, title: String?) {
+        let normalizedTitle = title?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let resolvedTitle = normalizedTitle?.isEmpty == false ? normalizedTitle : nil
+
+        updateItem(id: item.id) { updatedItem in
+            updatedItem.customTitle = resolvedTitle
+        }
+
+        if titleEditorItem?.id == item.id {
+            titleEditorItem = nil
+        }
+
+        StorageManager.shared.updateRecordCustomTitle(hash: item.contentHash, customTitle: resolvedTitle)
     }
 
     func showPreview(item: ClipboardItem) {

@@ -1,6 +1,14 @@
 import SwiftUI
 
 struct ClipboardVerticalItemView: View {
+    private enum Layout {
+        static let appIconSize: CGFloat = 42
+        static let customTitleWidth: CGFloat = 78
+        static let customTitleHeight: CGFloat = 12
+        static let customTitleLeading: CGFloat = 16
+        static let customTitleTop: CGFloat = 4
+    }
+
     let item: ClipboardItem
     @ObservedObject var viewModel: ClipboardViewModel
     let quickPasteIndex: Int?
@@ -89,6 +97,9 @@ struct ClipboardVerticalItemView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(rowBorderColor, lineWidth: 1.5)
             )
+            .overlay(alignment: .topLeading) {
+                customTitleOverlay
+            }
             .task(id: richTextTaskKey) {
                 await refreshRichPreviewText()
             }
@@ -129,7 +140,7 @@ struct ClipboardVerticalItemView: View {
     private var rowContent: some View {
         HStack(spacing: 12) {
             // 1. 左侧：App 图标
-            AppIconView(appBundleID: item.sourceBundleIdentifier, size: 48)
+            AppIconView(appBundleID: item.sourceBundleIdentifier, size: Layout.appIconSize)
                 .shadow(color: Color.black.opacity(0.1), radius: 2, y: 1)
 
             // 2. 中间：内容预览
@@ -279,6 +290,26 @@ struct ClipboardVerticalItemView: View {
                 color: timeTextColor
             )
             .transition(.opacity)
+        }
+    }
+
+    @ViewBuilder
+    private var customTitleOverlay: some View {
+        if item.hasCustomTitle {
+            ClipboardItemCustomTitleView(
+                item: item,
+                viewModel: viewModel,
+                font: .system(size: 9, weight: .semibold),
+                textColor: timeTextColor
+            )
+            .frame(
+                width: Layout.customTitleWidth,
+                height: Layout.customTitleHeight,
+                alignment: .topLeading
+            )
+            .clipped()
+            .padding(.leading, Layout.customTitleLeading)
+            .padding(.top, Layout.customTitleTop)
         }
     }
 

@@ -18,6 +18,7 @@ struct ClipboardRecordExport: Sendable {
     let appIconDominantColorHex: String?
     let groupId: String?
     let groupIdsRaw: String?
+    let customTitle: String?
     let linkTitle: String?
     let linkIconData: Data?
     let isPinned: Bool
@@ -56,6 +57,7 @@ enum ClipboardLegacySchemaV1: VersionedSchema {
         var appLocalizedName: String?
         var groupId: String?
         var groupIdsRaw: String?
+        var customTitle: String?
         var linkTitle: String?
         var linkIconData: Data?
         var isPinned: Bool
@@ -73,6 +75,7 @@ enum ClipboardLegacySchemaV1: VersionedSchema {
             appLocalizedName: String? = nil,
             groupId: String? = nil,
             groupIdsRaw: String? = nil,
+            customTitle: String? = nil,
             linkTitle: String? = nil,
             linkIconData: Data? = nil,
             isPinned: Bool = false,
@@ -89,6 +92,7 @@ enum ClipboardLegacySchemaV1: VersionedSchema {
             self.appLocalizedName = appLocalizedName
             self.groupId = groupId
             self.groupIdsRaw = groupIdsRaw
+            self.customTitle = customTitle
             self.linkTitle = linkTitle
             self.linkIconData = linkIconData
             self.isPinned = isPinned
@@ -211,6 +215,7 @@ final class ClipboardStoreBootstrapper: @unchecked Sendable {
             appIconDominantColorHex: nil,
             groupId: record.groupId,
             groupIdsRaw: record.groupIdsRaw,
+            customTitle: nil,
             linkTitle: record.linkTitle,
             linkIconData: record.linkIconData,
             isPinned: record.isPinned,

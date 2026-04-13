@@ -195,6 +195,9 @@ struct ClipboardCardView: View {
                 .fill(Color.white.opacity(0.10))
                 .frame(height: 0.5)
         }
+        .overlay(alignment: .leading) {
+            headerCustomTitleOverlay
+        }
     }
 
     // MARK: - Content Body
@@ -331,6 +334,26 @@ struct ClipboardCardView: View {
 
     private var isCodeContent: Bool {
         item.contentType == .code
+    }
+
+    @ViewBuilder
+    private var headerCustomTitleOverlay: some View {
+        if item.hasCustomTitle {
+            VStack {
+                Spacer(minLength: 0)
+
+                ClipboardItemCustomTitleView(
+                    item: item,
+                    viewModel: viewModel,
+                    font: .system(size: 11, weight: .semibold),
+                    textColor: .white.opacity(0.96)
+                )
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding(.leading, headerHeight + 10)
+            .padding(.trailing, 76)
+            .padding(.bottom, 8)
+        }
     }
 
     @MainActor
