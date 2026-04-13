@@ -352,6 +352,8 @@ struct ClipboardMainView: View {
     @ViewBuilder
     private var historyPreviewFooter: some View {
         HStack {
+            Spacer()
+
             Text("\(displayedItems.count) Items")
                 .font(.system(size: 11))
                 .foregroundColor(.secondary)

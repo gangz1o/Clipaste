@@ -47,6 +47,7 @@ final class ClipboardViewModel: ObservableObject {
     @Published var currentFilter: ClipboardContentType? = nil
     @Published var selectedBuiltInGroup: ClipboardBuiltInGroup? = nil
     @Published var selectedItemIDs: Set<UUID> = []
+    @Published var listScrollRequest: ClipboardListScrollRequest? = nil
     @Published var isInitialHistoryLoading = false
     @Published var isLoadingMoreHistory = false
     var lastSelectedID: UUID? = nil
@@ -72,6 +73,7 @@ final class ClipboardViewModel: ObservableObject {
     // Shared implementation state for the split partial ViewModel files.
     var cancellables: Set<AnyCancellable> = []
     var filterGeneration: UInt = 0
+    var listScrollGeneration: UInt = 0
     var quickLookLoadTask: Task<Void, Never>? = nil
     var quickLookLoadGeneration: UInt = 0
     var quickLookRequestedItemID: UUID? = nil

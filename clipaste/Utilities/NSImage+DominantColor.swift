@@ -2,7 +2,7 @@ import AppKit
 import CoreImage
 import Foundation
 
-private enum AppIconColorExtraction {
+private nonisolated enum AppIconColorExtraction {
     static let workingSize = 32
     static let minimumAlpha: Double = 0.18
     static let minimumSaturation: Double = 0.20
@@ -183,7 +183,7 @@ extension NSImage {
     }
 }
 
-private struct ColorBin {
+private nonisolated struct ColorBin {
     private(set) var totalWeight: Double = 0
     private var weightedRed: Double = 0
     private var weightedGreen: Double = 0
@@ -205,7 +205,7 @@ private struct ColorBin {
     }
 }
 
-private struct RGBColor {
+private nonisolated struct RGBColor {
     let red: Double
     let green: Double
     let blue: Double
@@ -233,7 +233,7 @@ private struct RGBColor {
     }
 }
 
-private struct HSVColor {
+private nonisolated struct HSVColor {
     let hue: Double
     let saturation: Double
     let value: Double

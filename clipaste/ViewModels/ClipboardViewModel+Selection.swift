@@ -44,6 +44,7 @@ extension ClipboardViewModel {
         if selectedItemIDs.isEmpty {
             selectedItemIDs = [firstVisible.id]
             lastSelectedID = firstVisible.id
+            requestListScroll(to: firstVisible.id, animated: false)
             prewarmQuickLookPreviewIfNeeded()
             return
         }
@@ -62,10 +63,11 @@ extension ClipboardViewModel {
 
         selectedItemIDs = [firstVisible.id]
         lastSelectedID = firstVisible.id
+        requestListScroll(to: firstVisible.id, animated: false)
         prewarmQuickLookPreviewIfNeeded()
     }
 
-    func selectFirstDisplayedItem() {
+    func selectFirstDisplayedItem(animatedScroll: Bool = false) {
         guard let firstVisible = displayedItemsForInteraction.first else {
             clearSelection()
             return
@@ -73,6 +75,7 @@ extension ClipboardViewModel {
 
         selectedItemIDs = [firstVisible.id]
         lastSelectedID = firstVisible.id
+        requestListScroll(to: firstVisible.id, animated: animatedScroll)
         prewarmQuickLookPreviewIfNeeded()
     }
 
@@ -103,6 +106,7 @@ extension ClipboardViewModel {
             lastSelectedID = nextID
         }
 
+        requestListScroll(to: nextID, animated: true)
         prewarmQuickLookPreviewIfNeeded()
     }
 

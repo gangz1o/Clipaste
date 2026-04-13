@@ -35,8 +35,13 @@ struct ClipboardVerticalListView: View {
             .onAppear {
                 scrollToPrimarySelection(with: proxy, animated: false)
             }
-            .onChange(of: viewModel.selectedItemIDs) { _, _ in
-                scrollToPrimarySelection(with: proxy, animated: true)
+            .onChange(of: viewModel.listScrollRequest) { _, request in
+                guard let request else { return }
+                scrollToItem(
+                    with: proxy,
+                    itemID: request.id,
+                    animated: request.animated
+                )
             }
             .frame(maxHeight: .infinity)
         }
@@ -45,14 +50,17 @@ struct ClipboardVerticalListView: View {
 
     private func scrollToPrimarySelection(with proxy: ScrollViewProxy, animated: Bool) {
         guard let selectedID = viewModel.lastSelectedID ?? viewModel.selectedItemIDs.first else { return }
+        scrollToItem(with: proxy, itemID: selectedID, animated: animated)
+    }
 
+    private func scrollToItem(with proxy: ScrollViewProxy, itemID: UUID, animated: Bool) {
         DispatchQueue.main.async {
             if animated {
                 withAnimation(.easeInOut(duration: 0.12)) {
-                    proxy.scrollTo(selectedID, anchor: .center)
+                    proxy.scrollTo(itemID, anchor: .center)
                 }
             } else {
-                proxy.scrollTo(selectedID, anchor: .center)
+                proxy.scrollTo(itemID, anchor: .center)
             }
         }
     }

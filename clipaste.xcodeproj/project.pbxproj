@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4A9D7F5D3567C41000A4B221 /* AppIntents.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4A9D7F5C3567C41000A4B221 /* AppIntents.framework */; };
 		5F3655472F65A05C00329A7D /* Highlightr in Frameworks */ = {isa = PBXBuildFile; productRef = 5F3655462F65A05C00329A7D /* Highlightr */; };
 		5F64DF532F5F0C5900608D26 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = 5F64DF522F5F0C5900608D26 /* KeyboardShortcuts */; };
 		5F8339202F8DA11100CC4001 /* AppPreferencesStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F83391E2F8DA11100CC4001 /* AppPreferencesStore.swift */; };
@@ -16,6 +17,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		4A9D7F5C3567C41000A4B221 /* AppIntents.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppIntents.framework; path = System/Library/Frameworks/AppIntents.framework; sourceTree = SDKROOT; };
 		5F64DF302F5F09EF00608D26 /* Clipaste.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Clipaste.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5F83391E2F8DA11100CC4001 /* AppPreferencesStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppPreferencesStore.swift; sourceTree = "<group>"; };
 		5F83391F2F8DA11100CC4001 /* OnboardingViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingViewModel.swift; sourceTree = "<group>"; };
@@ -35,6 +37,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4A9D7F5D3567C41000A4B221 /* AppIntents.framework in Frameworks */,
 				6A1C7B0F34D24A8A00A1B2C3 /* Sparkle in Frameworks */,
 				5F3655472F65A05C00329A7D /* Highlightr in Frameworks */,
 				5F64DF532F5F0C5900608D26 /* KeyboardShortcuts in Frameworks */,
@@ -337,7 +340,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gangz1o.clipaste;
 				PRODUCT_NAME = Clipaste;
 				REGISTER_APP_GROUPS = YES;
@@ -385,7 +388,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.0.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gangz1o.clipaste;
 				PRODUCT_NAME = Clipaste;
 				PROVISIONING_PROFILE_SPECIFIER = "$(CLIPASTE_RELEASE_PROFILE_SPECIFIER)";

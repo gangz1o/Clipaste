@@ -129,7 +129,7 @@ struct ClipboardVerticalItemView: View {
     private var rowContent: some View {
         HStack(spacing: 12) {
             // 1. 左侧：App 图标
-            AppIconView(appBundleID: item.sourceBundleIdentifier, size: 32)
+            AppIconView(appBundleID: item.sourceBundleIdentifier, size: 48)
                 .shadow(color: Color.black.opacity(0.1), radius: 2, y: 1)
 
             // 2. 中间：内容预览
@@ -252,6 +252,7 @@ struct ClipboardVerticalItemView: View {
 
                 quickPasteInlineLabel
             }
+            .padding(.top, 4)
             .help(item.timestamp.formatted(date: .complete, time: .standard))
             .frame(minWidth: 44, maxHeight: .infinity, alignment: .topTrailing)
         }
