@@ -1,7 +1,8 @@
 # 📋 Clipaste
-[![简体中文](https://img.shields.io/static/v1?label=🇨🇳&message=简体中文&color=blue)](README.zh.md) [![English](https://img.shields.io/static/v1?label=🇺🇸&message=English&color=orange)](README.md)
+[![简体中文](https://img.shields.io/static/v1?label=🇨🇳&message=简体中文&color=red)](README.zh.md) [![English](https://img.shields.io/static/v1?label=🇺🇸&message=English&color=blue)](README.md)
 
 ![GitHub Repo stars](https://img.shields.io/github/stars/gangz1o/Clipaste?style=for-the-badge)
+<a href="https://github.com/gangz1o/Clipaste/releases/latest"><img src="https://img.shields.io/github/v/release/gangz1o/Clipaste?style=for-the-badge" alt="Latest release"></a>
 ![GitHub forks](https://img.shields.io/github/forks/gangz1o/Clipaste?style=for-the-badge)
 ![GitHub contributors](https://img.shields.io/github/contributors/gangz1o/Clipaste?style=for-the-badge)
 ![GitHub repo size](https://img.shields.io/github/repo-size/gangz1o/Clipaste?style=for-the-badge)
