@@ -12,15 +12,6 @@ extension ClipboardViewModel {
                 self.toggleFavoriteForSelection()
             }
             .store(in: &cancellables)
-
-        NotificationCenter.default.publisher(for: .deleteSelectedItemsIntent)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                guard let self, self.isPanelPresentationActive else { return }
-                guard !self.selectedItemIDs.isEmpty else { return }
-                self.batchDelete()
-            }
-            .store(in: &cancellables)
     }
 
     func startKeyboardMonitoring() {
@@ -34,6 +25,9 @@ extension ClipboardViewModel {
 
         keyDownMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self else { return event }
+            // Only process keyboard events when the Clipaste panel is visible.
+            // This prevents capturing keys when the panel is hidden.
+            guard ClipboardPanelManager.shared.panel?.isVisible == true else { return event }
             return self.handlePanelKeyDown(event)
         }
     }

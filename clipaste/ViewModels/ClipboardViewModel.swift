@@ -8,7 +8,6 @@ extension Notification.Name {
     static let focusSearchFieldIntent = Notification.Name("focusSearchFieldIntent")
     static let focusListIntent = Notification.Name("focusListIntent")
     static let toggleFavoriteSelectionIntent = Notification.Name("toggleFavoriteSelectionIntent")
-    static let deleteSelectedItemsIntent = Notification.Name("deleteSelectedItemsIntent")
 }
 
 /// 统一分组标识：将智能分类和用户分组抹平为同一类型，供游标引擎使用。

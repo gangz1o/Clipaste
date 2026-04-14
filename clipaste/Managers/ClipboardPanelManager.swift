@@ -9,7 +9,7 @@ class ClipboardPanelManager {
     static let shared = ClipboardPanelManager()
     private static let panelLevel = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.dockWindow)) + 1)
 
-    private var panel: ClipboardPanel?
+    private(set) var panel: ClipboardPanel?
     private var eventMonitor: Any?
     private var layoutObserver: Any?
     private var pinObserver: Any?

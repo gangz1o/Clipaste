@@ -4,12 +4,16 @@ import SwiftUI
 
 extension ClipboardViewModel {
     func beginPresentation() {
+        let wasAlreadyActive = isPanelPresentationActive
         isPanelPresentationActive = true
         shouldAutoFollowTopItemDuringPresentation = true
-        // Preserve the current selection until the presentation flow resolves the default
-        // first-item focus. Clearing first causes a visible deselect/reselect flash when
-        // the first item is already active.
-        resetSearchForPresentationIfNeeded()
+        
+        // Only reset search on the initial presentation, not when regaining focus
+        // while already active. This preserves search state when the panel
+        // regains focus during an active search.
+        if wasAlreadyActive == false {
+            resetSearchForPresentationIfNeeded()
+        }
 
         if hasPreparedPanelData == false {
             hasPreparedPanelData = true

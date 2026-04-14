@@ -133,9 +133,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             NotificationCenter.default.post(name: .toggleFavoriteSelectionIntent, object: nil)
         }
 
-        KeyboardShortcuts.onKeyDown(for: .deleteSelectedItems) {
-            NotificationCenter.default.post(name: .deleteSelectedItemsIntent, object: nil)
-        }
+        // NOTE: Cmd+Backspace (delete selected items) is intentionally NOT registered as a global
+        // KeyboardShortcuts shortcut. The KeyboardShortcuts framework intercepts events system-wide
+        // (via CGEventTap), which would consume Cmd+Backspace in other apps even when the Clipaste
+        // panel is hidden. Instead, this action is handled locally inside handlePanelKeyDown() via
+        // a local NSEvent monitor that only fires when the panel is visible.
     }
 
     private func refreshGlobalShortcuts() {
