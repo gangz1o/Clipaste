@@ -3,6 +3,41 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>1.0.5</title>
+            <pubDate>Tue, 14 Apr 2026 15:45:38 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.0.5</sparkle:fullReleaseNotesLink>
+            <sparkle:version>10005</sparkle:version>
+            <sparkle:shortVersionString>1.0.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[### 🐛 修复
+- 修复删除当前选中 item 后，选中框不会自动切换到相邻 item 的问题。
+
+### ✨ 新增
+- 新增横版搜索按钮的动态展开效果。
+- 新增横版搜索按钮未激活时的图标态展示。
+
+### ⚡ 优化
+- 优化竖版 item 标题位置与样式，显示更清晰、更醒目。
+- 优化横版搜索框展开动画，整体更丝滑自然。
+
+---
+
+### 🐛 Fixed
+- Fixed an issue where deleting the currently selected item would not automatically move selection to the adjacent item.
+
+### ✨ Added
+- Added an animated expand interaction for the horizontal search button.
+- Added an icon-only idle state for the horizontal search button.
+
+### ⚡ Improved
+- Improved the position and styling of vertical item titles for better clarity and visibility.
+- Improved the horizontal search expansion animation for a smoother feel.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.5/Clipaste-v1.0.5.zip" length="4514881" type="application/octet-stream" sparkle:edSignature="ygAJaW5Qz0KlvR+BL5R9SUTFEq2EO0urvmqZKMSYqBLhKItRMfk5ykTQYinYGpdYyVUl5B2nD2Gw0j4fBYyGBw=="/>
+        </item>
+        <item>
             <title>1.0.4</title>
             <pubDate>Mon, 13 Apr 2026 17:14:01 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -78,60 +113,6 @@
 * **Refinements**: Addressed various minor edge-case bugs to improve overall system robustness.
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.3/Clipaste-v1.0.3.zip" length="4454056" type="application/octet-stream" sparkle:edSignature="3+f9T8vAwuNkfO+hxVM9qEr/QKtSERq7LCv8VF3kdcNAN2Ely6mv6cbv6qm+FzWLUuJddnhMJuMom+7JZ1oICQ=="/>
-        </item>
-        <item>
-            <title>1.0.2</title>
-            <pubDate>Thu, 09 Apr 2026 23:51:25 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.0.2</sparkle:fullReleaseNotesLink>
-            <sparkle:version>10002</sparkle:version>
-            <sparkle:shortVersionString>1.0.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[本次更新重点打磨了剪贴板面板的交互体验、启动性能和分组导航表现，让整体使用更顺手、更稳定。
-
-🛠️ 交互修复
-- 修复方向键切换历史项时会触发异常音效的问题
-- 修复搜索结果中无法使用方向键切换项目的问题
-- 优化横版与竖版剪贴板切换体验，减少中间态与闪动感
-
-🚀 性能优化
-- 优化启动流程，降低启动阶段的 CPU 与内存占用
-- 避免首次打开历史面板时长时间空白，改为更快呈现最近记录并后台补齐完整历史
-- 改善面板首次激活时的数据加载节奏，整体响应更轻快
-
-🎛️ 使用体验升级
-- 新增“激活面板清空搜索框”开关，打开历史时可自动回到无搜索状态
-- 优化分组栏交互，“全部”分组固定显示，不再跟随滚动
-- 调整竖版分组栏间距，提升可见分组数量
-- 重做分组选中态样式，让顶部导航和整体 UI 更统一
-
-🌍 其他改进
-- 补充相关国际化文案
-- 持续清理细节表现，提升整体稳定性与一致性
-
-This update focuses on refining the clipboard panel's interaction experience, startup performance, and group navigation, making overall usage smoother and more stable.
-
-🛠️ **Interaction Fixes**
-- Fixed an issue where navigating history items with arrow keys triggered abnormal sound effects.
-- Fixed an issue where arrow keys could not be used to navigate through search results.
-- Optimized the transition between horizontal and vertical clipboard layouts, minimizing intermediate states and flickering.
-
-🚀 **Performance Optimizations**
-- Optimized the startup process, reducing CPU and memory consumption during launch.
-- Eliminated long blank screens when opening the history panel for the first time; recent records now display instantly while the full history loads in the background.
-- Improved the data loading rhythm upon the panel's first activation, resulting in a snappier overall response.
-
-🎛️ **UX Enhancements**
-- Added a "Clear search box on panel activation" toggle, allowing the history panel to automatically open in a default, unsearched state.
-- Optimized group bar interaction; the "All" group is now pinned and no longer scrolls with other items.
-- Adjusted the spacing of the vertical group bar to increase the number of visible groups.
-- Redesigned the selected state style for groups to ensure the top navigation aligns more consistently with the overall UI.
-
-🌍 **Other Improvements**
-- Added missing localization texts.
-- Continued to polish minor visual details to enhance overall stability and consistency.
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.2/Clipaste-v1.0.2.zip" length="4256797" type="application/octet-stream" sparkle:edSignature="qiHd6gKNy4lD44smamRsNFk3HiZOPoMhiTvb0/lSqJlIGRva5AcnKWPXAawSrWMh4ZFJ57N+j5+oQh0298inBg=="/>
         </item>
     </channel>
 </rss>
