@@ -25,6 +25,11 @@ enum AppLayoutMode: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
+    /// Returns `true` for layouts that use a vertical list (`.vertical` and `.compact`).
+    var isVertical: Bool {
+        self == .vertical || self == .compact
+    }
+
     var displayName: String {
         switch self {
         case .horizontal:

@@ -193,10 +193,8 @@ extension ClipboardViewModel {
                responder is NSTextView || responder is NSTextField {
                 return event
             }
-            if settingsViewModel.requireCmdToDelete, !selectedItemIDs.isEmpty {
-                batchDelete()
-                return nil
-            }
+            deleteSelection(isCommandHeld: true)
+            return nil
         }
 
         if keyCode == 0, event.modifierFlags.contains(.command) {
@@ -304,10 +302,16 @@ private extension ClipboardViewModel {
         let currentLayoutMode = AppLayoutMode(
             rawValue: defaults.string(forKey: "clipboardLayout") ?? AppLayoutMode.horizontal.rawValue
         ) ?? .horizontal
-        let layoutMode: AppLayoutMode = currentLayoutMode == .vertical ? .horizontal : .vertical
 
-        defaults.set(layoutMode.rawValue, forKey: "clipboardLayout")
-        defaults.set(layoutMode == .vertical, forKey: "isVerticalLayout")
+        let nextLayoutMode: AppLayoutMode
+        switch currentLayoutMode {
+        case .horizontal: nextLayoutMode = .vertical
+        case .vertical:   nextLayoutMode = .compact
+        case .compact:    nextLayoutMode = .horizontal
+        }
+
+        defaults.set(nextLayoutMode.rawValue, forKey: "clipboardLayout")
+        defaults.set(nextLayoutMode.isVertical, forKey: "isVerticalLayout")
     }
 
     func isPlainNavigationEvent(_ event: NSEvent) -> Bool {
@@ -320,9 +324,8 @@ private extension ClipboardViewModel {
         let layout = AppLayoutMode(
             rawValue: UserDefaults.standard.string(forKey: "clipboardLayout") ?? AppLayoutMode.horizontal.rawValue
         ) ?? .horizontal
-        let isVertical = layout == .vertical || layout == .compact
 
-        if isVertical {
+        if layout.isVertical {
             if keyCode == 125 {
                 return 1
             }

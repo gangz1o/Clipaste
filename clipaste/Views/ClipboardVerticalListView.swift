@@ -1,22 +1,44 @@
+import Combine
 import SwiftUI
+
+/// Debounce helper used by `ClipboardVerticalListView` to throttle preview updates
+/// triggered by mouse hover events without relying on manual `Timer` management.
+private final class HoverDebouncer: ObservableObject {
+    private let subject = PassthroughSubject<ClipboardItem, Never>()
+    private var cancellable: AnyCancellable?
+
+    var onUpdate: ((ClipboardItem) -> Void)? {
+        didSet { rebind() }
+    }
+
+    private func rebind() {
+        cancellable = subject
+            .debounce(for: .milliseconds(80), scheduler: RunLoop.main)
+            .sink { [weak self] item in
+                self?.onUpdate?(item)
+            }
+    }
+
+    func send(_ item: ClipboardItem) {
+        subject.send(item)
+    }
+}
 
 struct ClipboardVerticalListView: View {
     @ObservedObject var viewModel: ClipboardViewModel
     let items: [ClipboardItem]
     @FocusState var focusedField: ClipboardPanelFocusField?
     @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
-    @AppStorage("requireCmdToDelete") private var requireCmdToDelete: Bool = false
     @AppStorage("previewPanelMode") private var previewPanelMode: PreviewPanelMode = .disabled
 
     // Preview state - selected item for preview when enabled
     @State private var selectedPreviewItem: ClipboardItem?
     @State private var keyboardSelectedItem: ClipboardItem?
-    @State private var hoverDebounceTimer: Timer?
+    @StateObject private var hoverDebouncer = HoverDebouncer()
     @State private var isHoveringItem: Bool = false
 
     // Layout constants
     private let previewAnimationDuration: Double = 0.3
-    private var hoverDebounceInterval: Double { 0.08 }
 
     private var isCompact: Bool {
         clipboardLayout == .compact
@@ -58,6 +80,11 @@ struct ClipboardVerticalListView: View {
             // Update preview when selection changes via keyboard
             handleSelectionChange()
         }
+        .onAppear {
+            hoverDebouncer.onUpdate = { item in
+                updatePreview(for: item)
+            }
+        }
     }
 
     @ViewBuilder
@@ -87,9 +114,7 @@ struct ClipboardVerticalListView: View {
                 focusedField = .clipList
             })
             .onDeleteCommand {
-                guard !requireCmdToDelete else { return }
-                guard !viewModel.selectedItemIDs.isEmpty else { return }
-                viewModel.batchDelete()
+                viewModel.deleteSelection(isCommandHeld: false)
             }
             .onAppear {
                 scrollToPrimarySelection(with: proxy, animated: false)
@@ -115,19 +140,14 @@ struct ClipboardVerticalListView: View {
 
     private func handleHoverChange(item: ClipboardItem, isHovering: Bool) {
         guard isPreviewEnabled else { return }
-        
+
         if isHovering {
-            // Start hovering
+            // Start hovering — debounce the preview update to avoid flicker
             isHoveringItem = true
-            hoverDebounceTimer?.invalidate()
-            hoverDebounceTimer = Timer.scheduledTimer(withTimeInterval: hoverDebounceInterval, repeats: false) { _ in
-                updatePreview(for: item)
-            }
+            hoverDebouncer.send(item)
         } else {
             // Stop hovering - immediately revert to keyboard selection
             isHoveringItem = false
-            hoverDebounceTimer?.invalidate()
-            hoverDebounceTimer = nil
             updatePreviewFromKeyboardSelection()
         }
     }

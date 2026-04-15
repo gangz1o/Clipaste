@@ -54,7 +54,7 @@ final class SettingsViewModel: @preconcurrency ObservableObject {
 
     /// Backward compatibility property - true when layout is vertical or compact
     var isVerticalLayout: Bool {
-        layoutMode == .vertical || layoutMode == .compact
+        layoutMode.isVertical
     }
 
     @AppStorage("pasteBehavior") var pasteBehavior: PasteBehavior = .direct {

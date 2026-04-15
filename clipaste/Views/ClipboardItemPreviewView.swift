@@ -387,6 +387,7 @@ private struct CheckerboardBackground: View {
                 }
             }
         }
+        .accessibilityLabel("Checkerboard pattern for transparent image background")
     }
 }
 
