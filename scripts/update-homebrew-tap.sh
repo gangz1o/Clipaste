@@ -46,6 +46,11 @@ log() {
   printf '[update-homebrew-tap] %s\n' "$*"
 }
 
+configure_authenticated_push_remote() {
+  git -C "$TAP_CLONE_DIR" remote set-url --push origin \
+    "https://x-access-token:${GH_TOKEN}@github.com/${HOMEBREW_TAP_REPOSITORY}.git"
+}
+
 ensure_release_artifacts() {
   mkdir -p "$DIST_DIR"
 
@@ -116,6 +121,7 @@ ensure_release_artifacts
 
 log "Cloning ${HOMEBREW_TAP_REPOSITORY}"
 gh repo clone "$HOMEBREW_TAP_REPOSITORY" "$TAP_CLONE_DIR"
+configure_authenticated_push_remote
 
 SHA256="$(extract_sha256 "$SHA256_PATH")"
 log "Updating ${CASK_RELATIVE_PATH} to version ${VERSION}"
