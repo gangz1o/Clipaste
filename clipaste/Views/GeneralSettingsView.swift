@@ -164,8 +164,31 @@ private extension GeneralSettingsView {
                     .pickerStyle(.menu)
                     .labelsHidden()
                 }
+
+                cardDivider
+
+                SettingRow(
+                    icon: "rectangle.on.rectangle",
+                    title: "Preview Panel",
+                    subtitle: "Show detailed preview when using vertical layouts"
+                ) {
+                    PreviewPanelToggle()
+                }
             }
         }
+    }
+}
+
+private struct PreviewPanelToggle: View {
+    @AppStorage("previewPanelMode") private var previewPanelMode: PreviewPanelMode = .disabled
+
+    var body: some View {
+        Toggle("", isOn: Binding(
+            get: { previewPanelMode == .enabled },
+            set: { previewPanelMode = $0 ? .enabled : .disabled }
+        ))
+        .toggleStyle(.switch)
+        .labelsHidden()
     }
 }
 
