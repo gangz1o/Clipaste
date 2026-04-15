@@ -1,4 +1,3 @@
-
 ### 🐛 修复
 
 - 修复 Clipaste 全局注册 `Ctrl + E` 后，导致 macOS 原生 Cocoa 文本快捷键在备忘录、浏览器、终端等应用中失效的问题。
@@ -6,9 +5,9 @@
 ### ✨ 新增
 
 - 新增 Homebrew 安装支持，现可通过 `brew tap gangz1o/clipaste` 和 `brew install --cask gangz1o-clipaste` 安装 Clipaste。
-- 新增右键菜单快捷键提示：
-  - 收藏操作显示 `Ctrl + E`
-  - 预览操作显示 `空格`
+- 新增右键菜单快捷键：
+  - 收藏操作 `Ctrl + E`
+  - 预览操作 `空格`
 
 ### ⚡ 优化
 
@@ -40,4 +39,3 @@
 - Improved localization and wording in the Shortcuts settings page.
 - Improved the visibility and readability of shortcut hints in the context menu.
 - Improved the update experience for Homebrew users, with updates available either in-app or through Homebrew.
-
