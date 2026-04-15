@@ -81,6 +81,25 @@ The goal is simple: switch without losing your existing history.
 - macOS 14.0+
 - Xcode 16+
 
+## 📦 Install
+
+Recommended installation method:
+
+```bash
+brew tap gangz1o/clipaste
+brew install --cask gangz1o-clipaste
+```
+
+To update Clipaste, you can either:
+
+- Use the in-app updater
+- Update via Homebrew:
+
+```bash
+brew update
+brew upgrade --cask gangz1o-clipaste
+```
+
 ## 🛠️ Build
 
 1. Open `clipaste.xcodeproj` in Xcode

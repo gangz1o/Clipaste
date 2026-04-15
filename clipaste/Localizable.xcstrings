@@ -3649,13 +3649,13 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "全域快速键"
+            "value" : "全局快捷键"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "全域快速鍵"
+            "value" : "全域快捷鍵"
           }
         }
       }
@@ -5171,6 +5171,7 @@
       }
     },
     "Navigation & Actions" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5742,6 +5743,22 @@
         }
       }
     },
+    "Only the wake shortcut is registered globally. Other actions work only while the Clipaste panel is focused." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只有呼出快捷键会全局注册。其他操作仅在 Clipaste 面板获得焦点时生效。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "只有喚出快捷鍵會全域註冊。其他操作僅在 Clipaste 面板取得焦點時生效。"
+          }
+        }
+      }
+    },
     "Open Accessibility Settings…" : {
       "localizations" : {
         "de" : {
@@ -5850,6 +5867,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Option"
+          }
+        }
+      }
+    },
+    "Panel Shortcuts" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "面板内快捷键"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "面板內快捷鍵"
           }
         }
       }
@@ -8898,6 +8931,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "這些選項隨時可以在設定裡調整。"
+          }
+        }
+      }
+    },
+    "These shortcuts are handled only when the Clipaste panel is the active window, so native shortcuts in Notes, browsers, Terminal, and other apps stay intact." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这些快捷键只会在 Clipaste 面板处于活动窗口时处理，因此备忘录、浏览器、终端等应用里的原生快捷键不会受影响。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這些快捷鍵只會在 Clipaste 面板處於作用中視窗時處理，因此備忘錄、瀏覽器、終端機等 App 內的原生快捷鍵不會受影響。"
           }
         }
       }

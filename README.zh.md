@@ -81,6 +81,25 @@ Clipaste 支持从以下应用迁移历史数据：
 - macOS 14.0+
 - Xcode 16+
 
+## 📦 安装
+
+推荐使用 Homebrew 安装：
+
+```bash
+brew tap gangz1o/clipaste
+brew install --cask gangz1o-clipaste
+```
+
+更新 Clipaste 有两种方式：
+
+- 使用应用内更新
+- 通过 Homebrew 更新：
+
+```bash
+brew update
+brew upgrade --cask gangz1o-clipaste
+```
+
 ## 🛠️ 本地构建
 
 1. 用 Xcode 打开 `clipaste.xcodeproj`

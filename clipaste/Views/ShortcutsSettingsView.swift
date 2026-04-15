@@ -29,7 +29,7 @@ struct ShortcutsSettingsView: View {
         ScrollView(.vertical, showsIndicators: false) {
             VStack(spacing: 20) {
                 globalShortcutsCard
-                navigationCard
+                panelShortcutsCard
                 modifiersCard
                 resetButton
             }
@@ -48,12 +48,13 @@ private extension ShortcutsSettingsView {
             SettingsCard(title: "Global Shortcuts", systemImage: "command") {
                 VStack(spacing: 0) {
                     ShortcutRecorderRow("Show / Hide Clipboard Panel", name: .toggleClipboardPanel)
-
-                    cardDivider
-
-                    ShortcutRecorderRow("Toggle Vertical Clipboard", name: .toggleVerticalClipboard)
                 }
             }
+
+            Text("Only the wake shortcut is registered globally. Other actions work only while the Clipaste panel is focused.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 4)
 
             Text("If the shortcut doesn't work, allow Clipaste in System Settings > Privacy & Security > Accessibility.")
                 .font(.footnote)
@@ -63,26 +64,37 @@ private extension ShortcutsSettingsView {
     }
 }
 
-// MARK: - Card 2: Navigation & Operations
+// MARK: - Card 2: Panel Shortcuts
 
 private extension ShortcutsSettingsView {
-    var navigationCard: some View {
-        SettingsCard(title: "Navigation & Actions", systemImage: "arrow.left.arrow.right") {
-            VStack(spacing: 0) {
-                ShortcutRecorderRow("Next List", name: .nextList)
+    var panelShortcutsCard: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            SettingsCard(title: "Panel Shortcuts", systemImage: "rectangle.on.rectangle") {
+                VStack(spacing: 0) {
+                    ShortcutRecorderRow("Toggle Vertical Clipboard", name: .toggleVerticalClipboard)
 
-                cardDivider
+                    cardDivider
 
-                ShortcutRecorderRow("Previous List", name: .prevList)
+                    ShortcutRecorderRow("Next List", name: .nextList)
 
-                cardDivider
+                    cardDivider
 
-                ShortcutRecorderRow("Toggle Favorites for Selection", name: .toggleFavoriteSelection)
+                    ShortcutRecorderRow("Previous List", name: .prevList)
 
-                cardDivider
+                    cardDivider
 
-                ShortcutRecorderRow("Clear Clipboard History", name: .clearHistory)
+                    ShortcutRecorderRow("Toggle Favorites for Selection", name: .toggleFavoriteSelection)
+
+                    cardDivider
+
+                    ShortcutRecorderRow("Clear Clipboard History", name: .clearHistory)
+                }
             }
+
+            Text("These shortcuts are handled only when the Clipaste panel is the active window, so native shortcuts in Notes, browsers, Terminal, and other apps stay intact.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 4)
         }
     }
 }
@@ -200,13 +212,6 @@ private struct ShortcutRecorderRow: View {
             shortcut = newShortcut
         }
         .frame(minWidth: 140)
-        .overlay(alignment: .trailing) {
-            Capsule()
-                .fill(Color(nsColor: .controlBackgroundColor))
-                .frame(width: 28, height: 22)
-                .padding(.trailing, 6)
-                .allowsHitTesting(false)
-        }
     }
 }
 

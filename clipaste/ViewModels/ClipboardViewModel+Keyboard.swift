@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import KeyboardShortcuts
 import SwiftUI
 
 extension ClipboardViewModel {
@@ -192,7 +193,33 @@ extension ClipboardViewModel {
             return nil
         }
 
-        if !isQuickLookActive,
+        if matchesPanelShortcut(event, name: .toggleVerticalClipboard) {
+            togglePanelLayoutShortcut()
+            return nil
+        }
+
+        if matchesPanelShortcut(event, name: .nextList) {
+            selectNextGroup()
+            return nil
+        }
+
+        if matchesPanelShortcut(event, name: .prevList) {
+            selectPreviousGroup()
+            return nil
+        }
+
+        if matchesPanelShortcut(event, name: .toggleFavoriteSelection) {
+            toggleFavoriteForSelection()
+            return nil
+        }
+
+        if matchesPanelShortcut(event, name: .clearHistory) {
+            StorageManager.shared.clearUnpinnedHistory()
+            return nil
+        }
+
+        if isPlainNavigationEvent(event),
+           !isQuickLookActive,
            let direction = navigationDirection(for: keyCode),
            shouldRouteSearchArrowNavigation {
             NotificationCenter.default.post(name: .focusListIntent, object: nil)
@@ -204,7 +231,8 @@ extension ClipboardViewModel {
             return event
         }
 
-        if !isQuickLookActive,
+        if isPlainNavigationEvent(event),
+           !isQuickLookActive,
            let direction = navigationDirection(for: keyCode) {
             moveSelection(direction: direction)
             return nil
@@ -242,6 +270,35 @@ private extension ClipboardViewModel {
         }
 
         return responder is NSTextView || responder is NSTextField
+    }
+
+    func matchesPanelShortcut(_ event: NSEvent, name: KeyboardShortcuts.Name) -> Bool {
+        guard hasActiveTextInputResponder == false else {
+            return false
+        }
+
+        guard let eventShortcut = KeyboardShortcuts.Shortcut(event: event) else {
+            return false
+        }
+
+        return name.shortcut == eventShortcut
+    }
+
+    func togglePanelLayoutShortcut() {
+        let defaults = UserDefaults.standard
+        let currentLayoutMode = AppLayoutMode(
+            rawValue: defaults.string(forKey: "clipboardLayout") ?? AppLayoutMode.horizontal.rawValue
+        ) ?? .horizontal
+        let layoutMode: AppLayoutMode = currentLayoutMode == .vertical ? .horizontal : .vertical
+
+        defaults.set(layoutMode.rawValue, forKey: "clipboardLayout")
+        defaults.set(layoutMode == .vertical, forKey: "isVerticalLayout")
+    }
+
+    func isPlainNavigationEvent(_ event: NSEvent) -> Bool {
+        let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        let disallowedModifiers: NSEvent.ModifierFlags = [.command, .control, .option, .shift]
+        return modifiers.isDisjoint(with: disallowedModifiers)
     }
 
     func navigationDirection(for keyCode: UInt16) -> Int? {
