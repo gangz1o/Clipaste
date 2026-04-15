@@ -32,6 +32,7 @@ jobs:
       APPLE_API_KEY_BASE64: ${{ secrets.APPLE_API_KEY_BASE64 }}
       BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.BUILD_PROVISION_PROFILE_BASE64 }}
       SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+      HOMEBREW_TAP_REPOSITORY: gangz1o/homebrew-clipaste
 
     steps:
       - name: Check out repository
@@ -64,3 +65,15 @@ jobs:
 
           chmod +x scripts/publish-sparkle-feed.sh
           scripts/publish-sparkle-feed.sh
+
+      - name: Update Homebrew Tap
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+        run: |
+          if [ -z "${GH_TOKEN}" ]; then
+            echo "HOMEBREW_TAP_GITHUB_TOKEN is not configured. Skipping tap update."
+            exit 0
+          fi
+
+          chmod +x scripts/update-homebrew-tap.sh
+          scripts/update-homebrew-tap.sh

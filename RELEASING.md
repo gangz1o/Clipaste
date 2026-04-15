@@ -12,6 +12,7 @@ It also publishes a Sparkle appcast feed so the macOS app can check, download, a
    - `Clipaste-<tag>.zip`
    - `Clipaste-<tag>.dmg.sha256`
 4. The workflow updates the `update-feed` branch and refreshes `appcast.xml`.
+5. If `HOMEBREW_TAP_GITHUB_TOKEN` is configured, the workflow also updates the Homebrew tap cask in `gangz1o/homebrew-clipaste`.
 
 You can also run the workflow manually with `workflow_dispatch` and provide an existing tag.
 
@@ -42,6 +43,8 @@ Optional:
 
 - `BUILD_PROVISION_PROFILE_BASE64`
   Base64-encoded provisioning profile. Use this only if automatic signing cannot fetch the required profile for CloudKit/iCloud entitlements.
+- `HOMEBREW_TAP_GITHUB_TOKEN`
+  Personal access token with `repo` scope for pushing updates to `gangz1o/homebrew-clipaste`.
 
 ## Exporting the Certificate
 
@@ -71,6 +74,7 @@ Paste the result into `APPLE_API_KEY_BASE64`.
 - The workflow builds using `developer-id` export and notarizes the generated `.dmg`.
 - The release script also creates a signed `.zip` update archive for Sparkle and notarizes the exported `.app` before zipping it.
 - Sparkle feed artifacts are published to the `update-feed` branch and served from `https://raw.githubusercontent.com/gangz1o/Clipaste/update-feed/appcast.xml`.
+- Homebrew tap updates are pushed to `https://github.com/gangz1o/homebrew-clipaste`.
 - The project currently ships with iCloud entitlements in `clipaste/clipaste.entitlements` and `clipaste/clipaste-release.entitlements`.
 - If automatic provisioning fails on CI, provide `BUILD_PROVISION_PROFILE_BASE64`.
 - This document is maintainer-focused. Open-source contributors do not need release secrets to build the app locally.
