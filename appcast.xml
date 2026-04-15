@@ -3,6 +3,60 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>1.0.6</title>
+            <pubDate>Wed, 15 Apr 2026 15:32:56 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.0.6</sparkle:fullReleaseNotesLink>
+            <sparkle:version>10006</sparkle:version>
+            <sparkle:shortVersionString>1.0.6</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[
+### 🐛 修复
+
+- 修复 Clipaste 全局注册 `Ctrl + E` 后，导致 macOS 原生 Cocoa 文本快捷键在备忘录、浏览器、终端等应用中失效的问题。
+
+### ✨ 新增
+
+- 新增 Homebrew 安装支持，现可通过 `brew tap gangz1o/clipaste` 和 `brew install --cask gangz1o-clipaste` 安装 Clipaste。
+- 新增右键菜单快捷键提示：
+  - 收藏操作显示 `Ctrl + E`
+  - 预览操作显示 `空格`
+
+### ⚡ 优化
+
+- 优化快捷键作用域：
+  - 全局快捷键现在仅用于呼出 / 隐藏 Clipaste 面板
+  - 其他快捷键仅在 Clipaste 面板激活时响应，避免与系统和其他应用快捷键冲突
+- 优化快捷键设置页的中英文文案与本地化显示。
+- 优化右键菜单中的快捷键信息展示与可读性。
+- 优化 Homebrew 用户的更新体验，可通过应用内更新或 Homebrew 命令完成升级。
+
+---
+
+### 🐛 Fixed
+
+- Fixed an issue where Clipaste globally capturing `Ctrl + E` would break the native Cocoa “move cursor to end of line” shortcut in apps like Notes, browsers, and Terminal.
+
+### ✨ Added
+
+- Added Homebrew installation support. Clipaste can now be installed with `brew tap gangz1o/clipaste` and `brew install --cask gangz1o-clipaste`.
+- Added shortcut hints in the context menu:
+  - `Ctrl + E` for Favorites
+  - `Space` for Preview
+
+### ⚡ Improved
+
+- Improved shortcut scoping:
+  - Global shortcuts are now limited to showing / hiding the Clipaste panel
+  - Other shortcuts are only handled when the Clipaste panel is active, avoiding conflicts with system and app shortcuts
+- Improved localization and wording in the Shortcuts settings page.
+- Improved the visibility and readability of shortcut hints in the context menu.
+- Improved the update experience for Homebrew users, with updates available either in-app or through Homebrew.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.6/Clipaste-v1.0.6.zip" length="4525698" type="application/octet-stream" sparkle:edSignature="4e1NuAX/8ph+IhodUS863M4G/Oco7nhpWPUO+mgS47Kg4am2dp4teXd7k6guNf+ai14C4SypHTunHmTtbpjfCA=="/>
+        </item>
+        <item>
             <title>1.0.5</title>
             <pubDate>Tue, 14 Apr 2026 15:45:38 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -77,42 +131,6 @@
 - 🔧 Fixed the issue where scrolling was forcibly centered, enabling more flexible navigation
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.4/Clipaste-v1.0.4.zip" length="4503958" type="application/octet-stream" sparkle:edSignature="Ly+zc4vNb5uefZYRNINTxEi0zbU7QbIK004ex9FywTyp+EXXdZccThTNEnNdRwz7kFjrVpOJgUAf/aWswKAcAg=="/>
-        </item>
-        <item>
-            <title>1.0.3</title>
-            <pubDate>Sat, 11 Apr 2026 10:08:31 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.0.3</sparkle:fullReleaseNotesLink>
-            <sparkle:version>10003</sparkle:version>
-            <sparkle:shortVersionString>1.0.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[#### 💎 核心更新
-* **收藏功能**：新增收藏分组，引入「独立删除校验」机制。该分组现已受系统保护，防止任何外部同步或批量清理导致的意外删除，确保核心数据持久化。
-* **UI 交互焕新**：横版剪切板界面 100% 重新设计。优化了视觉重心与动效反馈，为宽屏工作流提供更生动、更沉浸的交互体验。
-* **个性化视觉配置**：新增分组图标显示开关。支持根据使用习惯自定义界面复杂度，进一步优化视觉降噪。
-
-#### ⚡️ 性能优化
-* **渲染引擎升级**：深度优化了长列表滚动与实时预览的内存占用。通过改进渲染管线，在高频触发场景下依然能保持满帧级的流畅度。
-
-#### 🛠 稳定性增强
-* **修复 Dock 栏异常驻留**：彻底解决了特定条件下 App 图标在 Dock 栏“假死”残留的逻辑错误，优化了应用生命周期的退出机制。
-* **琐碎细节修复**：消除已知边缘 Bug，提升系统整体运行的稳健性。
-
----
-
-#### 💎 Core Updates
-* **Favorite Functionality**: Add the favorites group with a new "Independent Deletion Verification" mechanism. The Favorites group is now protected from external syncs or batch cleanups to ensure data persistence.
-* **UI/UX Redesign**: 100% overhaul of the horizontal clipboard interface. Optimized visual focus and motion feedback to provide a more vivid and immersive experience for wide-screen workflows.
-* **Visual Personalization**: Added a toggle for group icons. Users can now customize interface complexity and reduce visual noise based on personal preference.
-
-#### ⚡️ Performance Improvements
-* **Rendering Engine Optimization**: Significantly reduced memory footprint for long-list scrolling and real-time previews. Enhanced the rendering pipeline to maintain peak frame rates during high-frequency interactions.
-
-#### 🛠 Stability Enhancements
-* **Dock Persistence Fix**: Resolved a logic error causing the app icon to intermittently persist in the Dock after termination, optimizing the application lifecycle management.
-* **Refinements**: Addressed various minor edge-case bugs to improve overall system robustness.
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.3/Clipaste-v1.0.3.zip" length="4454056" type="application/octet-stream" sparkle:edSignature="3+f9T8vAwuNkfO+hxVM9qEr/QKtSERq7LCv8VF3kdcNAN2Ely6mv6cbv6qm+FzWLUuJddnhMJuMom+7JZ1oICQ=="/>
         </item>
     </channel>
 </rss>
