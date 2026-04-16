@@ -3,6 +3,55 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>1.0.7</title>
+            <pubDate>Thu, 16 Apr 2026 01:43:09 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.0.7</sparkle:fullReleaseNotesLink>
+            <sparkle:version>10007</sparkle:version>
+            <sparkle:shortVersionString>1.0.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[Thanks to @victor141516 for their contribution in #7
+
+## ✨ 版本更新说明 / Release Notes
+
+**1. 📏 纵向紧凑布局**
+- 新增“纵向紧凑”模式，大幅提升空间利用率。
+- 支持通过快捷键在横向、纵向、紧凑三种布局间快速循环切换。
+
+**2. 👁️ 侧边预览面板**
+- 为纵向布局新增侧边预览窗格。
+- 悬停或选中条目时，可即时查看图片大图、代码高亮及完整长文本。
+
+**3. 📦 Maccy 历史导入**
+- 支持从 Maccy 迁移数据。
+- 方便新用户快速导入原有剪贴板历史记录。
+
+**4. 🛡️ 防误删保护**
+- 新增“Cmd + Backspace”删除选项。
+- 开启后可有效避免在操作中意外删除重要的剪贴板记录。
+
+---
+
+**1. 📏 Vertical Compact Layout**
+- Introduced a space-efficient "Vertical Compact" mode to show more items at once.
+- Supports cycling through all layouts via shortcut: Horizontal → Vertical → Compact.
+
+**2. 👁️ Preview Panel**
+- Added an optional side panel for vertical layouts.
+- Real-time preview for images, syntax-highlighted code, and full text on hover/selection.
+
+**3. 📦 Maccy History Import**
+- Now supports migrating clipboard history from Maccy.
+- Found in Settings → Import History → Maccy.
+
+**4. 🛡️ Deletion Safety**
+- Added an optional setting requiring "Cmd + Backspace" for deletion.
+- Provides extra protection against accidental data loss.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.7/Clipaste-v1.0.7.zip" length="4643449" type="application/octet-stream" sparkle:edSignature="DcUytMzO5wDTP5S/DCIBeuctF/cWpNK/xm/3tw2eZtiLJQITmcv1ioEGMxxQbeeGUSoecFkwfc/88RSduJvICQ=="/>
+        </item>
+        <item>
             <title>1.0.6</title>
             <pubDate>Wed, 15 Apr 2026 15:32:56 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -88,47 +137,6 @@
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.5/Clipaste-v1.0.5.zip" length="4514881" type="application/octet-stream" sparkle:edSignature="ygAJaW5Qz0KlvR+BL5R9SUTFEq2EO0urvmqZKMSYqBLhKItRMfk5ykTQYinYGpdYyVUl5B2nD2Gw0j4fBYyGBw=="/>
-        </item>
-        <item>
-            <title>1.0.4</title>
-            <pubDate>Mon, 13 Apr 2026 17:14:01 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.0.4</sparkle:fullReleaseNotesLink>
-            <sparkle:version>10004</sparkle:version>
-            <sparkle:shortVersionString>1.0.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[
-
-🆕 新增功能
-
-- ✨ 新增「标题添加」功能，支持通过标题快速搜索内容，查找更高效
-
-🎨 界面优化
-
-- 🧭 优化竖版剪切板 UI，视觉与操作体验更流畅
-- 🎬 优化剪切板开启动画，过渡更加自然
-
-🐛 问题修复
-
-- 🔧 修复滚动时被强制居中的问题，浏览体验更自由
-
----
-
-
-🆕 New Features
-
-- ✨ Added Title Support — you can now add titles and search content by title for faster retrieval
-
-🎨 Improvements
-
-- 🧭 Refined vertical clipboard UI for a smoother and more intuitive experience
-- 🎬 Improved clipboard opening animations with more natural transitions
-
-🐛 Bug Fixes
-
-- 🔧 Fixed the issue where scrolling was forcibly centered, enabling more flexible navigation
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.0.4/Clipaste-v1.0.4.zip" length="4503958" type="application/octet-stream" sparkle:edSignature="Ly+zc4vNb5uefZYRNINTxEi0zbU7QbIK004ex9FywTyp+EXXdZccThTNEnNdRwz7kFjrVpOJgUAf/aWswKAcAg=="/>
         </item>
     </channel>
 </rss>
