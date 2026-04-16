@@ -220,3 +220,17 @@ enum PasteTextFormat: String, CaseIterable, Identifiable {
         }
     }
 }
+
+enum PreviewPanelMode: String, CaseIterable, Identifiable {
+    case disabled
+    case enabled
+
+    var id: String { rawValue }
+
+    var localizedTitle: LocalizedStringResource {
+        switch self {
+        case .disabled: return LocalizedStringResource("Disabled")
+        case .enabled: return LocalizedStringResource("Enabled")
+        }
+    }
+}

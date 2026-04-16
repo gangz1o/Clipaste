@@ -122,6 +122,16 @@ struct MigrationView: View {
                 .appendingPathComponent("Data", isDirectory: true)
                 .appendingPathComponent("Documents", isDirectory: true)
 
+        case .maccy:
+            return homeDirectory
+                .appendingPathComponent("Library", isDirectory: true)
+                .appendingPathComponent("Containers", isDirectory: true)
+                .appendingPathComponent("org.p0deje.Maccy", isDirectory: true)
+                .appendingPathComponent("Data", isDirectory: true)
+                .appendingPathComponent("Library", isDirectory: true)
+                .appendingPathComponent("Application Support", isDirectory: true)
+                .appendingPathComponent("Maccy", isDirectory: true)
+
         case .pasteNow:
             return nil
         }
@@ -129,7 +139,7 @@ struct MigrationView: View {
 
     private var fileDialogBrowserOptions: FileDialogBrowserOptions {
         let source = selectedSource
-        return source == .paste || source == .iCopy ? [.includeHiddenFiles] : []
+        return source == .paste || source == .iCopy || source == .maccy ? [.includeHiddenFiles] : []
     }
 
     private func handleImportSelection(_ result: Result<[URL], Error>) {

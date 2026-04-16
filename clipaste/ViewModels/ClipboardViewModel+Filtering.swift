@@ -154,10 +154,10 @@ extension ClipboardViewModel {
         replaceItems(mappedItems)
         isInitialHistoryLoading = false
 
-        if searchInput.isEmpty && currentFilter == nil && selectedGroupId == nil && selectedBuiltInGroup == nil {
-            displayedItemIDs = mappedItems.map(\.id)
-            reconcileSelectionAfterDisplayedItemsChange()
-        }
+        // Always use the filter pipeline to set displayedItemIDs to ensure
+        // consistent behavior. The filter pipeline will set displayedItemIDs
+        // based on the current activeSearchQuery (which may be debounced).
+        // This ensures search state is preserved when loading new items.
 
         let validIDs = Set(mappedItems.map(\.id))
         let staleIDs = selectedItemIDs.subtracting(validIDs)

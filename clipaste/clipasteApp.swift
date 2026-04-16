@@ -85,6 +85,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         ClipboardPanelManager.shared.togglePanel()
     }
 
+    private func handleToggleVerticalClipboardShortcut() {
+        let defaults = UserDefaults.standard
+        let currentLayoutMode = AppLayoutMode(
+            rawValue: defaults.string(forKey: "clipboardLayout") ?? AppLayoutMode.horizontal.rawValue
+        ) ?? .horizontal
+        
+        // Cycle through layouts: horizontal -> vertical -> compact -> horizontal
+        let layoutMode: AppLayoutMode
+        switch currentLayoutMode {
+        case .horizontal:
+            layoutMode = .vertical
+        case .vertical:
+            layoutMode = .compact
+        case .compact:
+            layoutMode = .horizontal
+        }
+
+        defaults.set(layoutMode.rawValue, forKey: "clipboardLayout")
+    }
+
     private func registerGlobalShortcutsIfNeeded() {
         guard !hasRegisteredGlobalShortcuts else { return }
         hasRegisteredGlobalShortcuts = true
@@ -92,6 +112,32 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         KeyboardShortcuts.onKeyDown(for: .toggleClipboardPanel) { [weak self] in
             self?.handleTogglePanelShortcut()
         }
+
+        KeyboardShortcuts.onKeyDown(for: .toggleVerticalClipboard) { [weak self] in
+            self?.handleToggleVerticalClipboardShortcut()
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .nextList) {
+            NotificationCenter.default.post(name: .selectNextGroup, object: nil)
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .prevList) {
+            NotificationCenter.default.post(name: .selectPreviousGroup, object: nil)
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .clearHistory) {
+            StorageManager.shared.clearUnpinnedHistory()
+        }
+
+        KeyboardShortcuts.onKeyDown(for: .toggleFavoriteSelection) {
+            NotificationCenter.default.post(name: .toggleFavoriteSelectionIntent, object: nil)
+        }
+
+        // NOTE: Cmd+Backspace (delete selected items) is intentionally NOT registered as a global
+        // KeyboardShortcuts shortcut. The KeyboardShortcuts framework intercepts events system-wide
+        // (via CGEventTap), which would consume Cmd+Backspace in other apps even when the Clipaste
+        // panel is hidden. Instead, this action is handled locally inside handlePanelKeyDown() via
+        // a local NSEvent monitor that only fires when the panel is visible.
     }
 
     private func refreshGlobalShortcuts() {

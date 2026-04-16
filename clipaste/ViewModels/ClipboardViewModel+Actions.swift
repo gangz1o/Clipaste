@@ -72,6 +72,18 @@ extension ClipboardViewModel {
         batchSetFavoriteState(shouldFavorite)
     }
 
+    /// Deletes the current selection, respecting the `requireCmdToDelete` setting.
+    ///
+    /// - Parameter isCommandHeld: Pass `true` when the user triggered deletion with ⌘+Backspace.
+    ///   When `false`, deletion is only performed if `requireCmdToDelete` is disabled.
+    func deleteSelection(isCommandHeld: Bool = false) {
+        if settingsViewModel.requireCmdToDelete, !isCommandHeld {
+            return
+        }
+        guard !selectedItemIDs.isEmpty else { return }
+        batchDelete()
+    }
+
     func batchDelete() {
         let ids = selectedItemIDs
         guard !ids.isEmpty else { return }

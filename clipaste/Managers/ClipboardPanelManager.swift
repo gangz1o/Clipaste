@@ -9,11 +9,14 @@ class ClipboardPanelManager {
     static let shared = ClipboardPanelManager()
     private static let panelLevel = NSWindow.Level(rawValue: Int(CGWindowLevelForKey(.dockWindow)) + 1)
 
-    private var panel: ClipboardPanel?
+    private(set) var panel: ClipboardPanel?
     private var eventMonitor: Any?
     private var layoutObserver: Any?
     private var pinObserver: Any?
     private var forceHideObserver: Any?
+
+    /// Additional width to add when preview panel is active
+    private let previewExpandedWidth: CGFloat = 380
 
     /// 记录呼出面板前正在活跃的 App（如微信、Safari），用于关闭面板时精准归还焦点
     private var previousActiveApp: NSRunningApplication?
@@ -129,7 +132,15 @@ class ClipboardPanelManager {
     /// and strict screen-edge collision detection.
     private func verticalFrame(on screen: NSScreen) -> NSRect {
         let sf = screen.visibleFrame
-        let width: CGFloat = 360
+        
+        // Determine if preview panel is enabled
+        let previewMode = PreviewPanelMode(
+            rawValue: UserDefaults.standard.string(forKey: "previewPanelMode") ?? PreviewPanelMode.disabled.rawValue
+        ) ?? .disabled
+        let isPreviewEnabled = previewMode == .enabled
+        
+        let baseWidth: CGFloat = 360
+        let width: CGFloat = isPreviewEnabled ? baseWidth + previewExpandedWidth : baseWidth
         let height: CGFloat = 700
         let modeRaw = UserDefaults.standard.string(forKey: "verticalFollowMode") ?? VerticalFollowMode.mouse.rawValue
         let mode = VerticalFollowMode(rawValue: modeRaw) ?? .mouse
@@ -172,7 +183,7 @@ class ClipboardPanelManager {
             let full = screen.frame          // 使用完整屏幕帧，覆盖 Dock 栏
             let height: CGFloat = 320
             return NSRect(x: full.minX, y: full.minY, width: full.width, height: height)
-        case .vertical:
+        case .vertical, .compact:
             return verticalFrame(on: screen)
         }
     }
@@ -188,7 +199,7 @@ class ClipboardPanelManager {
         panel.setFrame(target, display: false)
 
         // 横版贴底无需阴影（否则顶部出现边框线）；竖版浮窗保留阴影
-        panel.hasShadow = (layout == .vertical)
+        panel.hasShadow = (layout == .vertical || layout == .compact)
         applyPanelMovability(for: layout, panel: panel)
 
         DispatchQueue.main.async { [weak panel] in
@@ -221,7 +232,7 @@ class ClipboardPanelManager {
         let screen = screenContainingMouse() ?? NSScreen.main
 
         applyPanelMovability(for: layout, panel: panel)
-        panel.hasShadow = (layout == .vertical)
+        panel.hasShadow = (layout == .vertical || layout == .compact)
 
 
         let visibleFrame = panelFrame(for: layout, on: screen ?? NSScreen.main!)
@@ -265,7 +276,7 @@ class ClipboardPanelManager {
 
     private func applyPanelMovability(for layout: AppLayoutMode, panel: ClipboardPanel) {
         panel.isMovableByWindowBackground = false
-        panel.isMovable = layout == .vertical
+        panel.isMovable = layout == .vertical || layout == .compact
     }
 
     /// Hides the clipboard panel — intercepted when the panel is pinned or showing a modal dialog.
@@ -351,4 +362,5 @@ private struct ClipboardPanelRootView: View {
 
 extension Notification.Name {
     static let clipboardLayoutModeChanged = Notification.Name("clipboardLayoutModeChanged")
+    static let clipboardPreviewPanelChanged = Notification.Name("clipboardPreviewPanelChanged")
 }

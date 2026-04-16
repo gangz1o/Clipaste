@@ -71,6 +71,7 @@ struct GeneralSettingsView: View {
     @EnvironmentObject private var viewModel: SettingsViewModel
     @EnvironmentObject private var preferencesStore: AppPreferencesStore
     @AppStorage("appTheme") private var appTheme: AppTheme = .system
+    @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
 
     @State private var showingClearAlert = false
 
@@ -152,34 +153,42 @@ private extension GeneralSettingsView {
             VStack(spacing: 0) {
                 SettingRow(
                     icon: "rectangle.split.2x1",
-                    title: "Use Vertical List Layout",
-                    subtitle: "Horizontal cards are better for browsing; vertical list is better for quick switching and searching."
+                    title: "Layout Mode",
+                    subtitle: "Choose how clipboard items are displayed"
                 ) {
-                    Toggle("", isOn: $viewModel.isVerticalLayout)
-                        .toggleStyle(.switch)
-                        .labelsHidden()
+                    Picker("", selection: $clipboardLayout) {
+                        ForEach(AppLayoutMode.allCases) { mode in
+                            Text(mode.displayName).tag(mode)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .labelsHidden()
                 }
 
-                if viewModel.isVerticalLayout {
-                    cardDivider
+                cardDivider
 
-                    SettingRow(
-                        icon: "arrow.up.and.down",
-                        title: "Display Position"
-                    ) {
-                        Picker("", selection: $viewModel.verticalFollowMode) {
-                            ForEach(VerticalFollowMode.allCases) { mode in
-                                Text(mode.localizedTitle).tag(mode)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        .labelsHidden()
-                        .fixedSize()
-                    }
+                SettingRow(
+                    icon: "rectangle.on.rectangle",
+                    title: "Preview Panel",
+                    subtitle: "Show detailed preview when using vertical layouts"
+                ) {
+                    PreviewPanelToggle()
                 }
             }
-            .animation(.easeInOut(duration: 0.2), value: viewModel.isVerticalLayout)
         }
+    }
+}
+
+private struct PreviewPanelToggle: View {
+    @AppStorage("previewPanelMode") private var previewPanelMode: PreviewPanelMode = .disabled
+
+    var body: some View {
+        Toggle("", isOn: Binding(
+            get: { previewPanelMode == .enabled },
+            set: { previewPanelMode = $0 ? .enabled : .disabled }
+        ))
+        .toggleStyle(.switch)
+        .labelsHidden()
     }
 }
 

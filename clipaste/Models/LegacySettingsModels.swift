@@ -21,8 +21,14 @@ enum PasteBehavior: String, CaseIterable, Identifiable {
 enum AppLayoutMode: String, CaseIterable, Identifiable {
     case horizontal = "Horizontal Cards"
     case vertical = "Vertical List"
+    case compact = "Vertical Compact"
 
     var id: String { rawValue }
+
+    /// Returns `true` for layouts that use a vertical list (`.vertical` and `.compact`).
+    var isVertical: Bool {
+        self == .vertical || self == .compact
+    }
 
     var displayName: String {
         switch self {
@@ -30,6 +36,8 @@ enum AppLayoutMode: String, CaseIterable, Identifiable {
             return String(localized: "Horizontal Cards")
         case .vertical:
             return String(localized: "Vertical List")
+        case .compact:
+            return String(localized: "Vertical Compact")
         }
     }
 }

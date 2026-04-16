@@ -155,6 +155,18 @@ private extension AdvancedSettingsView {
 
                 cardDivider
 
+                SettingRow(
+                    icon: "delete.backward",
+                    title: "Require Cmd+Backspace to Delete",
+                    subtitle: "When enabled, items can only be deleted using Cmd+Backspace instead of just Backspace."
+                ) {
+                    Toggle("", isOn: $viewModel.requireCmdToDelete)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                }
+
+                cardDivider
+
                 // Text Format Setting
                 HStack(alignment: .center, spacing: 12) {
                     Image(systemName: "textformat")

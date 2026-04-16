@@ -25,6 +25,9 @@ extension ClipboardViewModel {
 
         keyDownMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self else { return event }
+            // Only process keyboard events when the Clipaste panel is visible.
+            // This prevents capturing keys when the panel is hidden.
+            guard ClipboardPanelManager.shared.panel?.isVisible == true else { return event }
             return self.handlePanelKeyDown(event)
         }
     }
@@ -184,6 +187,16 @@ extension ClipboardViewModel {
             return nil
         }
 
+        // Cmd+Backspace to delete selected items (when requireCmdToDelete is enabled)
+        if keyCode == 51, event.modifierFlags.contains(.command) {
+            if let responder = NSApp.keyWindow?.firstResponder,
+               responder is NSTextView || responder is NSTextField {
+                return event
+            }
+            deleteSelection(isCommandHeld: true)
+            return nil
+        }
+
         if keyCode == 0, event.modifierFlags.contains(.command) {
             if let responder = NSApp.keyWindow?.firstResponder,
                responder is NSTextView || responder is NSTextField {
@@ -289,10 +302,16 @@ private extension ClipboardViewModel {
         let currentLayoutMode = AppLayoutMode(
             rawValue: defaults.string(forKey: "clipboardLayout") ?? AppLayoutMode.horizontal.rawValue
         ) ?? .horizontal
-        let layoutMode: AppLayoutMode = currentLayoutMode == .vertical ? .horizontal : .vertical
 
-        defaults.set(layoutMode.rawValue, forKey: "clipboardLayout")
-        defaults.set(layoutMode == .vertical, forKey: "isVerticalLayout")
+        let nextLayoutMode: AppLayoutMode
+        switch currentLayoutMode {
+        case .horizontal: nextLayoutMode = .vertical
+        case .vertical:   nextLayoutMode = .compact
+        case .compact:    nextLayoutMode = .horizontal
+        }
+
+        defaults.set(nextLayoutMode.rawValue, forKey: "clipboardLayout")
+        defaults.set(nextLayoutMode.isVertical, forKey: "isVerticalLayout")
     }
 
     func isPlainNavigationEvent(_ event: NSEvent) -> Bool {
@@ -305,9 +324,8 @@ private extension ClipboardViewModel {
         let layout = AppLayoutMode(
             rawValue: UserDefaults.standard.string(forKey: "clipboardLayout") ?? AppLayoutMode.horizontal.rawValue
         ) ?? .horizontal
-        let isVertical = layout == .vertical
 
-        if isVertical {
+        if layout.isVertical {
             if keyCode == 125 {
                 return 1
             }

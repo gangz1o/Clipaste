@@ -4,6 +4,7 @@ struct ClipboardHorizontalView: View {
     @ObservedObject var viewModel: ClipboardViewModel
     let items: [ClipboardItem]
     @FocusState var focusedField: ClipboardPanelFocusField?
+    @AppStorage("requireCmdToDelete") private var requireCmdToDelete: Bool = false
 
 
     var body: some View {
@@ -33,6 +34,7 @@ struct ClipboardHorizontalView: View {
                 focusedField = .clipList
             })
             .onDeleteCommand {
+                guard !requireCmdToDelete else { return }
                 guard !viewModel.selectedItemIDs.isEmpty else { return }
                 viewModel.batchDelete()
             }
