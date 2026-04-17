@@ -24,9 +24,11 @@ private extension ShortcutsSettingsView {
         } header: {
             SettingsSectionHeader(title: "Global Shortcuts")
         } footer: {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Only the wake shortcut is registered globally. Other actions work only while the Clipaste panel is focused.")
-                Text("If the shortcut doesn't work, allow Clipaste in System Settings > Privacy & Security > Accessibility.")
+            SettingsSectionFooter {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Only the wake shortcut is registered globally. Other actions work only while the Clipaste panel is focused.")
+                    Text("If the shortcut doesn't work, allow Clipaste in System Settings > Privacy & Security > Accessibility.")
+                }
             }
         }
     }
@@ -45,7 +47,9 @@ private extension ShortcutsSettingsView {
         } header: {
             SettingsSectionHeader(title: "Panel Shortcuts")
         } footer: {
-            Text("These shortcuts are handled only when the Clipaste panel is the active window, so native shortcuts in Notes, browsers, Terminal, and other apps stay intact.")
+            SettingsSectionFooter {
+                Text("These shortcuts are handled only when the Clipaste panel is the active window, so native shortcuts in Notes, browsers, Terminal, and other apps stay intact.")
+            }
         }
     }
 }
@@ -69,7 +73,9 @@ private extension ShortcutsSettingsView {
         } header: {
             SettingsSectionHeader(title: "Modifier Keys")
         } footer: {
-            Text("Hold the quick paste modifier to reveal 1…9 shortcuts. Hold the plain text modifier while copying or pasting to strip formatting.")
+            SettingsSectionFooter {
+                Text("Hold the quick paste modifier to reveal 1…9 shortcuts. Hold the plain text modifier while copying or pasting to strip formatting.")
+            }
         }
     }
 }

@@ -63,7 +63,9 @@ private extension GeneralSettingsView {
         } header: {
             SettingsSectionHeader(title: "Window")
         } footer: {
-            Text("Layout Mode controls how clipboard items are displayed. Preview Panel shows detailed preview when using vertical layouts.")
+            SettingsSectionFooter {
+                Text("Layout Mode controls how clipboard items are displayed. Preview Panel shows detailed preview when using vertical layouts.")
+            }
         }
     }
 }
@@ -92,7 +94,9 @@ private extension GeneralSettingsView {
         } header: {
             SettingsSectionHeader(title: "Feedback & Sound")
         } footer: {
-            Text("Play a short sound after copying to the clipboard.")
+            SettingsSectionFooter {
+                Text("Play a short sound after copying to the clipboard.")
+            }
         }
     }
 }
@@ -120,7 +124,9 @@ private extension GeneralSettingsView {
         } header: {
             SettingsSectionHeader(title: "History")
         } footer: {
-            Text("Permanently deletes non-favorite clipboard records and image caches. Items in Favorites are kept.")
+            SettingsSectionFooter {
+                Text("Permanently deletes non-favorite clipboard records and image caches. Items in Favorites are kept.")
+            }
         }
         .alert("Clear History?", isPresented: $showingClearAlert) {
             Button("Cancel", role: .cancel) { }

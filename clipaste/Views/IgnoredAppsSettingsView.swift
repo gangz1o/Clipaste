@@ -53,7 +53,9 @@ private extension IgnoredAppsSettingsView {
                 .controlSize(.small)
             }
         } footer: {
-            Text("Copied content from the following apps won't be recorded.")
+            SettingsSectionFooter {
+                Text("Copied content from the following apps won't be recorded.")
+            }
         }
     }
 

@@ -71,7 +71,9 @@ private extension AdvancedSettingsView {
         } header: {
             SettingsSectionHeader(title: "Interface")
         } footer: {
-            Text("Display preset category tabs like Text, Links, and Images in the navigation bar.")
+            SettingsSectionFooter {
+                Text("Display preset category tabs like Text, Links, and Images in the navigation bar.")
+            }
         }
     }
 }

@@ -12,6 +12,21 @@ struct SettingsSectionHeader: View {
     }
 }
 
+struct SettingsSectionFooter<Content: View>: View {
+    @ViewBuilder let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        content
+            .font(.caption)
+            .foregroundStyle(.secondary)
+            .textCase(nil)
+    }
+}
+
 extension View {
     func settingsPageChrome() -> some View {
         self
