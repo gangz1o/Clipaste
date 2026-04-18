@@ -202,10 +202,14 @@ struct SettingsWindowObserver: NSViewRepresentable {
             super.viewDidMoveToWindow()
 
             guard let window else { return }
-            window.toolbarStyle = .preference
+            window.titleVisibility = .hidden
             window.titlebarSeparatorStyle = .none
+            window.titlebarAppearsTransparent = true
+            window.styleMask.insert(.fullSizeContentView)
             window.styleMask.insert(.miniaturizable)
             window.styleMask.insert(.resizable)
+            window.toolbar = nil
+            window.setContentBorderThickness(0, for: .maxY)
             window.standardWindowButton(.miniaturizeButton)?.isEnabled = true
             window.standardWindowButton(.zoomButton)?.isEnabled = true
 
@@ -226,7 +230,7 @@ struct SettingsWindowObserver: NSViewRepresentable {
         }
 
         func scheduleToolbarChromeLayout() {
-            let delays: [TimeInterval] = [0, 0.05, 0.2]
+            let delays: [TimeInterval] = [0, 0.05, 0.2, 0.5, 1.0]
             for delay in delays {
                 DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
                     self?.refreshToolbarChrome()
@@ -240,8 +244,16 @@ struct SettingsWindowObserver: NSViewRepresentable {
         }
 
         private func refreshToolbarChrome() {
+            suppressSystemToolbarChrome()
             removeSystemSidebarToolbarItems()
             applyTrafficLightLayout()
+        }
+
+        private func suppressSystemToolbarChrome() {
+            guard let window else { return }
+            window.toolbar = nil
+            window.titlebarSeparatorStyle = .none
+            window.setContentBorderThickness(0, for: .maxY)
         }
 
         private func removeSystemSidebarToolbarItems() {
@@ -272,7 +284,7 @@ struct SettingsWindowObserver: NSViewRepresentable {
 
             if !hasAppliedTrafficLightOffset {
                 let xOffset: CGFloat = 4
-                let yOffset: CGFloat = -3
+                let yOffset: CGFloat = -1
                 let buttons = [closeButton, miniaturizeButton, zoomButton]
                 for button in buttons {
                     var origin = button.frame.origin
@@ -283,30 +295,16 @@ struct SettingsWindowObserver: NSViewRepresentable {
                 hasAppliedTrafficLightOffset = true
             }
 
-            replaceSystemSidebarButton(nextTo: zoomButton, trafficLights: [closeButton, miniaturizeButton, zoomButton])
+            installCustomSidebarButton(nextTo: zoomButton)
         }
 
-        private func replaceSystemSidebarButton(nextTo zoomButton: NSButton, trafficLights: [NSButton]) {
+        private func installCustomSidebarButton(nextTo zoomButton: NSButton) {
             guard let titlebarView = zoomButton.superview else { return }
-
-            let trafficLightIDs = Set(trafficLights.map(ObjectIdentifier.init))
-            let systemSidebarButton = titlebarView.subviews
-                .compactMap { $0 as? NSButton }
-                .filter { button in
-                    let buttonID = ObjectIdentifier(button)
-                    guard trafficLightIDs.contains(buttonID) == false else { return false }
-                    guard abs(button.frame.midY - zoomButton.frame.midY) <= 8 else { return false }
-                    guard button.frame.minX >= zoomButton.frame.maxX - 2 else { return false }
-                    guard button.frame.minX <= zoomButton.frame.maxX + 80 else { return false }
-                    return true
-                }
-                .min { $0.frame.minX < $1.frame.minX }
-
-            systemSidebarButton?.isHidden = true
-
-            let size = systemSidebarButton?.frame.size ?? NSSize(width: 28, height: 22)
-            let origin = systemSidebarButton?.frame.origin
-                ?? NSPoint(x: zoomButton.frame.maxX + 10, y: zoomButton.frame.minY - 1)
+            let size = NSSize(width: 30, height: 24)
+            let origin = NSPoint(
+                x: zoomButton.frame.maxX + 12,
+                y: zoomButton.frame.midY - (size.height / 2)
+            )
 
             if let existing = installedSidebarButton {
                 existing.frame = NSRect(origin: origin, size: size)
@@ -328,6 +326,7 @@ struct SettingsWindowObserver: NSViewRepresentable {
             newButton.contentTintColor = .secondaryLabelColor
             newButton.setButtonType(.momentaryPushIn)
             newButton.focusRingType = .none
+            newButton.setAccessibilityLabel(String(localized: "Toggle Sidebar"))
             newButton.frame = NSRect(origin: origin, size: size)
             titlebarView.addSubview(newButton)
             installedSidebarButton = newButton
@@ -335,10 +334,7 @@ struct SettingsWindowObserver: NSViewRepresentable {
 
         @objc
         private func toggleSidebar() {
-            NSApp.keyWindow?.firstResponder?.tryToPerform(
-                #selector(NSSplitViewController.toggleSidebar(_:)),
-                with: nil
-            )
+            NotificationCenter.default.post(name: .toggleSettingsSidebarIntent, object: nil)
         }
     }
 }
@@ -379,13 +375,28 @@ struct WindowAppearanceObserver: NSViewRepresentable {
         }
 
         private func applyTheme() {
-            let nsAppearance = theme.nsAppearance
-            window?.appearance = nsAppearance
-            // When reverting to "follow system" (nsAppearance == nil), also reset the
-            // app-level appearance so macOS regenerates the effective appearance from
-            // the system setting. Without this, a previously pinned NSApp.appearance
-            // can keep windows in the wrong mode even after clearing the window-level one.
-            NSApp.appearance = nsAppearance
+            let targetAppearanceName = theme.nsAppearanceName
+            let targetAppearance = theme.nsAppearance
+
+            if shouldApplyAppearance(targetAppearanceName, to: window?.appearance) {
+                window?.appearance = targetAppearance
+            }
+
+            // When reverting to "follow system" (targetAppearance == nil), also reset
+            // the app-level appearance so macOS regenerates the effective appearance
+            // from the system setting. Guarding this assignment keeps theme changes
+            // idempotent, which avoids repeated appearance invalidation loops.
+            if shouldApplyAppearance(targetAppearanceName, to: NSApp.appearance) {
+                NSApp.appearance = targetAppearance
+            }
+        }
+
+        private func shouldApplyAppearance(_ targetName: NSAppearance.Name?, to currentAppearance: NSAppearance?) -> Bool {
+            if targetName == nil {
+                return currentAppearance != nil
+            }
+
+            return currentAppearance?.name != targetName
         }
     }
 }

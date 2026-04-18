@@ -5,6 +5,7 @@ import SwiftData
 
 extension Notification.Name {
     static let openSettingsIntent = Notification.Name("openSettingsIntent")
+    static let toggleSettingsSidebarIntent = Notification.Name("toggleSettingsSidebarIntent")
 }
 
 @MainActor
@@ -245,7 +246,6 @@ struct clipasteApp: App {
     @StateObject private var runtimeStore = ClipboardRuntimeStore.shared
     private let appUpdateViewModel = AppUpdateViewModel.shared
     @AppStorage("appLanguage") private var appLanguage: AppLanguage = .auto
-    @AppStorage("appTheme") private var appTheme: AppTheme = .system
 
     init() {
         Task { @MainActor in
@@ -263,7 +263,6 @@ struct clipasteApp: App {
                 .modelContainer(runtimeStore.container)
                 .environment(\.locale, appLanguage.locale ?? .current)
                 .environment(appUpdateViewModel)
-                .preferredColorScheme(appTheme.colorScheme)
         }
         .defaultSize(width: 900, height: 700)
         .windowResizability(.contentMinSize)

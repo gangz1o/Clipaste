@@ -30,14 +30,33 @@ enum AppTheme: String, CaseIterable, Identifiable {
         }
     }
 
-    var nsAppearance: NSAppearance? {
+    var nsAppearanceName: NSAppearance.Name? {
         switch self {
         case .system:
             return nil
         case .light:
-            return NSAppearance(named: .aqua)
+            return .aqua
         case .dark:
-            return NSAppearance(named: .darkAqua)
+            return .darkAqua
         }
     }
+
+    var nsAppearance: NSAppearance? {
+        guard let nsAppearanceName else { return nil }
+        return Self.appearanceCache[nsAppearanceName]
+    }
+
+    private static let appearanceCache: [NSAppearance.Name: NSAppearance] = {
+        var cache: [NSAppearance.Name: NSAppearance] = [:]
+
+        if let aquaAppearance = NSAppearance(named: .aqua) {
+            cache[.aqua] = aquaAppearance
+        }
+
+        if let darkAquaAppearance = NSAppearance(named: .darkAqua) {
+            cache[.darkAqua] = darkAquaAppearance
+        }
+
+        return cache
+    }()
 }

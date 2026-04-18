@@ -63,7 +63,6 @@ struct ClipboardMainView: View {
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: (clipboardLayout == .vertical || clipboardLayout == .compact) ? 14 : 0))
-            .preferredColorScheme(appTheme.colorScheme)
             .ignoresSafeArea()
             .animation(.spring(response: 0.24, dampingFraction: 0.9), value: viewModel.operationNotice != nil)
             .onChange(of: clipboardLayout) {
