@@ -3,6 +3,47 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>1.1.4</title>
+            <pubDate>Sat, 18 Apr 2026 14:12:10 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.1.4</sparkle:fullReleaseNotesLink>
+            <sparkle:version>10104</sparkle:version>
+            <sparkle:shortVersionString>1.1.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
+
+**🎨 优化**
+- 优化导航栏与「关于」页面 UI 展示，界面更清晰统一
+- 优化国际化显示，提升多语言体验
+- 调整 Hide Sidebar 位置，操作更顺手
+
+**🛠 修复**
+- 修复从暗黑模式切换为“跟随系统”未实时生效的问题
+
+**🚀 新特性**
+- 重构「排除应用」页面展示
+- 支持批量添加与删除应用，提高管理效率
+
+
+---
+
+### ✨ What's New
+
+**🎨 Improvements**
+- Refined navigation bar and About page UI for a cleaner, more consistent look
+- Improved internationalization display for better multilingual experience
+- Adjusted Hide Sidebar position for more intuitive access
+
+**🛠 Fixes**
+- Fixed an issue where switching from Dark Mode to “Follow System” didn’t apply in real time
+
+**🚀 Features**
+- Redesigned Excluded Apps page layout
+- Added support for batch add/remove to streamline management
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.1.4/Clipaste-v1.1.4.zip" length="4635046" type="application/octet-stream" sparkle:edSignature="oYUcyxsTFd8xDOZgoZhi9ki7i2YpUaVRKvuZG/rjyCdh9oMzVjtSDbktVCwMQ4K1lDbu70KUnpmV8BxF3a6kDQ=="/>
+        </item>
+        <item>
             <title>1.1.3</title>
             <pubDate>Sat, 18 Apr 2026 01:53:47 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -43,23 +84,6 @@
 - 🔧 fix footer tips text style issues
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.1.2/Clipaste-v1.1.2.zip" length="4595743" type="application/octet-stream" sparkle:edSignature="TMkL+3ra9+6KwXr8Ywzcx9NQvazuOnQGC4jkP/3HZkcYQK5/IXdrOKyk/AX2bghezMcZDoHnvQdW+lGR58x5Bg=="/>
-        </item>
-        <item>
-            <title>1.1.1</title>
-            <pubDate>Fri, 17 Apr 2026 02:28:08 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.1.1</sparkle:fullReleaseNotesLink>
-            <sparkle:version>10101</sparkle:version>
-            <sparkle:shortVersionString>1.1.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[#### 🎉 更新公告
-
-- 🔧 修复footer提示文字样式问题
----
-#### 🎉 Release Note
-- 🔧 fix footer tips text style issues
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.1.1/Clipaste-v1.1.1.zip" length="4594599" type="application/octet-stream" sparkle:edSignature="eachKv46lAtJopXbDSFSNnReY2cHAPHf82j6OojGzgC8o0iB9ZhRs2LNrgFYCXKm8ckJnQ3ubx1JatRYk8k0DA=="/>
         </item>
     </channel>
 </rss>
