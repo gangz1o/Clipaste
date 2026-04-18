@@ -13,6 +13,7 @@ DIST_DIR="${DIST_DIR:-$PROJECT_ROOT/build/release}"
 RUNNER_TEMP_DIR="${RUNNER_TEMP:-$PROJECT_ROOT/build/tmp}"
 CASK_TOKEN="${CASK_TOKEN:-gangz1o-clipaste}"
 MINIMUM_MACOS="${MINIMUM_MACOS:-:sonoma}"
+HOMEBREW_TAP_BRANCH="${HOMEBREW_TAP_BRANCH:-main}"
 
 if [[ -z "$RELEASE_TAG" ]]; then
   echo "RELEASE_TAG is required." >&2
@@ -38,17 +39,14 @@ VERSION="${RELEASE_TAG#v}"
 ARTIFACT_BASENAME="${APP_NAME}-${RELEASE_TAG}"
 DMG_PATH="${DIST_DIR}/${ARTIFACT_BASENAME}.dmg"
 SHA256_PATH="${DIST_DIR}/${ARTIFACT_BASENAME}.dmg.sha256"
-TAP_CLONE_DIR="${RUNNER_TEMP_DIR}/homebrew-tap"
+CASK_WORK_DIR="${RUNNER_TEMP_DIR}/homebrew-tap"
 CASK_RELATIVE_PATH="Casks/g/${CASK_TOKEN}.rb"
-CASK_ABSOLUTE_PATH="${TAP_CLONE_DIR}/${CASK_RELATIVE_PATH}"
+CASK_ABSOLUTE_PATH="${CASK_WORK_DIR}/${CASK_RELATIVE_PATH}"
+EXISTING_CASK_JSON_PATH="${RUNNER_TEMP_DIR}/existing-cask.json"
+EXISTING_CASK_PATH="${RUNNER_TEMP_DIR}/existing-cask.rb"
 
 log() {
   printf '[update-homebrew-tap] %s\n' "$*"
-}
-
-configure_authenticated_push_remote() {
-  git -C "$TAP_CLONE_DIR" remote set-url --push origin \
-    "https://x-access-token:${GH_TOKEN}@github.com/${HOMEBREW_TAP_REPOSITORY}.git"
 }
 
 ensure_release_artifacts() {
@@ -114,14 +112,81 @@ end
 EOF
 }
 
-rm -rf "$TAP_CLONE_DIR"
+fetch_existing_cask() {
+  local output_path="$1"
+
+  if ! gh api \
+    "repos/${HOMEBREW_TAP_REPOSITORY}/contents/${CASK_RELATIVE_PATH}" \
+    -f ref="$HOMEBREW_TAP_BRANCH" > "$EXISTING_CASK_JSON_PATH" 2>/dev/null; then
+    EXISTING_CASK_SHA=""
+    return 1
+  fi
+
+  EXISTING_CASK_SHA="$(
+    python3 - <<'PY' "$EXISTING_CASK_JSON_PATH"
+import json
+import sys
+
+with open(sys.argv[1], "r", encoding="utf-8") as fh:
+    payload = json.load(fh)
+
+print(payload["sha"])
+PY
+  )"
+
+  python3 - <<'PY' "$EXISTING_CASK_JSON_PATH" "$output_path"
+import base64
+import json
+import sys
+
+with open(sys.argv[1], "r", encoding="utf-8") as fh:
+    payload = json.load(fh)
+
+with open(sys.argv[2], "wb") as fh:
+    fh.write(base64.b64decode(payload["content"]))
+PY
+}
+
+encode_file_as_base64() {
+  local input_path="$1"
+
+  python3 - <<'PY' "$input_path"
+import base64
+import pathlib
+import sys
+
+data = pathlib.Path(sys.argv[1]).read_bytes()
+print(base64.b64encode(data).decode("ascii"), end="")
+PY
+}
+
+update_cask_via_api() {
+  local content_b64="$1"
+  local message="Update ${CASK_TOKEN} to ${VERSION}"
+
+  if [[ -n "${EXISTING_CASK_SHA:-}" ]]; then
+    gh api \
+      --method PUT \
+      "repos/${HOMEBREW_TAP_REPOSITORY}/contents/${CASK_RELATIVE_PATH}" \
+      -f message="$message" \
+      -f content="$content_b64" \
+      -f branch="$HOMEBREW_TAP_BRANCH" \
+      -f sha="$EXISTING_CASK_SHA" >/dev/null
+    return
+  fi
+
+  gh api \
+    --method PUT \
+    "repos/${HOMEBREW_TAP_REPOSITORY}/contents/${CASK_RELATIVE_PATH}" \
+    -f message="$message" \
+    -f content="$content_b64" \
+    -f branch="$HOMEBREW_TAP_BRANCH" >/dev/null
+}
+
+rm -rf "$CASK_WORK_DIR"
 mkdir -p "$RUNNER_TEMP_DIR"
 
 ensure_release_artifacts
-
-log "Cloning ${HOMEBREW_TAP_REPOSITORY}"
-gh repo clone "$HOMEBREW_TAP_REPOSITORY" "$TAP_CLONE_DIR"
-configure_authenticated_push_remote
 
 SHA256="$(extract_sha256 "$SHA256_PATH")"
 log "Updating ${CASK_RELATIVE_PATH} to version ${VERSION}"
@@ -129,16 +194,16 @@ write_cask_file "$VERSION" "$SHA256"
 
 ruby -c "$CASK_ABSOLUTE_PATH"
 
-git -C "$TAP_CLONE_DIR" config user.name "github-actions[bot]"
-git -C "$TAP_CLONE_DIR" config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-git -C "$TAP_CLONE_DIR" add "$CASK_RELATIVE_PATH"
-
-if git -C "$TAP_CLONE_DIR" diff --cached --quiet; then
-  log "Homebrew tap is already up to date."
-  exit 0
+if fetch_existing_cask "$EXISTING_CASK_PATH"; then
+  if cmp -s "$CASK_ABSOLUTE_PATH" "$EXISTING_CASK_PATH"; then
+    log "Homebrew tap is already up to date."
+    exit 0
+  fi
+else
+  log "Cask file does not exist yet; creating a new one."
 fi
 
-git -C "$TAP_CLONE_DIR" commit -m "Update ${CASK_TOKEN} to ${VERSION}"
-git -C "$TAP_CLONE_DIR" push origin main
+CONTENT_B64="$(encode_file_as_base64 "$CASK_ABSOLUTE_PATH")"
+update_cask_via_api "$CONTENT_B64"
 
 log "Updated ${HOMEBREW_TAP_REPOSITORY} to ${VERSION}"
