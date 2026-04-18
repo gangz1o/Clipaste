@@ -57,20 +57,27 @@ enum IgnoredAppsService {
     }
 
     @discardableResult
-    static func addIgnoredApp(
-        from applicationURL: URL,
+    static func addIgnoredApps(
+        from applicationURLs: [URL],
         defaults: UserDefaults = .standard,
         workspace: NSWorkspace = .shared
-    ) throws -> [String] {
-        let app = try ignoredApp(from: applicationURL, workspace: workspace)
+    ) -> (savedBundleIdentifiers: [String], failedApplicationNames: [String]) {
         var identifiers = loadIgnoredBundleIdentifiers(defaults: defaults)
+        var failedApplicationNames: [String] = []
 
-        guard identifiers.contains(app.bundleIdentifier) == false else {
-            return identifiers
+        for applicationURL in applicationURLs {
+            do {
+                let app = try ignoredApp(from: applicationURL, workspace: workspace)
+                identifiers.append(app.bundleIdentifier)
+            } catch {
+                failedApplicationNames.append(applicationURL.deletingPathExtension().lastPathComponent)
+            }
         }
 
-        identifiers.append(app.bundleIdentifier)
-        return saveIgnoredBundleIdentifiers(identifiers, defaults: defaults)
+        return (
+            saveIgnoredBundleIdentifiers(identifiers, defaults: defaults),
+            failedApplicationNames
+        )
     }
 
     @discardableResult

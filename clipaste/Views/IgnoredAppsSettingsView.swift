@@ -1,9 +1,13 @@
-import AppKit
+import Foundation
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct IgnoredAppsSettingsView: View {
     @EnvironmentObject private var viewModel: SettingsViewModel
-    @State private var selectedIgnoredAppBundleIdentifier: String?
+    @State private var isImporterPresented = false
+    @State private var isImportErrorPresented = false
+    @State private var importErrorMessage: LocalizedStringResource?
+    @State private var selectedIgnoredAppBundleIdentifiers = Set<String>()
 
     var body: some View {
         Form {
@@ -14,9 +18,21 @@ struct IgnoredAppsSettingsView: View {
             viewModel.reloadIgnoredApps()
         }
         .onChange(of: viewModel.ignoredApps.map(\.bundleIdentifier)) { _, bundleIdentifiers in
-            if let selectedIgnoredAppBundleIdentifier,
-               bundleIdentifiers.contains(selectedIgnoredAppBundleIdentifier) == false {
-                self.selectedIgnoredAppBundleIdentifier = nil
+            selectedIgnoredAppBundleIdentifiers.formIntersection(Set(bundleIdentifiers))
+        }
+        .fileImporter(
+            isPresented: $isImporterPresented,
+            allowedContentTypes: [UTType.applicationBundle],
+            allowsMultipleSelection: true,
+            onCompletion: handleImportSelection
+        )
+        .fileDialogDefaultDirectory(defaultDirectoryURL)
+        .onDeleteCommand(perform: removeSelectedIgnoredApps)
+        .alert("Unable to Add Apps", isPresented: $isImportErrorPresented) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            if let importErrorMessage {
+                Text(importErrorMessage)
             }
         }
     }
@@ -27,7 +43,10 @@ struct IgnoredAppsSettingsView: View {
 private extension IgnoredAppsSettingsView {
     var ignoredAppsSection: some View {
         Section {
-            appListContent
+            IgnoredAppsListView(
+                ignoredApps: viewModel.ignoredApps,
+                selection: $selectedIgnoredAppBundleIdentifiers
+            )
                 .frame(minHeight: 280)
         } header: {
             HStack {
@@ -35,71 +54,28 @@ private extension IgnoredAppsSettingsView {
                 Spacer()
                 HStack(spacing: 4) {
                     Button {
-                        viewModel.addAppToIgnoreList()
+                        isImporterPresented = true
                     } label: {
-                        Image(systemName: "plus")
+                        Label("Add Ignored Apps", systemImage: "plus")
                     }
-                    .help("Add Ignored App")
+                    .labelStyle(.iconOnly)
+                    .help("Add Ignored Apps")
 
                     Button {
-                        removeSelectedIgnoredApp()
+                        removeSelectedIgnoredApps()
                     } label: {
-                        Image(systemName: "minus")
+                        Label("Remove Selected Ignored Apps", systemImage: "minus")
                     }
-                    .disabled(selectedIgnoredAppBundleIdentifier == nil)
-                    .help("Remove Selected Ignored App")
+                    .labelStyle(.iconOnly)
+                    .disabled(selectedIgnoredAppBundleIdentifiers.isEmpty)
+                    .help("Remove Selected Ignored Apps")
                 }
                 .buttonStyle(.borderless)
                 .controlSize(.small)
             }
         } footer: {
             SettingsSectionFooter {
-                Text("Copied content from the following apps won't be recorded.")
-            }
-        }
-    }
-
-    @ViewBuilder
-    var appListContent: some View {
-        ZStack {
-            List(selection: $selectedIgnoredAppBundleIdentifier) {
-                ForEach(viewModel.ignoredApps) { ignoredApp in
-                    HStack(spacing: 12) {
-                        Image(nsImage: ignoredApp.icon)
-                            .resizable()
-                            .interpolation(.high)
-                            .frame(width: 28, height: 28)
-                            .clipShape(.rect(cornerRadius: 7))
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(ignoredApp.displayName)
-                                .font(.body)
-                                .foregroundStyle(.primary)
-
-                            Text(ignoredApp.bundleIdentifier)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .textSelection(.enabled)
-                        }
-                    }
-                    .padding(.vertical, 4)
-                    .tag(ignoredApp.bundleIdentifier)
-                }
-            }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-
-            if viewModel.ignoredApps.isEmpty {
-                VStack(spacing: 8) {
-                    Image(systemName: "app.dashed")
-                        .font(.title2)
-                        .foregroundStyle(.tertiary)
-                    Text("No ignored apps yet")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .allowsHitTesting(false)
+                Text("Copied content from the apps above won't be recorded. You can select multiple apps and remove them together.")
             }
         }
     }
@@ -108,16 +84,43 @@ private extension IgnoredAppsSettingsView {
 // MARK: - Helpers
 
 private extension IgnoredAppsSettingsView {
-    func removeSelectedIgnoredApp() {
-        guard let selectedIgnoredAppBundleIdentifier,
-              let index = viewModel.ignoredApps.firstIndex(where: {
-                  $0.bundleIdentifier == selectedIgnoredAppBundleIdentifier
-              }) else {
-            return
-        }
+    var defaultDirectoryURL: URL? {
+        FileManager.default.urls(for: .applicationDirectory, in: .localDomainMask).first
+            ?? URL(filePath: "/Applications", directoryHint: .isDirectory)
+    }
 
-        viewModel.removeAppFromIgnoreList(at: IndexSet(integer: index))
-        self.selectedIgnoredAppBundleIdentifier = nil
+    func removeSelectedIgnoredApps() {
+        let selectedBundleIdentifiers = selectedIgnoredAppBundleIdentifiers
+        guard selectedBundleIdentifiers.isEmpty == false else { return }
+
+        viewModel.removeAppsFromIgnoreList(bundleIdentifiers: selectedBundleIdentifiers)
+        selectedIgnoredAppBundleIdentifiers.removeAll()
+    }
+
+    func handleImportSelection(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let applicationURLs):
+            guard applicationURLs.isEmpty == false else { return }
+
+            let failedApplicationNames = viewModel.addAppsToIgnoreList(from: applicationURLs)
+            if failedApplicationNames.isEmpty == false {
+                let failedApplicationList = failedApplicationNames.joined(separator: ", ")
+                presentImportError(
+                    message: LocalizedStringResource("Some apps couldn't be added: \(failedApplicationList).")
+                )
+            }
+
+        case .failure(let error):
+            guard (error as NSError).code != NSUserCancelledError else { return }
+            presentImportError(
+                message: LocalizedStringResource("App selection failed: \(error.localizedDescription)")
+            )
+        }
+    }
+
+    func presentImportError(message: LocalizedStringResource) {
+        importErrorMessage = message
+        isImportErrorPresented = true
     }
 }
 

@@ -85,22 +85,22 @@ final class MigrationManager {
         nonisolated var fileButtonTitle: LocalizedStringResource {
             switch self {
             case .paste, .iCopy, .maccy:
-                LocalizedStringResource("选择 SQLite 数据库")
+                LocalizedStringResource("Select SQLite Database")
             case .pasteNow:
-                LocalizedStringResource("选择 JSON 导出文件")
+                LocalizedStringResource("Select JSON Export File")
             }
         }
 
         nonisolated var idleStatusText: LocalizedStringResource {
             switch self {
             case .paste:
-                LocalizedStringResource("请选择 Paste 的 SQLite 数据库文件。")
+                LocalizedStringResource("Select the Paste SQLite database file.")
             case .pasteNow:
-                LocalizedStringResource("请选择 PasteNow 导出的 JSON 文件。")
+                LocalizedStringResource("Select the PasteNow exported JSON file.")
             case .iCopy:
-                LocalizedStringResource("请选择 iCopy 的 SQLite 数据库文件。")
+                LocalizedStringResource("Select the iCopy SQLite database file.")
             case .maccy:
-                LocalizedStringResource("请选择 Maccy 的 SQLite 数据库文件。")
+                LocalizedStringResource("Select the Maccy SQLite database file.")
             }
         }
 

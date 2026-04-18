@@ -207,7 +207,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func makeOnboardingWindow() -> NSWindow {
         let appLanguage = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "appLanguage") ?? "") ?? .auto
         let rootView = OnboardingView()
-            .environment(\.locale, appLanguage.locale ?? .current)
+            .environment(\.locale, appLanguage.resolvedLocale)
         let hostingController = NSHostingController(rootView: rootView)
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 520, height: 460),
@@ -261,7 +261,7 @@ struct clipasteApp: App {
                 .environmentObject(settingsViewModel)
                 .environmentObject(runtimeStore)
                 .modelContainer(runtimeStore.container)
-                .environment(\.locale, appLanguage.locale ?? .current)
+                .environment(\.locale, appLanguage.resolvedLocale)
                 .environment(appUpdateViewModel)
         }
         .defaultSize(width: 900, height: 700)
@@ -274,7 +274,7 @@ struct clipasteApp: App {
                 .environmentObject(runtimeStore)
                 .modelContainer(runtimeStore.container)
                 .id("\(runtimeStore.rootIdentity)-\(appLanguage.rawValue)")
-                .environment(\.locale, appLanguage.locale ?? .current)
+                .environment(\.locale, appLanguage.resolvedLocale)
                 .environment(appUpdateViewModel)
         }
     }

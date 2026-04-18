@@ -140,7 +140,7 @@ private struct ShortcutRecorderRow: View {
     }
 
     private var shortcutRecorder: some View {
-        KeyboardShortcuts.Recorder(for: name) { newShortcut in
+        LocalizedShortcutRecorder(for: name) { newShortcut in
             shortcut = newShortcut
         }
         .frame(minWidth: 140)

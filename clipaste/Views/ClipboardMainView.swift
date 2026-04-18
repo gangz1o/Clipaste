@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ClipboardMainView: View {
     private enum PendingListFocusRequest {
+        case preserveSelection
         case selectFirstItem
     }
 
@@ -225,7 +226,7 @@ struct ClipboardMainView: View {
     private func requestDefaultListFocus() {
         pendingListFocusGeneration &+= 1
         pendingSearchFocusGeneration &+= 1
-        pendingListFocusRequest = .selectFirstItem
+        pendingListFocusRequest = .preserveSelection
         focusedField = nil
         searchService.isTextFieldFocused = false
 
@@ -264,13 +265,18 @@ struct ClipboardMainView: View {
 
     @discardableResult
     private func applyPendingListFocusIfPossible() -> Bool {
-        guard pendingListFocusRequest != nil else { return false }
+        guard let pendingListFocusRequest else { return false }
         guard isPanelKeyWindow else { return false }
         guard !displayedItems.isEmpty else { return false }
 
-        viewModel.selectFirstDisplayedItem()
+        switch pendingListFocusRequest {
+        case .preserveSelection:
+            viewModel.ensureListSelection()
+        case .selectFirstItem:
+            viewModel.selectFirstDisplayedItem()
+        }
         focusedField = .clipList
-        pendingListFocusRequest = nil
+        self.pendingListFocusRequest = nil
         return true
     }
 

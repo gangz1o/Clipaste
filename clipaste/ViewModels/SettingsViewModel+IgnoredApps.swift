@@ -1,39 +1,19 @@
-import AppKit
-import UniformTypeIdentifiers
+import Foundation
 
 extension SettingsViewModel {
-    func addAppToIgnoreList() {
-        let openPanel = NSOpenPanel()
-        openPanel.title = String(localized: "Choose an App to Ignore")
-        openPanel.message = String(localized: "Copied content from the following apps won't be recorded.")
-        openPanel.prompt = String(localized: "Add Ignored App")
-        openPanel.canChooseFiles = true
-        openPanel.canChooseDirectories = false
-        openPanel.allowsMultipleSelection = false
-        openPanel.resolvesAliases = true
-        openPanel.allowedContentTypes = [UTType.applicationBundle]
+    func addAppsToIgnoreList(from applicationURLs: [URL]) -> [String] {
+        guard applicationURLs.isEmpty == false else { return [] }
 
-        guard openPanel.runModal() == .OK, let applicationURL = openPanel.url else {
-            return
-        }
+        let result = IgnoredAppsService.addIgnoredApps(from: applicationURLs)
+        reloadIgnoredApps()
 
-        do {
-            try IgnoredAppsService.addIgnoredApp(from: applicationURL)
-            reloadIgnoredApps()
-        } catch {
-            print("❌ Failed to add ignored app: \(error.localizedDescription)")
-        }
+        return result.failedApplicationNames
     }
 
-    func removeAppFromIgnoreList(at offsets: IndexSet) {
-        let bundleIdentifiers: [String] = offsets.compactMap { index -> String? in
-            guard ignoredApps.indices.contains(index) else { return nil }
-            return ignoredApps[index].bundleIdentifier
-        }
-
+    func removeAppsFromIgnoreList(bundleIdentifiers: Set<String>) {
         guard bundleIdentifiers.isEmpty == false else { return }
 
-        IgnoredAppsService.removeIgnoredBundleIdentifiers(bundleIdentifiers)
+        IgnoredAppsService.removeIgnoredBundleIdentifiers(Array(bundleIdentifiers))
         reloadIgnoredApps()
     }
 

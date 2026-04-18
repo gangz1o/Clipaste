@@ -114,16 +114,12 @@ enum SettingsWindowCoordinator {
         UserDefaults.standard.bool(forKey: onboardingDefaultsKey)
     }
 
-    /// 与 `UserDefaults` 中 `appLanguage` 一致；显式语言用 `LocalizedStringResource(locale:)`，减轻与 `AppleLanguages` 进程内缓存不一致的问题。
+    /// 与 `UserDefaults` 中 `appLanguage` 一致；`auto` 读取系统全局语言，显式语言用 `LocalizedStringResource(locale:)`，
+    /// 减轻与进程内 `AppleLanguages` 缓存不一致的问题。
     @MainActor
     fileprivate static func resolvedSettingsWindowTitle() -> String {
         let lang = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "appLanguage") ?? "") ?? .auto
-        if lang == .auto {
-            return String(localized: "Clipaste Settings", locale: .current)
-        }
-        guard let locale = lang.locale else {
-            return String(localized: "Clipaste Settings", locale: .current)
-        }
+        let locale = lang.resolvedLocale
         let resource = LocalizedStringResource("Clipaste Settings", locale: locale, bundle: .main)
         return String(localized: resource)
     }
@@ -191,17 +187,21 @@ struct SettingsWindowObserver: NSViewRepresentable {
     private final class TrackingView: NSView {
         private let sidebarButtonTag = 9_421
         nonisolated(unsafe) private var pendingTitleWorkItem: DispatchWorkItem?
+        nonisolated(unsafe) private var localMouseMonitor: Any?
+        private weak var observedWindow: NSWindow?
         private weak var installedSidebarButton: NSButton?
         private var hasAppliedTrafficLightOffset = false
 
         deinit {
             pendingTitleWorkItem?.cancel()
+            stopObservingWindowClicks()
         }
 
         override func viewDidMoveToWindow() {
             super.viewDidMoveToWindow()
 
             guard let window else { return }
+            observeWindowClicks(for: window)
             window.titleVisibility = .hidden
             window.titlebarSeparatorStyle = .none
             window.titlebarAppearsTransparent = true
@@ -210,6 +210,8 @@ struct SettingsWindowObserver: NSViewRepresentable {
             window.styleMask.insert(.resizable)
             window.toolbar = nil
             window.setContentBorderThickness(0, for: .maxY)
+            window.backgroundColor = .windowBackgroundColor
+            window.isOpaque = true
             window.standardWindowButton(.miniaturizeButton)?.isEnabled = true
             window.standardWindowButton(.zoomButton)?.isEnabled = true
 
@@ -241,6 +243,32 @@ struct SettingsWindowObserver: NSViewRepresentable {
         private func applyWindowTitleIfNeeded() {
             guard let window else { return }
             window.title = SettingsWindowCoordinator.resolvedSettingsWindowTitle()
+        }
+
+        private func observeWindowClicks(for window: NSWindow) {
+            guard observedWindow !== window else { return }
+            stopObservingWindowClicks()
+            observedWindow = window
+
+            localMouseMonitor = NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
+                guard let self, let observedWindow = self.observedWindow else {
+                    return event
+                }
+
+                if event.window === observedWindow {
+                    ClipboardPanelManager.shared.hidePanel()
+                }
+
+                return event
+            }
+        }
+
+        private func stopObservingWindowClicks() {
+            if let localMouseMonitor {
+                NSEvent.removeMonitor(localMouseMonitor)
+                self.localMouseMonitor = nil
+            }
+            observedWindow = nil
         }
 
         private func refreshToolbarChrome() {

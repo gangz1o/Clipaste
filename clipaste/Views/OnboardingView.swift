@@ -176,7 +176,7 @@ private struct ShortcutView: View {
 
                         Spacer()
 
-                        KeyboardShortcuts.Recorder(for: .toggleClipboardPanel)
+                        LocalizedShortcutRecorder(for: .toggleClipboardPanel)
                     }
                 }
                 .padding(20)

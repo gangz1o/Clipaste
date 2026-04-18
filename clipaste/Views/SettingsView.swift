@@ -53,7 +53,7 @@ struct SettingsView: View {
     @AppStorage("appLanguage") private var appLanguage: AppLanguage = .auto
 
     var body: some View {
-        let resolvedLocale = appLanguage.locale ?? .current
+        let resolvedLocale = appLanguage.resolvedLocale
 
         HStack(spacing: 0) {
             if isSidebarVisible {
@@ -125,23 +125,31 @@ private struct SidebarLabel: View {
     let tab: SettingsTab
     let isSelected: Bool
     let showsUpdateBadge: Bool
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         Label {
             Text(tab.localizedTitle)
                 .lineLimit(1)
-                .foregroundStyle(isSelected ? .white : .primary)
+                .foregroundStyle(.primary)
         } icon: {
             Image(systemName: tab.iconName)
                 .font(.system(size: 14, weight: .medium))
                 .symbolRenderingMode(.monochrome)
-                .foregroundStyle(isSelected ? .white : .secondary)
+                .foregroundStyle(isSelected ? SettingsPalette.updateAccentEmphasis(for: colorScheme) : .secondary)
                 .frame(width: 16)
                 .overlay(alignment: .topTrailing) {
                     if showsUpdateBadge {
                         Circle()
-                            .fill(isSelected ? .white.opacity(0.9) : .red)
+                            .fill(Color(nsColor: .systemRed))
                             .frame(width: 6, height: 6)
+                            .overlay {
+                                Circle()
+                                    .stroke(
+                                        isSelected ? SettingsPalette.sidebarSelectionFill(for: colorScheme) : Color(nsColor: .controlBackgroundColor),
+                                        lineWidth: 1
+                                    )
+                            }
                             .offset(x: 2, y: -1)
                     }
                 }
@@ -153,7 +161,14 @@ private struct SidebarLabel: View {
         .contentShape(Rectangle())
         .background {
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(isSelected ? Color.accentColor : Color.clear)
+                .fill(isSelected ? SettingsPalette.sidebarSelectionFill(for: colorScheme) : Color.clear)
+                .overlay {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(
+                            isSelected ? SettingsPalette.sidebarSelectionBorder(for: colorScheme) : Color.clear,
+                            lineWidth: 1
+                        )
+                }
         }
     }
 }

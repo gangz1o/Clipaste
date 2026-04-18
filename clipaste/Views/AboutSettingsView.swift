@@ -3,6 +3,9 @@ import SwiftUI
 
 struct AboutSettingsView: View {
     @Environment(AppUpdateViewModel.self) private var updateViewModel
+    @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.locale) private var locale
     private let privacyPolicyURL = URL(string: "https://legal.clipaste.com/?page=privacy")!
     private let termsOfServiceURL = URL(string: "https://legal.clipaste.com/?page=terms")!
 
@@ -72,19 +75,7 @@ private extension AboutSettingsView {
         automaticallyDownloadsUpdates: Binding<Bool>
     ) -> some View {
         Section {
-            HStack(spacing: 8) {
-                Circle()
-                    .fill(.red)
-                    .frame(width: 8, height: 8)
-                    .opacity(viewModel.shouldShowUpdateBadge ? 1 : 0)
-
-                Text(verbatim: updateStatusMessage(for: viewModel))
-                    .font(.subheadline.weight(.medium))
-                    .foregroundStyle(updateStatusColor(for: viewModel))
-                    .lineLimit(2)
-
-                Spacer(minLength: 12)
-            }
+            updateStatusBanner(for: viewModel)
 
             LabeledContent("Current Version") {
                 Text(verbatim: viewModel.currentVersion)
@@ -126,11 +117,12 @@ private extension AboutSettingsView {
 
                 if let releaseNotesURL = viewModel.availableUpdate?.releaseNotesURL {
                     Link("View Release Notes", destination: releaseNotesURL)
-                        .buttonStyle(.link)
+                        .buttonStyle(.bordered)
                 }
 
                 Spacer()
             }
+            .controlSize(.large)
 
             if let lastUpdateCheckDate = viewModel.lastUpdateCheckDate {
                 Text(verbatim: lastCheckedText(for: lastUpdateCheckDate))
@@ -205,46 +197,155 @@ private extension AboutSettingsView {
 // MARK: - Status Helpers
 
 private extension AboutSettingsView {
+    func updateStatusBanner(for viewModel: AppUpdateViewModel) -> some View {
+        HStack(spacing: 12) {
+            Label {
+                Text(verbatim: updateStatusMessage(for: viewModel))
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(updateStatusColor(for: viewModel))
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+            } icon: {
+                Image(systemName: updateStatusIcon(for: viewModel))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(updateStatusColor(for: viewModel))
+            }
+
+            Spacer(minLength: 12)
+
+            if let version = viewModel.availableUpdate?.version, viewModel.isUpdateAvailable {
+                updateVersionBadge(version)
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+        .background {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(updateStatusBackground(for: viewModel))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(updateStatusBorder(for: viewModel), lineWidth: 1)
+                }
+        }
+    }
+
+    func updateVersionBadge(_ version: String) -> some View {
+        let fillColor = Color.accentColor.opacity(colorScheme == .dark ? 0.18 : 0.08)
+        let strokeColor = Color.accentColor.opacity(colorScheme == .dark ? 0.36 : 0.16)
+
+        return Text(verbatim: version)
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(Color.accentColor)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background {
+                Capsule()
+                    .fill(fillColor)
+                    .overlay {
+                        Capsule()
+                            .stroke(strokeColor, lineWidth: 1)
+                    }
+            }
+            .accessibilityLabel(Text("Latest Version \(version)"))
+    }
+
     func updateStatusMessage(for viewModel: AppUpdateViewModel) -> String {
         switch viewModel.phase {
         case .idle:
             if !viewModel.automaticallyChecksForUpdates {
-                return String(localized: "Automatic update checks are turned off")
+                return xcstringsLocalized("Automatic update checks are turned off", locale: locale)
             }
-            return String(localized: "Ready to check for updates")
+            return xcstringsLocalized("Ready to check for updates", locale: locale)
         case .checking:
-            return String(localized: "Checking for updates…")
+            return xcstringsLocalized("Checking for updates…", locale: locale)
         case .updateAvailable:
             if let version = viewModel.availableUpdate?.version {
-                return String(format: String(localized: "A new version is ready: %@"), version)
+                let format = xcstringsLocalized("A new version is ready: %@", locale: locale)
+                return String(format: format, locale: locale, arguments: [version])
             }
-            return String(localized: "A new version is available")
+            return xcstringsLocalized("A new version is available", locale: locale)
         case .downloading:
-            return String(localized: "Downloading update…")
+            return xcstringsLocalized("Downloading update…", locale: locale)
         case .installing:
-            return String(localized: "Preparing update…")
+            return xcstringsLocalized("Preparing update…", locale: locale)
         case .upToDate:
-            return String(localized: "You're up to date")
+            return xcstringsLocalized("You're up to date", locale: locale)
         case .failed(let message):
             return updateFailureText(message: message)
         }
     }
 
+    func updateStatusIcon(for viewModel: AppUpdateViewModel) -> String {
+        switch viewModel.phase {
+        case .idle:
+            return viewModel.automaticallyChecksForUpdates ? "arrow.triangle.2.circlepath.circle.fill" : "pause.circle.fill"
+        case .checking:
+            return "arrow.triangle.2.circlepath.circle.fill"
+        case .updateAvailable:
+            return differentiateWithoutColor ? "arrow.down.circle.fill" : "sparkles"
+        case .downloading:
+            return "arrow.down.circle.fill"
+        case .installing:
+            return "shippingbox.circle.fill"
+        case .upToDate:
+            return "checkmark.circle.fill"
+        case .failed:
+            return "exclamationmark.circle.fill"
+        }
+    }
+
     func updateStatusColor(for viewModel: AppUpdateViewModel) -> Color {
         switch viewModel.phase {
-        case .updateAvailable: return .accentColor
-        case .failed: return .red
-        default: return .secondary
+        case .checking, .updateAvailable, .downloading, .installing:
+            return .accentColor
+        case .failed:
+            return .red
+        default:
+            return .secondary
+        }
+    }
+
+    func updateStatusBackground(for viewModel: AppUpdateViewModel) -> Color {
+        switch viewModel.phase {
+        case .checking, .downloading, .installing:
+            return Color.accentColor.opacity(colorScheme == .dark ? 0.16 : 0.07)
+        case .updateAvailable:
+            return SettingsPalette.cardBackground(for: colorScheme)
+        case .failed:
+            return Color.red.opacity(colorScheme == .dark ? 0.18 : 0.10)
+        default:
+            return SettingsPalette.cardBackground(for: colorScheme)
+        }
+    }
+
+    func updateStatusBorder(for viewModel: AppUpdateViewModel) -> Color {
+        switch viewModel.phase {
+        case .checking, .downloading, .installing:
+            return Color.accentColor.opacity(colorScheme == .dark ? 0.32 : 0.14)
+        case .updateAvailable:
+            return .clear
+        case .failed:
+            return Color.red.opacity(colorScheme == .dark ? 0.34 : 0.22)
+        default:
+            return SettingsPalette.updateSurfaceBorder(for: colorScheme).opacity(colorScheme == .dark ? 0.75 : 0.9)
         }
     }
 
     func lastCheckedText(for date: Date) -> String {
-        let formattedDate = date.formatted(date: .abbreviated, time: .shortened)
-        return String(format: String(localized: "Last checked: %@"), formattedDate)
+        let formattedDate = date.formatted(
+            Date.FormatStyle(date: .abbreviated, time: .shortened).locale(locale)
+        )
+        let format = xcstringsLocalized("Last checked: %@", locale: locale)
+        return String(format: format, locale: locale, arguments: [formattedDate])
     }
 
     func updateFailureText(message: String) -> String {
-        String(format: String(localized: "Update check failed: %@"), message)
+        let format = xcstringsLocalized("Update check failed: %@", locale: locale)
+        return String(format: format, locale: locale, arguments: [message])
+    }
+
+    private func xcstringsLocalized(_ key: String, locale: Locale) -> String {
+        String(localized: String.LocalizationValue(key), bundle: .main, locale: locale)
     }
 }
 

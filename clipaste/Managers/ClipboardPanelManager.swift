@@ -354,7 +354,7 @@ private struct ClipboardPanelRootView: View {
             .environmentObject(runtimeStore)
             .modelContainer(runtimeStore.container)
             .id("\(runtimeStore.rootIdentity)-\(appLanguage.rawValue)")
-            .environment(\.locale, appLanguage.locale ?? .current)
+            .environment(\.locale, appLanguage.resolvedLocale)
     }
 }
 

@@ -35,7 +35,7 @@ struct ClipboardHeaderView: View {
 
     /// 剪贴板面板上的 Popover 在独立窗口中呈现，往往拿不到根视图的 `\.locale`，需与 `ClipboardPanelRootView` 一致显式注入。
     private var panelLocale: Locale {
-        appLanguage.locale ?? .current
+        appLanguage.resolvedLocale
     }
 
     private var isVerticalLayout: Bool {

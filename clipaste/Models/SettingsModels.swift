@@ -151,6 +151,20 @@ enum AppLanguage: String, CaseIterable, Identifiable {
         case .fr:     return Locale(identifier: "fr")
         }
     }
+
+    var resolvedLocale: Locale {
+        locale ?? Self.systemLocale
+    }
+
+    static var systemLocale: Locale {
+        let globalDefaults = UserDefaults.standard.persistentDomain(forName: UserDefaults.globalDomain)
+        if let preferredLanguages = globalDefaults?["AppleLanguages"] as? [String],
+           let languageIdentifier = preferredLanguages.first,
+           languageIdentifier.isEmpty == false {
+            return Locale(identifier: languageIdentifier)
+        }
+        return .current
+    }
 }
 
 enum VerticalFollowMode: String, CaseIterable, Identifiable {

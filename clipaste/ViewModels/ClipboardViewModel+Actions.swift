@@ -381,7 +381,7 @@ extension ClipboardViewModel {
 private extension ClipboardViewModel {
     var operationNoticeLocale: Locale {
         let language = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "appLanguage") ?? "") ?? .auto
-        return language.locale ?? .current
+        return language.resolvedLocale
     }
 
     func showFavoritesDeletionBlockedNotice() {

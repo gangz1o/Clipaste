@@ -49,7 +49,7 @@ private extension AdvancedSettingsView {
                 Text("Require Cmd+Backspace to Delete")
             }
 
-            Picker(xcstringsLocalized("Default Text Format", locale: locale), selection: $viewModel.pasteTextFormat) {
+            Picker("Default Text Format", selection: $viewModel.pasteTextFormat) {
                 ForEach(PasteTextFormat.allCases) { format in
                     Text(format.localizedTitle).tag(format)
                 }
@@ -338,13 +338,7 @@ private extension AdvancedSettingsView {
     }
 
     private func xcstringsLocalized(_ key: String, locale: Locale) -> String {
-        let bcp47 = locale.identifier(.bcp47)
-        if let path = Bundle.main.path(forResource: bcp47, ofType: "lproj"),
-           let bundle = Bundle(path: path) {
-            let value = bundle.localizedString(forKey: key, value: nil, table: nil)
-            if value != key { return value }
-        }
-        return String(localized: String.LocalizationValue(key), bundle: .main, locale: locale)
+        String(localized: String.LocalizationValue(key), bundle: .main, locale: locale)
     }
 }
 
