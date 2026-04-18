@@ -21,9 +21,9 @@ jobs:
       SCHEME: Clipaste
       PROJECT_PATH: clipaste.xcodeproj
       INFO_PLIST_PATH: clipaste-Info.plist
-      XCODE_VERSION: 26.4
-      XCODE_BUILD_VERSION: 17E192
-      EXPECTED_APP_SDK_VERSION: 26.4
+      XCODE_VERSION: "26.4"
+      XCODE_BUILD_VERSION: "17E192"
+      EXPECTED_APP_SDK_VERSION: "26.4"
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
       BUILD_CERTIFICATE_BASE64: ${{ secrets.BUILD_CERTIFICATE_BASE64 }}
