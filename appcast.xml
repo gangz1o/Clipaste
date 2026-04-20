@@ -3,6 +3,43 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>1.1.5</title>
+            <pubDate>Mon, 20 Apr 2026 15:16:31 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.1.5</sparkle:fullReleaseNotesLink>
+            <sparkle:version>10105</sparkle:version>
+            <sparkle:shortVersionString>1.1.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
+
+🛠 修复
+
+- 修复快捷键删除后无法重新录入的问题
+- 修复 Excel 大范围表格内容被错误识别为图片的问题
+
+🎨 优化
+
+- 优化快捷键录制稳定性与设置页交互
+- 优化混合剪贴板识别，优先保留文本与富文本内容
+
+---
+
+### ✨ What's New
+
+🛠 Fixes
+
+- Fixed an issue where shortcuts could not be re-recorded after being cleared
+- Fixed an issue where large Excel table selections could be captured as images
+
+🎨 Improvements
+
+- Improved shortcut recording stability and settings interaction
+- Improved mixed clipboard detection to better preserve text and rich text content
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.1.5/Clipaste-v1.1.5.zip" length="4655594" type="application/octet-stream" sparkle:edSignature="4QjEJDf7n2D0j9t8n5Acr8F9dbPS5ZpeIJJHT4FfPqnVutfDXSzJ+rfx1IFOqa9rdBv3dLsIqOOGHn2SNolpAw=="/>
+        </item>
+        <item>
             <title>1.1.4</title>
             <pubDate>Sat, 18 Apr 2026 14:12:10 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -67,23 +104,6 @@
 - ✅ Improved overall release stability so GitHub Releases, DMG artifacts, and the Homebrew cask stay in sync more reliably.
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.1.3/Clipaste-v1.1.3.zip" length="4591769" type="application/octet-stream" sparkle:edSignature="U20xJFOrK5B87AO2gBipKH8Zppge0g6LmKKrZALRF8btd31B1eQQQ0fLQDCC2KZMr/s+WpRoTOG0EAWV2lDuCg=="/>
-        </item>
-        <item>
-            <title>1.1.2</title>
-            <pubDate>Fri, 17 Apr 2026 02:58:10 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.1.2</sparkle:fullReleaseNotesLink>
-            <sparkle:version>10102</sparkle:version>
-            <sparkle:shortVersionString>1.1.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[#### 🎉 更新公告
-
-- 🔧 修复footer提示文字排版
----
-#### 🎉 Release Note
-- 🔧 fix footer tips text style issues
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.1.2/Clipaste-v1.1.2.zip" length="4595743" type="application/octet-stream" sparkle:edSignature="TMkL+3ra9+6KwXr8Ywzcx9NQvazuOnQGC4jkP/3HZkcYQK5/IXdrOKyk/AX2bghezMcZDoHnvQdW+lGR58x5Bg=="/>
         </item>
     </channel>
 </rss>
