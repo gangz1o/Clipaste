@@ -105,14 +105,11 @@ private extension ShortcutsSettingsView {
 
 private struct ShortcutRecorderRow: View {
     let title: LocalizedStringKey
-    let name: KeyboardShortcuts.Name
-
-    @State private var shortcut: KeyboardShortcuts.Shortcut?
+    @StateObject private var viewModel: ShortcutRecorderRowViewModel
 
     init(_ title: LocalizedStringKey, name: KeyboardShortcuts.Name) {
         self.title = title
-        self.name = name
-        _shortcut = State(initialValue: name.shortcut)
+        _viewModel = StateObject(wrappedValue: ShortcutRecorderRowViewModel(name: name))
     }
 
     var body: some View {
@@ -122,28 +119,24 @@ private struct ShortcutRecorderRow: View {
 
                 if name.defaultShortcut != nil {
                     Button("Restore Default Shortcut", systemImage: "arrow.uturn.backward") {
-                        KeyboardShortcuts.reset(name)
-                        shortcut = name.shortcut
+                        viewModel.restoreDefault()
                     }
                     .labelStyle(.iconOnly)
                     .buttonStyle(.borderless)
                     .controlSize(.small)
-                    .disabled(!canRestoreDefault)
+                    .disabled(!viewModel.canRestoreDefault)
                 }
             }
         }
     }
 
-    private var canRestoreDefault: Bool {
-        guard let defaultShortcut = name.defaultShortcut else { return false }
-        return shortcut != defaultShortcut
+    private var shortcutRecorder: some View {
+        LocalizedShortcutRecorder(for: viewModel.name)
+        .frame(minWidth: 140)
     }
 
-    private var shortcutRecorder: some View {
-        LocalizedShortcutRecorder(for: name) { newShortcut in
-            shortcut = newShortcut
-        }
-        .frame(minWidth: 140)
+    private var name: KeyboardShortcuts.Name {
+        viewModel.name
     }
 }
 
