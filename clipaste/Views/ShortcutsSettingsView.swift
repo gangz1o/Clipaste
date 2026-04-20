@@ -131,8 +131,7 @@ private struct ShortcutRecorderRow: View {
     }
 
     private var shortcutRecorder: some View {
-        LocalizedShortcutRecorder(for: viewModel.name)
-        .frame(minWidth: 140)
+        LocalizedShortcutRecorder(viewModel: viewModel)
     }
 
     private var name: KeyboardShortcuts.Name {

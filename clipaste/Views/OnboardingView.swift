@@ -137,6 +137,8 @@ struct OnboardingView: View {
 // MARK: - Step 1: Shortcut
 
 private struct ShortcutView: View {
+    @StateObject private var shortcutRecorderViewModel = ShortcutRecorderRowViewModel(name: .toggleClipboardPanel)
+
     private var appIcon: NSImage {
         NSApplication.shared.applicationIconImage
     }
@@ -176,7 +178,7 @@ private struct ShortcutView: View {
 
                         Spacer()
 
-                        LocalizedShortcutRecorder(for: .toggleClipboardPanel)
+                        LocalizedShortcutRecorder(viewModel: shortcutRecorderViewModel)
                     }
                 }
                 .padding(20)
