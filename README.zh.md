@@ -27,13 +27,13 @@ Clipaste 是一个基于 **SwiftUI** 和 **SwiftData** 构建的 macOS 剪贴板
 
 ## 🧩 预览
 <div align="center">
-  <img src="https://cdn.nodeimage.com/i/mf7KusniFHeaoGGP4uez83OrVpcSyUIr.webp" width="40%" />
-  <img src="https://cdn.nodeimage.com/i/JuRrDgvz6wfUTptWjEX1uH0zZXiI9Hjs.webp" width="40%" />
+  <img src="https://cdn.nodeimage.com/i/Rehrs8FAKYh2SngzRtC9DBq4nqDoDMB8.webp" width="40%" />
+  <img src="https://cdn.nodeimage.com/i/Rehrs8FAKYh2SngzRtC9DBq4nqDoDMB8.webp" width="40%" />
 </div>
 <br />
 <div align="center">
-  <img src="https://cdn.nodeimage.com/i/bu2Tk7GSQ6aRItJc9PpBrEQrJSt4mKGN.webp" width="40%" />
-  <img src="https://cdn.nodeimage.com/i/Y3a2gv5YW0T4jHX0GxgKYGyDKPqutJmi.webp" width="40%" />
+  <img src="https://cdn.nodeimage.com/i/i4Jab3co3VW1kOKL2zEkzIQNsiINGp9p.webp" width="40%" />
+  <img src="https://cdn.nodeimage.com/i/jRQP3zlsLV94nuvaoc7Cz781a8u50zVL.webp" width="40%" />
 </div>
 <br />
 
