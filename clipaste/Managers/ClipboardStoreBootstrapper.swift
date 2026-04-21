@@ -23,6 +23,7 @@ struct ClipboardRecordExport: Sendable {
     let linkIconData: Data?
     let isPinned: Bool
     let rtfData: Data?
+    let richTextArchiveData: Data?
 }
 
 struct ClipboardGroupExport: Sendable {
@@ -219,7 +220,8 @@ final class ClipboardStoreBootstrapper: @unchecked Sendable {
             linkTitle: record.linkTitle,
             linkIconData: record.linkIconData,
             isPinned: record.isPinned,
-            rtfData: record.rtfData
+            rtfData: record.rtfData,
+            richTextArchiveData: nil
         )
     }
 

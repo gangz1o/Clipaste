@@ -204,7 +204,8 @@ final class ClipboardMonitor {
             appID: appID,
             appName: appName,
             type: ClipboardContentType.fileURL.rawValue,
-            rtfData: nil
+            rtfData: nil,
+            richTextArchive: nil
         )
     }
 
@@ -219,10 +220,18 @@ final class ClipboardMonitor {
 
         let textData = pasteboardItem.data(forType: utf8PlainTextType) ?? Data(text.utf8)
         let contentHash = CryptoHelper.sha256(data: textData)
-        let rtfData = pasteboardItem.data(forType: .rtf)
+        let richTextArchive = ClipboardRichTextArchive.fromPasteboardItem(pasteboardItem)
+        let rtfData = richTextArchive?.previewRTFData
 
-        // ⚠️ 智能嗅探：在录入瞬间决定数据类型，持久化入库
-        let sniffedType = Self.sniffTextType(text)
+        // Excel/WPS 这类结构化表格复制通常带有 HTML/Tabular Text，
+        // 这里强制归为普通文本，避免被代码分类器误判为 code。
+        let sniffedType: ClipboardContentType
+        if richTextArchive?.hasComplexPreviewRepresentations == true {
+            sniffedType = .text
+        } else {
+            // ⚠️ 智能嗅探：在录入瞬间决定数据类型，持久化入库
+            sniffedType = Self.sniffTextType(text)
+        }
 
         return ClipboardRecordPayload(
             hash: contentHash,
@@ -230,7 +239,8 @@ final class ClipboardMonitor {
             appID: appID,
             appName: appName,
             type: sniffedType.rawValue,
-            rtfData: rtfData
+            rtfData: rtfData,
+            richTextArchive: richTextArchive
         )
     }
 
@@ -267,7 +277,7 @@ final class ClipboardMonitor {
             return false
         }
 
-        if payload.rtfData?.isEmpty == false {
+        if payload.richTextArchive?.isEmpty == false {
             return true
         }
 
@@ -356,7 +366,8 @@ final class ClipboardMonitor {
             appName: payload.appName,
             appIconDominantColorHex: appIconDominantColorHex,
             type: payload.type,
-            rtfData: payload.rtfData
+            rtfData: payload.rtfData,
+            richTextArchiveData: payload.richTextArchive?.encodedData()
         )
 
         // 链接类型 → 触发 LinkPresentation 抓取，让链接变成漂亮的书签卡片
@@ -366,13 +377,14 @@ final class ClipboardMonitor {
                 hash: payload.hash,
                 urlString: text.trimmingCharacters(in: .whitespacesAndNewlines)
             )
-            if payload.rtfData == nil {
+            if payload.richTextArchive == nil, payload.rtfData == nil {
                 StorageManager.shared.processSyntaxHighlight(hash: payload.hash, text: text)
             }
         }
 
         // 代码/纯文本 → 静默触发后台语法高亮
         if (payload.type == ClipboardContentType.text.rawValue || payload.type == ClipboardContentType.code.rawValue),
+           payload.richTextArchive == nil,
            payload.rtfData == nil,
            let text = payload.text {
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -415,6 +427,7 @@ private struct ClipboardRecordPayload: Sendable {
     let appName: String?
     let type: String
     let rtfData: Data?
+    let richTextArchive: ClipboardRichTextArchive?
 }
 
 private struct ClipboardImagePayload: Sendable {

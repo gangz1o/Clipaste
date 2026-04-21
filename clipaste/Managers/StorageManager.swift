@@ -28,6 +28,7 @@ struct ClipboardPasteRecord: Sendable {
     let typeRawValue: String
     let plainText: String?
     let rtfData: Data?
+    let richTextArchiveData: Data?
 }
 
 nonisolated private func normalizedGroupIDs(primaryGroupID: String?, groupIdsRaw: String?) -> [String] {
@@ -220,6 +221,7 @@ final class StorageManager {
         appIconDominantColorHex: String? = nil,
         type: String,
         rtfData: Data? = nil,
+        richTextArchiveData: Data? = nil,
         previewImageData: Data? = nil,
         imageData: Data? = nil,
         imageMetadata: ClipboardImageMetadata? = nil
@@ -235,6 +237,7 @@ final class StorageManager {
                 appIconDominantColorHex: appIconDominantColorHex,
                 type: type,
                 rtfData: rtfData,
+                richTextArchiveData: richTextArchiveData,
                 previewImageData: previewImageData,
                 imageData: imageData,
                 imageMetadata: imageMetadata
@@ -414,10 +417,20 @@ final class StorageManager {
     }
 
     nonisolated
-    func updateRecordText(hash: String, newText: String, newRTFData: Data? = nil) {
+    func updateRecordText(
+        hash: String,
+        newText: String,
+        newRTFData: Data? = nil,
+        newRichTextArchiveData: Data? = nil
+    ) {
         let actor = self.storeActor
         spawnTrackedTask(priority: .userInitiated) {
-            await actor.updateRecordText(hash: hash, newText: newText, newRTFData: newRTFData)
+            await actor.updateRecordText(
+                hash: hash,
+                newText: newText,
+                newRTFData: newRTFData,
+                newRichTextArchiveData: newRichTextArchiveData
+            )
         }
     }
 
@@ -659,6 +672,9 @@ actor ClipboardStoreActor {
         )
         descriptor.fetchLimit = 1
         if let record = try? modelContext.fetch(descriptor).first {
+            guard record.richTextArchiveData == nil else {
+                return
+            }
             record.rtfData = rtfData
             try? modelContext.save()
         }
@@ -777,6 +793,7 @@ actor ClipboardStoreActor {
         appIconDominantColorHex: String?,
         type: String,
         rtfData: Data?,
+        richTextArchiveData: Data?,
         previewImageData: Data?,
         imageData: Data?,
         imageMetadata: ClipboardImageMetadata?
@@ -803,9 +820,12 @@ actor ClipboardStoreActor {
                     existingRecord.plainText = nil
                 }
 
-                if let rtfData {
-                    existingRecord.rtfData = rtfData
-                }
+                refreshStoredTextRepresentations(
+                    for: existingRecord,
+                    type: type,
+                    rtfData: rtfData,
+                    richTextArchiveData: richTextArchiveData
+                )
 
                 if let previewImageData {
                     existingRecord.previewImageData = previewImageData
@@ -833,7 +853,8 @@ actor ClipboardStoreActor {
                     appBundleID: appID,
                     appLocalizedName: appName,
                     appIconDominantColorHex: appIconDominantColorHex,
-                    rtfData: rtfData
+                    rtfData: rtfData,
+                    richTextArchiveData: richTextArchiveData
                 )
                 modelContext.insert(newRecord)
             }
@@ -1100,7 +1121,12 @@ actor ClipboardStoreActor {
         }
     }
 
-    func updateRecordText(hash: String, newText: String, newRTFData: Data? = nil) {
+    func updateRecordText(
+        hash: String,
+        newText: String,
+        newRTFData: Data? = nil,
+        newRichTextArchiveData: Data? = nil
+    ) {
         var descriptor = FetchDescriptor<ClipboardRecord>(
             predicate: #Predicate<ClipboardRecord> { $0.contentHash == hash }
         )
@@ -1108,8 +1134,10 @@ actor ClipboardStoreActor {
         do {
             if let record = try modelContext.fetch(descriptor).first {
                 record.plainText = newText
-                if let newRTFData {
+                if newRTFData != nil || newRichTextArchiveData != nil {
                     record.rtfData = newRTFData
+                    record.richTextArchiveData = newRichTextArchiveData
+                        ?? newRTFData.flatMap { ClipboardRichTextArchive.fromRTFData($0)?.encodedData() }
                 }
                 try modelContext.save()
                 NotificationCenter.default.post(
@@ -1282,7 +1310,8 @@ actor ClipboardStoreActor {
                 linkTitle: $0.linkTitle,
                 linkIconData: $0.linkIconData,
                 isPinned: $0.isPinned,
-                rtfData: $0.rtfData
+                rtfData: $0.rtfData,
+                richTextArchiveData: $0.richTextArchiveData
             )
         }
 
@@ -1341,6 +1370,7 @@ actor ClipboardStoreActor {
                 existingRecord.linkTitle = incomingRecord.linkTitle ?? existingRecord.linkTitle
                 existingRecord.linkIconData = incomingRecord.linkIconData ?? existingRecord.linkIconData
                 existingRecord.rtfData = incomingRecord.rtfData ?? existingRecord.rtfData
+                existingRecord.richTextArchiveData = incomingRecord.richTextArchiveData ?? existingRecord.richTextArchiveData
                 existingRecord.isPinned = existingRecord.isPinned || incomingRecord.isPinned
 
                 var mergedGroupIDs = normalizedGroupIDs(
@@ -1393,7 +1423,8 @@ actor ClipboardStoreActor {
                     linkTitle: incomingRecord.linkTitle,
                     linkIconData: incomingRecord.linkIconData,
                     isPinned: incomingRecord.isPinned,
-                    rtfData: incomingRecord.rtfData
+                    rtfData: incomingRecord.rtfData,
+                    richTextArchiveData: incomingRecord.richTextArchiveData
                 )
                 modelContext.insert(record)
                 recordsByHash[incomingRecord.contentHash] = record
@@ -1424,7 +1455,8 @@ actor ClipboardStoreActor {
             id: record.id,
             typeRawValue: record.typeRawValue,
             plainText: record.plainText,
-            rtfData: record.rtfData
+            rtfData: record.rtfData,
+            richTextArchiveData: record.richTextArchiveData
         )
     }
 
@@ -1457,6 +1489,26 @@ private extension ClipboardStoreActor {
 
     var textBasedTypes: Set<String> {
         Self.textBasedTypes
+    }
+
+    func refreshStoredTextRepresentations(
+        for record: ClipboardRecord,
+        type: String,
+        rtfData: Data?,
+        richTextArchiveData: Data?
+    ) {
+        let shouldRetainTextRepresentations = type != ClipboardContentType.image.rawValue
+            && type != ClipboardContentType.fileURL.rawValue
+
+        guard shouldRetainTextRepresentations else {
+            record.rtfData = nil
+            record.richTextArchiveData = nil
+            return
+        }
+
+        record.rtfData = rtfData
+        record.richTextArchiveData = richTextArchiveData
+            ?? rtfData.flatMap { ClipboardRichTextArchive.fromRTFData($0)?.encodedData() }
     }
 
     func fetchStoredRecord(id: UUID) -> ClipboardRecord? {

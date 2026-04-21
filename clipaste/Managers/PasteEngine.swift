@@ -23,6 +23,7 @@ final class PasteEngine {
             typeRawValue: record.typeRawValue,
             plainText: record.plainText,
             rtfData: record.rtfData,
+            richTextArchiveData: record.richTextArchiveData,
             preferPlainText: preferPlainText
         ) else { return false }
 
@@ -52,8 +53,8 @@ final class PasteEngine {
 
     private func write(payload: PastePayload) -> Bool {
         switch payload {
-        case let .text(text, rtfData):
-            return writeTextPayload(text: text, rtfData: rtfData)
+        case let .text(text, richTextArchive):
+            return writeTextPayload(text: text, richTextArchive: richTextArchive)
         case let .fileURL(url):
             return pasteboard.writeObjects([url as NSURL])
         case let .image(data, format):
@@ -78,6 +79,7 @@ final class PasteEngine {
         typeRawValue: String,
         plainText: String?,
         rtfData: Data?,
+        richTextArchiveData: Data?,
         preferPlainText: Bool
     ) async -> PastePayload? {
         guard let contentType = ClipboardContentType(rawValue: typeRawValue) else { return nil }
@@ -85,7 +87,22 @@ final class PasteEngine {
         switch contentType {
         case .text, .color, .link, .code:
             guard let plainText, !plainText.isEmpty else { return nil }
-            return .text(plainText, preferPlainText ? nil : rtfData)
+            let richTextArchive: ClipboardRichTextArchive? = {
+                guard preferPlainText == false else {
+                    return nil
+                }
+
+                if let decodedArchive = ClipboardRichTextArchive.decode(from: richTextArchiveData) {
+                    return decodedArchive
+                }
+
+                guard let rtfData else {
+                    return nil
+                }
+
+                return ClipboardRichTextArchive.fromRTFData(rtfData)
+            }()
+            return .text(plainText, richTextArchive)
         case .fileURL:
             guard let plainText, !plainText.isEmpty else { return nil }
 
@@ -115,14 +132,22 @@ final class PasteEngine {
         return .tiff
     }
 
-    private func writeTextPayload(text: String, rtfData: Data?) -> Bool {
-        var didWrite = pasteboard.setString(text, forType: .string)
+    private func writeTextPayload(text: String, richTextArchive: ClipboardRichTextArchive?) -> Bool {
+        let declaredTypes = (richTextArchive?.orderedPasteboardTypes ?? []) + [.string]
+        pasteboard.declareTypes(declaredTypes, owner: nil)
 
-        guard let rtfData, !rtfData.isEmpty else {
-            return didWrite
+        var didWrite = false
+
+        if let richTextArchive {
+            for representation in richTextArchive.representations {
+                didWrite = pasteboard.setData(
+                    representation.data,
+                    forType: representation.pasteboardType
+                ) || didWrite
+            }
         }
 
-        didWrite = pasteboard.setData(rtfData, forType: .rtf) || didWrite
+        didWrite = pasteboard.setString(text, forType: .string) || didWrite
         return didWrite
     }
 
@@ -169,7 +194,7 @@ final class PasteEngine {
 }
 
 private enum PastePayload: Sendable {
-    case text(String, Data?)
+    case text(String, ClipboardRichTextArchive?)
     case fileURL(URL)
     case image(Data, ImageFormat)
 }

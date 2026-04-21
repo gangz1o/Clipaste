@@ -23,7 +23,8 @@ final class ClipboardRecord {
     var linkTitle: String? // 链接预览：网页标题
     @Attribute(.externalStorage) var linkIconData: Data? // 链接预览：网站图标数据
     var isPinned: Bool = false // 固定状态
-    @Attribute(.externalStorage) var rtfData: Data? // 原始富文本或回退生成的 RTF，用于预览与粘贴
+    @Attribute(.externalStorage) var rtfData: Data? // 预览/编辑使用的 RTF（原始 RTF 或后台回退生成）
+    @Attribute(.externalStorage) var richTextArchiveData: Data? // 原始富格式集合（HTML/RTF/RTFD/Tabular Text）
 
     init(
         id: UUID = UUID(),
@@ -43,7 +44,8 @@ final class ClipboardRecord {
         linkTitle: String? = nil,
         linkIconData: Data? = nil,
         isPinned: Bool = false,
-        rtfData: Data? = nil
+        rtfData: Data? = nil,
+        richTextArchiveData: Data? = nil
     ) {
         self.id = id
         self.timestamp = timestamp
@@ -66,5 +68,6 @@ final class ClipboardRecord {
         self.linkIconData = linkIconData
         self.isPinned = isPinned
         self.rtfData = rtfData
+        self.richTextArchiveData = richTextArchiveData
     }
 }

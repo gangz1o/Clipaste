@@ -42,9 +42,16 @@ final class ListRenderEngine {
         let itemId = item.id
 
         let task: Task<AttributedString?, Never> = Task.detached(priority: .userInitiated) {
-            let rtfData = await StorageManager.shared.loadRTFData(id: itemId)
+            guard let pasteRecord = await StorageManager.shared.loadPasteRecord(id: itemId) else {
+                return nil
+            }
 
-            guard Task.isCancelled == false, let data = rtfData else {
+            if let archive = ClipboardRichTextArchive.decode(from: pasteRecord.richTextArchiveData),
+               archive.hasComplexPreviewRepresentations {
+                return nil
+            }
+
+            guard Task.isCancelled == false, let data = pasteRecord.rtfData else {
                 return nil
             }
 
