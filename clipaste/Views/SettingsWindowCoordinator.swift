@@ -25,6 +25,18 @@ enum SettingsWindowCoordinator {
     }
 
     @MainActor
+    static func openFromAppKit() {
+        promoteToRegularIfNeeded()
+        NSApp.activate(ignoringOtherApps: true)
+
+        let opened = NSApp.sendAction(NSSelectorFromString("showSettingsWindow:"), to: nil, from: nil)
+            || NSApp.sendAction(NSSelectorFromString("showPreferencesWindow:"), to: nil, from: nil)
+
+        guard opened else { return }
+        bringToFrontSoon()
+    }
+
+    @MainActor
     static func register(window: NSWindow) {
         trackedSettingsWindow = window
         window.identifier = windowIdentifier

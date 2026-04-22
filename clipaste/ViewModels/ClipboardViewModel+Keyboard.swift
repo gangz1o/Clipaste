@@ -60,16 +60,23 @@ extension ClipboardViewModel {
 
     func shouldStartTypeToSearch(with event: NSEvent) -> Bool {
         let modifiers = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        let acceptedInput = acceptedSearchInput(from: event)
 
         if modifiers.contains(.command) || modifiers.contains(.control) || modifiers.contains(.option) {
             return false
         }
 
-        if !modifiers.intersection(reservedSearchModifierFlags).isEmpty {
+        let reservedModifiers = modifiers.intersection(reservedSearchModifierFlags)
+        if !reservedModifiers.isEmpty,
+           allowsShiftLetterTypeToSearch(
+                modifiers: modifiers,
+                reservedModifiers: reservedModifiers,
+                acceptedInput: acceptedInput
+           ) == false {
             return false
         }
 
-        return acceptedSearchInput(from: event) != nil
+        return acceptedInput != nil
     }
 
     func acceptedSearchInput(from event: NSEvent) -> String? {
@@ -363,6 +370,22 @@ private extension ClipboardViewModel {
         return rawInput
     }
 
+    func allowsShiftLetterTypeToSearch(
+        modifiers: NSEvent.ModifierFlags,
+        reservedModifiers: NSEvent.ModifierFlags,
+        acceptedInput: String?
+    ) -> Bool {
+        guard modifiers == [.shift], reservedModifiers == [.shift] else {
+            return false
+        }
+
+        guard let acceptedInput else {
+            return false
+        }
+
+        return acceptedInput.unicodeScalars.allSatisfy(isLetterScalar)
+    }
+
     func isAllowedSearchScalar(_ scalar: UnicodeScalar) -> Bool {
         let value = scalar.value
 
@@ -394,6 +417,19 @@ private extension ClipboardViewModel {
              .currencySymbol,
              .modifierSymbol,
              .otherSymbol:
+            return true
+        default:
+            return false
+        }
+    }
+
+    func isLetterScalar(_ scalar: UnicodeScalar) -> Bool {
+        switch scalar.properties.generalCategory {
+        case .uppercaseLetter,
+             .lowercaseLetter,
+             .titlecaseLetter,
+             .modifierLetter,
+             .otherLetter:
             return true
         default:
             return false

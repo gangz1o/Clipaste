@@ -19,6 +19,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var lastObservedAppLanguageRaw: String?
     private var onboardingWindow: NSWindow?
     private var hasRegisteredGlobalShortcuts = false
+    private var statusBarController: StatusBarController?
 
     private func normalizedAppLanguageStorageRaw() -> String {
         let raw = UserDefaults.standard.string(forKey: "appLanguage") ?? ""
@@ -26,6 +27,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        if statusBarController == nil {
+            statusBarController = StatusBarController()
+        }
+
         let hasCompleted = UserDefaults.standard.bool(forKey: onboardingDefaultsKey)
         lastKnownOnboardingState = hasCompleted
         updateActivationPolicy(hasCompletedOnboarding: hasCompleted)
@@ -266,38 +271,5 @@ struct clipasteApp: App {
         }
         .defaultSize(width: 900, height: 700)
         .windowResizability(.contentMinSize)
-
-        // Status Bar Menu to access app functions
-        MenuBarExtra("Clipaste", image: "MenuBarIcon") {
-            MenuBarExtraContent()
-                .environmentObject(preferencesStore)
-                .environmentObject(runtimeStore)
-                .modelContainer(runtimeStore.container)
-                .id("\(runtimeStore.rootIdentity)-\(appLanguage.rawValue)")
-                .environment(\.locale, appLanguage.resolvedLocale)
-                .environment(appUpdateViewModel)
-        }
-    }
-}
-
-private struct MenuBarExtraContent: View {
-    @Environment(\.openSettings) private var openSettings
-
-    var body: some View {
-        Group {
-            Button("Settings…") {
-                SettingsWindowCoordinator.open {
-                    openSettings()
-                }
-            }
-            .keyboardShortcut(",", modifiers: .command)
-
-            Divider()
-
-            Button("Quit Clipaste") {
-                NSApplication.shared.terminate(nil)
-            }
-            .keyboardShortcut("q", modifiers: .command)
-        }
     }
 }
