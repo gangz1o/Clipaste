@@ -3,6 +3,33 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>1.1.8</title>
+            <pubDate>Wed, 22 Apr 2026 14:56:25 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.1.8</sparkle:fullReleaseNotesLink>
+            <sparkle:version>10108</sparkle:version>
+            <sparkle:shortVersionString>1.1.8</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
+
+🎨 优化
+
+- 优化盲打搜索输入链路，现已更好支持中文输入法首字符拼音组合，以及 `Shift + 字母` 的大写输入
+- 优化菜单栏图标交互：左键点击直接打开剪贴板面板，右键点击继续显示菜单
+
+---
+
+### ✨ What's New
+
+🎨 Improvements
+
+- Improved the type-to-search input flow with better support for first-character IME composition and uppercase input via `Shift + letter`
+- Improved the menu bar icon behavior: left click now opens the clipboard panel directly, while right click continues to show the menu
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.1.8/Clipaste-v1.1.8.zip" length="4668790" type="application/octet-stream" sparkle:edSignature="IfpsWBPGxhS8JR26X1levPvqBmcvQRfJI3NKBII0B/qBrButtVbkNdj3C61joAdUTztvx99l2ueeUF1h6TkmCA=="/>
+        </item>
+        <item>
             <title>1.1.7</title>
             <pubDate>Tue, 21 Apr 2026 14:51:32 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -71,43 +98,6 @@
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.1.6/Clipaste-v1.1.6.zip" length="4666627" type="application/octet-stream" sparkle:edSignature="e21LHvv+E0iSGrcopbFjUyWAWhju4ZJMPZvHhjAfcQBRA/GEgYHGZS/TwtLlnyWxKg5fYB2+adl4/um8zLZ2CA=="/>
-        </item>
-        <item>
-            <title>1.1.5</title>
-            <pubDate>Mon, 20 Apr 2026 15:16:31 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.1.5</sparkle:fullReleaseNotesLink>
-            <sparkle:version>10105</sparkle:version>
-            <sparkle:shortVersionString>1.1.5</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
-
-🛠 修复
-
-- 修复快捷键删除后无法重新录入的问题
-- 修复 Excel 大范围表格内容被错误识别为图片的问题
-
-🎨 优化
-
-- 优化快捷键录制稳定性与设置页交互
-- 优化混合剪贴板识别，优先保留文本与富文本内容
-
----
-
-### ✨ What's New
-
-🛠 Fixes
-
-- Fixed an issue where shortcuts could not be re-recorded after being cleared
-- Fixed an issue where large Excel table selections could be captured as images
-
-🎨 Improvements
-
-- Improved shortcut recording stability and settings interaction
-- Improved mixed clipboard detection to better preserve text and rich text content
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.1.5/Clipaste-v1.1.5.zip" length="4655594" type="application/octet-stream" sparkle:edSignature="4QjEJDf7n2D0j9t8n5Acr8F9dbPS5ZpeIJJHT4FfPqnVutfDXSzJ+rfx1IFOqa9rdBv3dLsIqOOGHn2SNolpAw=="/>
         </item>
     </channel>
 </rss>
