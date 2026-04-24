@@ -5,27 +5,37 @@ import AppKit
 /// in the vertical list layout.
 struct ClipboardItemPreviewView: View {
     let item: ClipboardItem
-    @ObservedObject var viewModel: ClipboardViewModel
-    
+
     @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
-    
+
     private var isCompact: Bool {
         clipboardLayout == .compact
     }
-    
-    // Layout constants
-    private var previewWidth: CGFloat {
-        isCompact ? 280 : 360
+
+    private var panelMinWidth: CGFloat {
+        isCompact ? 300 : 420
     }
-    
+
+    private var panelIdealWidth: CGFloat {
+        isCompact ? 360 : 520
+    }
+
+    private var panelMaxWidth: CGFloat {
+        isCompact ? 420 : 680
+    }
+
+    private var panelCornerRadius: CGFloat {
+        isCompact ? 10 : 14
+    }
+
     private var padding: CGFloat {
         isCompact ? 12 : 16
     }
-    
+
     private var headerHeight: CGFloat {
         isCompact ? 44 : 56
     }
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header with type badge and timestamp
@@ -39,14 +49,22 @@ struct ClipboardItemPreviewView: View {
             ScrollView {
                 contentView
                     .padding(padding)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(width: previewWidth)
+        .frame(
+            minWidth: panelMinWidth,
+            idealWidth: panelIdealWidth,
+            maxWidth: panelMaxWidth,
+            maxHeight: .infinity,
+            alignment: .topLeading
+        )
+        .layoutPriority(1)
         .background(Color(nsColor: .windowBackgroundColor))
-        .clipShape(RoundedRectangle(cornerRadius: isCompact ? 10 : 14))
+        .clipShape(.rect(cornerRadius: panelCornerRadius))
         .overlay(
-            RoundedRectangle(cornerRadius: isCompact ? 10 : 14)
+            RoundedRectangle(cornerRadius: panelCornerRadius)
                 .stroke(Color.primary.opacity(0.08), lineWidth: 1)
         )
         .shadow(color: Color.black.opacity(0.12), radius: 12, y: 4)
@@ -123,14 +141,12 @@ struct ClipboardItemPreviewView: View {
     private var textContentView: some View {
         VStack(alignment: .leading, spacing: 12) {
             if let rawText = item.rawText, !rawText.isEmpty {
-                ScrollView([.horizontal, .vertical], showsIndicators: true) {
-                    Text(rawText)
-                        .font(.system(size: isCompact ? 13 : 15, design: .default))
-                        .lineSpacing(isCompact ? 4 : 6)
-                        .textSelection(.enabled)
-                }
-                .frame(minHeight: isCompact ? 120 : 180, maxHeight: .infinity)
-                
+                wrappedContentText(
+                    rawText,
+                    font: .system(size: isCompact ? 13 : 15, design: .default),
+                    lineSpacing: isCompact ? 4 : 6
+                )
+
                 // Metadata
                 metadataView(textLength: rawText.utf8.count)
             } else {
@@ -208,14 +224,15 @@ struct ClipboardItemPreviewView: View {
                         VStack(spacing: 4) {
                             Text(item.fileDisplayName ?? (displayPath as NSString).lastPathComponent)
                                 .font(.system(size: isCompact ? 13 : 15, weight: .medium))
-                                .lineLimit(2)
+                                .frame(maxWidth: .infinity, alignment: .center)
                                 .multilineTextAlignment(.center)
-                            
+
                             Text(displayPath)
                                 .font(.system(size: 10))
                                 .foregroundColor(.secondary)
-                                .lineLimit(3)
+                                .frame(maxWidth: .infinity, alignment: .center)
                                 .multilineTextAlignment(.center)
+                                .textSelection(.enabled)
                         }
                     }
                 }
@@ -269,33 +286,35 @@ struct ClipboardItemPreviewView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
                         .font(.system(size: isCompact ? 14 : 16, weight: .semibold))
-                        .lineLimit(3)
-                    
-                    Text(item.textPreview)
-                        .font(.system(size: isCompact ? 11 : 12))
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    wrappedContentText(
+                        item.textPreview,
+                        font: .system(size: isCompact ? 11 : 12),
+                        foregroundStyle: .secondary
+                    )
                 }
             } else {
-                Text(item.textPreview)
-                    .font(.system(size: isCompact ? 13 : 14))
-                    .foregroundColor(.blue)
-                    .lineLimit(3)
+                wrappedContentText(
+                    item.textPreview,
+                    font: .system(size: isCompact ? 13 : 14),
+                    foregroundStyle: .blue
+                )
             }
-            
+
             Spacer(minLength: 8)
-            
+
             // URL in a styled container
             HStack(spacing: 6) {
                 Image(systemName: "globe")
                     .font(.system(size: 10))
                     .foregroundStyle(.tertiary)
-                
-                Text(item.textPreview)
-                    .font(.system(size: isCompact ? 10 : 11, design: .monospaced))
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
-                    .truncationMode(.middle)
+
+                wrappedContentText(
+                    item.textPreview,
+                    font: .system(size: isCompact ? 10 : 11, design: .monospaced),
+                    foregroundStyle: .secondary
+                )
             }
             .padding(10)
             .background(
@@ -311,14 +330,12 @@ struct ClipboardItemPreviewView: View {
     private var codeContentView: some View {
         if let rawText = item.rawText, !rawText.isEmpty {
             VStack(alignment: .leading, spacing: 12) {
-                ScrollView([.horizontal, .vertical], showsIndicators: true) {
-                    Text(rawText)
-                        .font(.system(size: isCompact ? 12 : 13, design: .monospaced))
-                        .lineSpacing(isCompact ? 3 : 4)
-                        .textSelection(.enabled)
-                }
-                .frame(minHeight: isCompact ? 100 : 160, maxHeight: .infinity)
-                
+                wrappedContentText(
+                    rawText,
+                    font: .system(size: isCompact ? 12 : 13, design: .monospaced),
+                    lineSpacing: isCompact ? 3 : 4
+                )
+
                 metadataView(textLength: rawText.utf8.count)
             }
         } else {
@@ -345,7 +362,23 @@ struct ClipboardItemPreviewView: View {
             }
         }
     }
-    
+
+    private func wrappedContentText(
+        _ text: String,
+        font: Font,
+        lineSpacing: CGFloat = 0,
+        foregroundStyle: some ShapeStyle = .primary
+    ) -> some View {
+        Text(text)
+            .font(font)
+            .foregroundStyle(foregroundStyle)
+            .lineSpacing(lineSpacing)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .fixedSize(horizontal: false, vertical: true)
+            .multilineTextAlignment(.leading)
+            .textSelection(.enabled)
+    }
+
     @ViewBuilder
     private var emptyContentPlaceholder: some View {
         VStack(spacing: 12) {
@@ -401,10 +434,9 @@ private struct CheckerboardBackground: View {
                 appName: "Safari",
                 appIconName: "safari",
                 rawText: "This is a longer piece of text that would normally be truncated in the list view. Now we can see the full content in the preview panel.\n\nIt can span multiple lines and include paragraphs."
-            ),
-            viewModel: ClipboardViewModel()
+            )
         )
-        
+
         ClipboardItemPreviewView(
             item: ClipboardItem(
                 contentType: .code,
@@ -413,8 +445,7 @@ private struct CheckerboardBackground: View {
                 appName: "Xcode",
                 appIconName: "xcode",
                 rawText: "func greet(name: String) -> String {\n    return \"Hello, \\(name)!\"\n}\n\ngreet(name: \"World\")"
-            ),
-            viewModel: ClipboardViewModel()
+            )
         )
     }
     .padding()

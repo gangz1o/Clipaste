@@ -1,28 +1,4 @@
-import Combine
 import SwiftUI
-
-/// Debounce helper used by `ClipboardVerticalListView` to throttle preview updates
-/// triggered by mouse hover events without relying on manual `Timer` management.
-private final class HoverDebouncer: ObservableObject {
-    private let subject = PassthroughSubject<ClipboardItem, Never>()
-    private var cancellable: AnyCancellable?
-
-    var onUpdate: ((ClipboardItem) -> Void)? {
-        didSet { rebind() }
-    }
-
-    private func rebind() {
-        cancellable = subject
-            .debounce(for: .milliseconds(80), scheduler: RunLoop.main)
-            .sink { [weak self] item in
-                self?.onUpdate?(item)
-            }
-    }
-
-    func send(_ item: ClipboardItem) {
-        subject.send(item)
-    }
-}
 
 struct ClipboardVerticalListView: View {
     @ObservedObject var viewModel: ClipboardViewModel
@@ -31,11 +7,7 @@ struct ClipboardVerticalListView: View {
     @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
     @AppStorage("previewPanelMode") private var previewPanelMode: PreviewPanelMode = .disabled
 
-    // Preview state - selected item for preview when enabled
-    @State private var selectedPreviewItem: ClipboardItem?
-    @State private var keyboardSelectedItem: ClipboardItem?
-    @StateObject private var hoverDebouncer = HoverDebouncer()
-    @State private var isHoveringItem: Bool = false
+    @State private var previewPanelViewModel = ClipboardPreviewPanelViewModel()
 
     // Layout constants
     private let previewAnimationDuration: Double = 0.3
@@ -67,23 +39,42 @@ struct ClipboardVerticalListView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             // Preview panel (always visible when enabled)
-            if isPreviewEnabled, let previewItem = selectedPreviewItem {
-                ClipboardItemPreviewView(item: previewItem, viewModel: viewModel)
+            if isPreviewEnabled, let previewItem = previewPanelViewModel.selectedItem {
+                ClipboardItemPreviewView(item: previewItem)
                     .transition(.asymmetric(
                         insertion: .move(edge: .trailing).combined(with: .opacity),
                         removal: .opacity
                     ))
             }
         }
-        .animation(.spring(response: previewAnimationDuration, dampingFraction: 0.85), value: selectedPreviewItem?.id)
-        .onChange(of: viewModel.selectedItemIDs) { oldValue, newValue in
-            // Update preview when selection changes via keyboard
-            handleSelectionChange()
+        .animation(.spring(response: previewAnimationDuration, dampingFraction: 0.85), value: previewPanelViewModel.selectedItem?.id)
+        .onChange(of: viewModel.selectedItemIDs) { _, _ in
+            previewPanelViewModel.handleSelectionChange(
+                items: items,
+                selectedItemIDs: viewModel.selectedItemIDs,
+                isPreviewEnabled: isPreviewEnabled
+            )
+        }
+        .onChange(of: items) { _, _ in
+            previewPanelViewModel.reconcile(
+                items: items,
+                selectedItemIDs: viewModel.selectedItemIDs,
+                isPreviewEnabled: isPreviewEnabled
+            )
+        }
+        .onChange(of: previewPanelMode) { _, _ in
+            previewPanelViewModel.handlePreviewModeChange(
+                items: items,
+                selectedItemIDs: viewModel.selectedItemIDs,
+                isPreviewEnabled: isPreviewEnabled
+            )
         }
         .onAppear {
-            hoverDebouncer.onUpdate = { item in
-                updatePreview(for: item)
-            }
+            previewPanelViewModel.handlePreviewModeChange(
+                items: items,
+                selectedItemIDs: viewModel.selectedItemIDs,
+                isPreviewEnabled: isPreviewEnabled
+            )
         }
     }
 
@@ -98,7 +89,13 @@ struct ClipboardVerticalListView: View {
                             viewModel: viewModel,
                             quickPasteIndex: index < 9 ? index : nil,
                             onHoverChange: { isHovering in
-                                handleHoverChange(item: item, isHovering: isHovering)
+                                previewPanelViewModel.handleHoverChange(
+                                    for: item,
+                                    isHovering: isHovering,
+                                    items: items,
+                                    selectedItemIDs: viewModel.selectedItemIDs,
+                                    isPreviewEnabled: isPreviewEnabled
+                                )
                             }
                         )
                             .id(item.id)
@@ -118,10 +115,11 @@ struct ClipboardVerticalListView: View {
             }
             .onAppear {
                 scrollToPrimarySelection(with: proxy, animated: false)
-                // Initialize preview with first selected item if preview is enabled
-                if isPreviewEnabled {
-                    updatePreviewFromKeyboardSelection()
-                }
+                previewPanelViewModel.handlePreviewModeChange(
+                    items: items,
+                    selectedItemIDs: viewModel.selectedItemIDs,
+                    isPreviewEnabled: isPreviewEnabled
+                )
             }
             .onChange(of: viewModel.listScrollRequest) { _, request in
                 guard let request else { return }
@@ -134,59 +132,6 @@ struct ClipboardVerticalListView: View {
             .frame(maxHeight: .infinity)
         }
         // 材质由 ClipboardMainView 最外层统一提供，此处不做局部 background
-    }
-
-    // MARK: - Preview Management
-
-    private func handleHoverChange(item: ClipboardItem, isHovering: Bool) {
-        guard isPreviewEnabled else { return }
-
-        if isHovering {
-            // Start hovering — debounce the preview update to avoid flicker
-            isHoveringItem = true
-            hoverDebouncer.send(item)
-        } else {
-            // Stop hovering - immediately revert to keyboard selection
-            isHoveringItem = false
-            updatePreviewFromKeyboardSelection()
-        }
-    }
-
-    private func handleSelectionChange() {
-        guard isPreviewEnabled else { return }
-        
-        // Update keyboard selection
-        if let selectedID = viewModel.selectedItemIDs.first,
-           let selectedItem = items.first(where: { $0.id == selectedID }) {
-            keyboardSelectedItem = selectedItem
-            
-            // Only update preview if not hovering
-            if !isHoveringItem {
-                updatePreviewFromKeyboardSelection()
-            }
-        }
-    }
-
-    private func updatePreview(for item: ClipboardItem) {
-        guard isPreviewEnabled else { return }
-        guard selectedPreviewItem?.id != item.id else { return }
-        withAnimation {
-            selectedPreviewItem = item
-        }
-    }
-
-    private func updatePreviewFromKeyboardSelection() {
-        guard isPreviewEnabled else { return }
-        
-        if let keyboardItem = keyboardSelectedItem {
-            updatePreview(for: keyboardItem)
-        } else {
-            // Fallback to getting from viewModel
-            if let selectedID = viewModel.selectedItemIDs.first,
-               let selectedItem = items.first(where: { $0.id == selectedID }) {
-                updatePreview(for: selectedItem)
-            }
-        }
     }
 
     // MARK: - Scroll Management

@@ -1,9 +1,9 @@
 import Foundation
 
 enum ClipboardContentClassifier {
-    static let repairVersion = 2
+    nonisolated static let repairVersion = 2
 
-    static func classify(_ text: String) -> ClipboardContentType {
+    nonisolated static func classify(_ text: String) -> ClipboardContentType {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.isEmpty == false else { return .text }
 
@@ -18,16 +18,16 @@ enum ClipboardContentClassifier {
         return isLikelyCode(trimmed) ? .code : .text
     }
 
-    static func shouldHighlightAsCode(_ text: String) -> Bool {
+    nonisolated static func shouldHighlightAsCode(_ text: String) -> Bool {
         isLikelyCode(text)
     }
 
-    static func isLikelyCode(_ text: String) -> Bool {
+    nonisolated static func isLikelyCode(_ text: String) -> Bool {
         let analysis = analyze(text)
         return analysis.hasStrongCodeSignal && analysis.score >= 5
     }
 
-    static func isLikelyLink(_ text: String) -> Bool {
+    nonisolated static func isLikelyLink(_ text: String) -> Bool {
         guard let url = URL(string: text),
               let scheme = url.scheme?.lowercased(),
               (scheme == "http" || scheme == "https"),
@@ -38,7 +38,7 @@ enum ClipboardContentClassifier {
         return true
     }
 
-    private static func analyze(_ text: String) -> Analysis {
+    nonisolated private static func analyze(_ text: String) -> Analysis {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.count >= 2 else { return Analysis() }
 
@@ -130,16 +130,16 @@ enum ClipboardContentClassifier {
         return analysis
     }
 
-    private static func tokenize(_ text: String) -> [String] {
+    nonisolated private static func tokenize(_ text: String) -> [String] {
         text.components(separatedBy: tokenSeparators).filter { $0.isEmpty == false }
     }
 
-    private static func looksLikeAssignmentLine(_ line: String) -> Bool {
+    nonisolated private static func looksLikeAssignmentLine(_ line: String) -> Bool {
         let patterns = [" = ", ":=", " => ", " -> ", "==", "!=", "<=", ">="]
         return patterns.contains(where: line.contains)
     }
 
-    private static func looksLikeBulletLine(_ line: String) -> Bool {
+    nonisolated private static func looksLikeBulletLine(_ line: String) -> Bool {
         if line.hasPrefix("- ") || line.hasPrefix("* ") || line.hasPrefix("• ") {
             return true
         }
@@ -161,7 +161,7 @@ enum ClipboardContentClassifier {
         return false
     }
 
-    private static func looksLikeProseLine(_ line: String) -> Bool {
+    nonisolated private static func looksLikeProseLine(_ line: String) -> Bool {
         let proseMarkers = ["任务", "说明", "要求", "步骤", "架构", "原因", "请", "需要", "实现", "重构"]
         if proseMarkers.contains(where: line.contains) {
             return true
@@ -177,7 +177,7 @@ enum ClipboardContentClassifier {
         return punctuationHits >= 2
     }
 
-    private static func containsMostlyCJK(_ text: String) -> Bool {
+    nonisolated private static func containsMostlyCJK(_ text: String) -> Bool {
         var cjkCount = 0
         var scalarCount = 0
 
@@ -213,22 +213,24 @@ private extension ClipboardContentClassifier {
         var nonEmptyLineCount = 0
         var hasCodeFence = false
         var hasStrongCodeSignal = false
+
+        nonisolated init() {}
     }
 
-    static let codeKeywords: Set<String> = [
+    nonisolated static let codeKeywords: Set<String> = [
         "async", "await", "case", "catch", "class", "const", "def", "else", "enum", "export",
         "extension", "finally", "for", "func", "function", "guard", "if", "import", "interface",
         "let", "private", "protocol", "public", "return", "select", "struct", "switch", "throw",
         "throws", "try", "typealias", "update", "var", "where", "while"
     ]
 
-    static let strongOperatorTokens = [
+    nonisolated static let strongOperatorTokens = [
         "==", "!=", "<=", ">=", "->", "=>", ":=", "::", "&&", "||"
     ]
 
-    static let commentPrefixes = ["//", "#include", "#if", "#!", "/*", "* "]
+    nonisolated static let commentPrefixes = ["//", "#include", "#if", "#!", "/*", "* "]
 
-    static let tokenSeparators = CharacterSet.alphanumerics
+    nonisolated static let tokenSeparators = CharacterSet.alphanumerics
         .union(CharacterSet(charactersIn: "_"))
         .inverted
 }
