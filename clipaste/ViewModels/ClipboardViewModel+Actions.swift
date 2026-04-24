@@ -137,7 +137,7 @@ extension ClipboardViewModel {
             return
         }
 
-        print("🚀 触发双击事件: \(item.id)")
+        print("🚀 触发单击事件: \(item.id)")
 
         selectedItemIDs = [item.id]
         lastSelectedID = item.id

@@ -1,6 +1,6 @@
 import SwiftUI
 
-// MARK: - Single-click select / Double-click paste modifier
+// MARK: - Single-click select / paste modifier
 
 struct ClipboardItemActionModifier: ViewModifier {
     let item: ClipboardItem
@@ -10,19 +10,17 @@ struct ClipboardItemActionModifier: ViewModifier {
         content
             // Ensure transparent areas are also tappable
             .contentShape(Rectangle())
-            // Make selection feel instant. Double-click still fires paste, but single-click
-            // no longer waits for the double-click recognition window to expire.
+            // Keep primary activation immediate: a single click selects the item and
+            // performs the existing paste-to-active-app action.
             .simultaneousGesture(TapGesture().onEnded {
                 viewModel.handlePrimaryClickSelection(for: item.id)
-            })
-            .simultaneousGesture(TapGesture(count: 2).onEnded {
                 viewModel.pasteToActiveApp(item: item)
             })
     }
 }
 
 extension View {
-    /// Attach single-click select + double-click paste behaviour to any clipboard card.
+    /// Attach single-click select + paste behaviour to any clipboard card.
     func clipboardItemActions(for item: ClipboardItem, viewModel: ClipboardViewModel) -> some View {
         self.modifier(ClipboardItemActionModifier(item: item, viewModel: viewModel))
     }
@@ -40,8 +38,6 @@ struct ClipboardCardActionModifier: ViewModifier {
             .contentShape(Rectangle())
             .simultaneousGesture(TapGesture().onEnded {
                 viewModel.handlePrimaryClickSelection(for: item.id)
-            })
-            .simultaneousGesture(TapGesture(count: 2).onEnded {
                 viewModel.pasteToActiveApp(item: item)
             })
     }

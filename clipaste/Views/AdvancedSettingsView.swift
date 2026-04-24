@@ -27,7 +27,7 @@ private extension AdvancedSettingsView {
         Section {
             VStack(alignment: .leading, spacing: 6) {
                 Toggle(isOn: $viewModel.autoPasteToActiveApp) {
-                    Text("Auto-Paste to Active App on Double-Click")
+                    Text("Auto-Paste to Active App on Single Click")
                 }
                 if viewModel.autoPasteToActiveApp {
                     Button("Open Accessibility Settings…", action: viewModel.openAccessibilitySettings)

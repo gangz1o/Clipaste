@@ -1242,6 +1242,7 @@
       }
     },
     "Auto-Paste to Active App on Double-Click" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -1280,6 +1281,9 @@
           }
         }
       }
+    },
+    "Auto-Paste to Active App on Single Click" : {
+
     },
     "Automatic update checks are turned off" : {
       "extractionState" : "stale",
