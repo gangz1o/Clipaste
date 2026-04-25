@@ -686,10 +686,7 @@ struct ClipboardHeaderView: View {
             Divider()
 
             Button("Settings…") {
-                NotificationCenter.default.post(
-                    name: NSNotification.Name("HidePanelForce"),
-                    object: nil
-                )
+                ClipboardPanelManager.shared.forceHidePanel(restoringPreviousApp: false)
                 SettingsWindowCoordinator.open {
                     openSettings()
                 }
@@ -701,10 +698,7 @@ struct ClipboardHeaderView: View {
 
             Button("About Clipaste") {
                 NSApp.orderFrontStandardAboutPanel()
-                NotificationCenter.default.post(
-                    name: NSNotification.Name("HidePanelForce"),
-                    object: nil
-                )
+                ClipboardPanelManager.shared.forceHidePanel(restoringPreviousApp: false)
             }
 
             Button("Send Feedback") {

@@ -68,6 +68,8 @@ enum SettingsWindowCoordinator {
             return
         }
 
+        attachCloseObserver(to: window)
+
         window.orderFrontRegardless()
         window.makeKeyAndOrderFront(nil)
     }
@@ -82,10 +84,9 @@ enum SettingsWindowCoordinator {
             object: window,
             queue: .main
         ) { _ in
-            // 已在主线程，直接同步处理，不需要额外的异步嵌套
             Task { @MainActor in
                 removeCloseObserver(for: window)
-                restoreAccessoryPolicyIfNeeded()
+                scheduleAccessoryPolicyRestoreAfterClose()
             }
         }
     }
@@ -95,6 +96,20 @@ enum SettingsWindowCoordinator {
         let windowID = ObjectIdentifier(window)
         guard let observer = closeObservers.removeValue(forKey: windowID) else { return }
         NotificationCenter.default.removeObserver(observer)
+    }
+
+    @MainActor
+    private static func scheduleAccessoryPolicyRestoreAfterClose() {
+        let delays: [TimeInterval] = [0, 0.05, 0.2]
+
+        for delay in delays {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                Task { @MainActor in
+                    guard shouldRestoreAccessoryPolicy else { return }
+                    restoreAccessoryPolicyIfNeeded()
+                }
+            }
+        }
     }
 
     @MainActor
