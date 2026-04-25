@@ -28,8 +28,8 @@ Its core goal is simple: **stay fast, smooth, and memory-efficient even when cli
 
 ## 🧩 Preview
 <div align="center">
-  <img src="https://cdn.nodeimage.com/i/Rehrs8FAKYh2SngzRtC9DBq4nqDoDMB8.webp" width="40%" />
-  <img src="https://cdn.nodeimage.com/i/Rehrs8FAKYh2SngzRtC9DBq4nqDoDMB8.webp" width="40%" />
+  <img src="https://cdn.nodeimage.com/i/RgZZ6F1hENt4VtEmYurxED7Dq5esGsNR.webp" width="40%" />
+  <img src="https://cdn.nodeimage.com/i/UGNN3td8XU8ruIBNn1I6MdkVDWEoVTs4.webp" width="40%" />
 </div>
 <br />
 <div align="center">
