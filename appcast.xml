@@ -3,6 +3,44 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>1.2.0</title>
+            <pubDate>Sat, 25 Apr 2026 07:26:44 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.2.0</sparkle:fullReleaseNotesLink>
+            <sparkle:version>10200</sparkle:version>
+            <sparkle:shortVersionString>1.2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
+
+🎨 视觉与体验优化
+
+- **新增自定义主题色**：支持多种品牌色自由切换，快去设置中选择你的专属色彩吧。
+- **UI 界面全面升级**：外观设计深度适配系统原生风格，视觉观感更加精致和谐。
+- **图标细节优化**：修复了自定义分组图标在部分场景下显示过大的问题，布局更美观。
+
+⚙️ 性能与稳定性
+
+- **快捷键逻辑优化**：修复了特定场景下快捷键冲突的问题，操作响应更准确。
+- **底层性能调优**：优化了部分极端场景下的运行效率，使用过程更加丝滑顺畅。
+
+---
+
+### ✨ What's New
+
+🎨 Visual & UX Improvements
+
+- **New Theme Colors**: Added support for customizable theme colors. Go pick your favorite one now!
+- **System-Native Design**: Re-aligned the UI design with system standards for a more integrated look and feel.
+- **Icon Display Fix**: Resolved an issue where custom group icons appeared oversized in certain views.
+
+⚙️ Performance & Stability
+
+- **Shortcut Conflict Fix**: Fixed shortcut key conflicts in specific scenarios for a more reliable workflow.
+- **Performance Optimization**: Improved system performance in various use cases to ensure a smoother experience.
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.2.0/Clipaste-v1.2.0.zip" length="4737743" type="application/octet-stream" sparkle:edSignature="Uoj1sgGhp6zoYt4SSVlNA2pZlEyqym7be4M85C9in9Sa4hkik7HLK/NMJ7hOw9nS8cUocBAteTSsethPpVspAA=="/>
+        </item>
+        <item>
             <title>1.1.9</title>
             <pubDate>Fri, 24 Apr 2026 13:49:32 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -52,35 +90,6 @@
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.1.8/Clipaste-v1.1.8.zip" length="4668790" type="application/octet-stream" sparkle:edSignature="IfpsWBPGxhS8JR26X1levPvqBmcvQRfJI3NKBII0B/qBrButtVbkNdj3C61joAdUTztvx99l2ueeUF1h6TkmCA=="/>
-        </item>
-        <item>
-            <title>1.1.7</title>
-            <pubDate>Tue, 21 Apr 2026 14:51:32 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.1.7</sparkle:fullReleaseNotesLink>
-            <sparkle:version>10107</sparkle:version>
-            <sparkle:shortVersionString>1.1.7</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[✨ 本次更新
-
-🎨 优化
-
-- 优化 Excel / WPS 富文本复制保真，尽可能保留表格边框与原始格式
-- 优化混合剪贴板识别策略，优先保留文本与富文本内容，减少被错误识别为图片的情况
-- 优化设置页侧边栏激活色管理，改为语义化颜色资产，便于后续统一调整主题风格
-
----
-
-✨ What's New
-
-🎨 Improvements
-
-- Improved rich text fidelity for Excel / WPS copies to better preserve table borders and original formatting
-- Improved mixed clipboard detection to better preserve text and rich text content instead of capturing them as images
-- Improved settings sidebar active color management by moving it to semantic color assets for easier theme maintenance
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.1.7/Clipaste-v1.1.7.zip" length="4670048" type="application/octet-stream" sparkle:edSignature="zp17p2QEQ5Iwl+FeinMTiPoOJiookjVWIrvGWI668x5ZMz7fQQ4QN3dxVbnFVDhYknmq0j65QNyV0lx7Smf2DQ=="/>
         </item>
     </channel>
 </rss>
