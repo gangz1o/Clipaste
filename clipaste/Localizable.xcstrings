@@ -605,6 +605,47 @@
         }
       }
     },
+    "Activated runtime: route=%@ generation=%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runtime aktiviert: Route=%1$@ generation=%2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runtime activé : route=%1$@ génération=%2$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ランタイムを有効化しました：ルート=%1$@ generation=%2$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "런타임 활성화됨: 경로=%1$@ generation=%2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已激活运行时：route=%1$@ generation=%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已啟用執行階段：route=%1$@ generation=%2$@"
+          }
+        }
+      }
+    },
     "Active Route" : {
       "localizations" : {
         "de" : {
@@ -641,6 +682,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "目前路由"
+          }
+        }
+      }
+    },
+    "Active route: %@, generation=%@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktive Route: %1$@, generation=%2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Route active : %1$@, génération=%2$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "アクティブルート：%1$@、generation=%2$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "활성 경로: %1$@, generation=%2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前激活路由：%1$@，generation=%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前啟用路由：%1$@，generation=%2$@"
           }
         }
       }
@@ -1225,46 +1307,6 @@
         }
       }
     },
-    "Browser" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Browser"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "navigateur"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ブラウザ"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "브라우저"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "浏览器"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "瀏覽器"
-          }
-        }
-      }
-    },
     "Authorized — Continue" : {
       "localizations" : {
         "zh-Hans" : {
@@ -1535,6 +1577,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "瀏覽完整的剪貼簿歷史，不僅限最近 10 筆。"
+          }
+        }
+      }
+    },
+    "Browser" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Browser"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "navigateur"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ブラウザ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "브라우저"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "浏览器"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "瀏覽器"
           }
         }
       }
@@ -2801,6 +2883,7 @@
       }
     },
     "Copied" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3002,6 +3085,7 @@
       }
     },
     "Copy Diagnostics" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3157,6 +3241,129 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "建立"
+          }
+        }
+      }
+    },
+    "Created new %@ runtime" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neue %@-Runtime erstellt"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nouveau runtime %@ créé"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新しい %@ ランタイムを作成しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "새 %@ 런타임을 생성했습니다"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已创建新的 %@ 运行时"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已建立新的 %@ 執行階段"
+          }
+        }
+      }
+    },
+    "Cross-route data merge completed. Records: %@, groups: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Routenübergreifende Datenzusammenführung abgeschlossen. Datensätze: %1$@, Gruppen: %2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fusion des données entre routes terminée. Enregistrements : %1$@, groupes : %2$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ルート間のデータ統合が完了しました。レコード：%1$@、グループ：%2$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "경로 간 데이터 병합이 완료되었습니다. 레코드: %1$@, 그룹: %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跨路由数据合并完成。记录：%1$@，分组：%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跨路由資料合併完成。記錄：%1$@，群組：%2$@"
+          }
+        }
+      }
+    },
+    "Current route: %@. Cross-route merge: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktuelle Route: %1$@. Routenübergreifende Zusammenführung: %2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Route actuelle : %1$@. Fusion entre routes : %2$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "現在のルート：%1$@。ルート間統合：%2$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "현재 경로: %1$@. 경로 간 병합: %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前路由：%1$@。跨路由合并：%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前路由：%1$@。跨路由合併：%2$@"
           }
         }
       }
@@ -3442,42 +3649,43 @@
         }
       }
     },
-    "Default Text Format" : {
+    "Default iCloud route failed to initialize. Fell back to local storage: %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Standardtextformat"
+            "value" : "Initialisierung der iCloud-Standardroute fehlgeschlagen. Auf lokalen Speicher zurückgefallen: %1$@"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Format de texte par défaut"
+            "value" : "Échec de l’initialisation de la route iCloud par défaut. Basculement vers le stockage local : %1$@"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "デフォルトテキストフォーマット"
+            "value" : "デフォルトの iCloud ルートの初期化に失敗しました。ローカルストレージにフォールバックしました：%1$@"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "기본 텍스트 형식"
+            "value" : "기본 iCloud 경로 초기화에 실패했습니다. 로컬 저장소로 대체했습니다: %1$@"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "预设文字格式"
+            "value" : "默认 iCloud 路由初始化失败，已回退到本地存储：%1$@"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "預設文字格式"
+            "value" : "預設 iCloud 路由初始化失敗，已回復到本機儲存：%1$@"
           }
         }
       }
@@ -3518,6 +3726,46 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "預設模式"
+          }
+        }
+      }
+    },
+    "Default Text Format" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standardtextformat"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Format de texte par défaut"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "デフォルトテキストフォーマット"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기본 텍스트 형식"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预设文字格式"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "預設文字格式"
           }
         }
       }
@@ -3780,46 +4028,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在導覽列中顯示文字、連結和圖片等預設分類標籤。"
-          }
-        }
-      }
-    },
-    "Rich mode shows link titles, favicons, and domains. Default mode shows only the URL." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Der erweiterte Modus zeigt Linktitel, Favicons und Domains. Der Standardmodus zeigt nur die URL."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le mode enrichi affiche les titres des liens, les favicons et les domaines. Le mode par défaut affiche uniquement l’URL."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "リッチモードではリンクのタイトル、favicon、ドメインを表示します。デフォルトモードでは URL のみを表示します。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "풍부한 모드는 링크 제목, 파비콘, 도메인을 표시합니다. 기본 모드는 URL만 표시합니다."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "丰富模式显示链接标题、favicon 和域名。默认模式只显示 URL。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "豐富模式會顯示連結標題、favicon 和網域。預設模式只顯示 URL。"
           }
         }
       }
@@ -5103,6 +5311,7 @@
       }
     },
     "iCloud" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5138,6 +5347,88 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "iCloud"
+          }
+        }
+      }
+    },
+    "iCloud account preflight passed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud-Account-Vorabprüfung bestanden"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Précontrôle du compte iCloud réussi"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud アカウントの事前チェックに成功しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 계정 사전 확인을 통과했습니다"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 账户预检通过"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 帳號預檢通過"
+          }
+        }
+      }
+    },
+    "iCloud connection status refreshed successfully" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud-Verbindungsstatus erfolgreich aktualisiert"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "État de connexion iCloud actualisé avec succès"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 接続状態を正常に更新しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 연결 상태를 성공적으로 새로 고쳤습니다"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 连接状态刷新成功"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 連線狀態重新整理成功"
           }
         }
       }
@@ -5222,6 +5513,47 @@
         }
       }
     },
+    "Ignored duplicate sync toggle request: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doppelte Synchronisierungsschalter-Anfrage ignoriert: %1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demande de bascule de synchronisation en double ignorée : %1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重複した同期切り替えリクエストを無視しました：%1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "중복된 동기화 전환 요청을 무시했습니다: %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已忽略重复的同步开关请求：%1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已忽略重複的同步開關要求：%1$@"
+          }
+        }
+      }
+    },
     "Image" : {
 
     },
@@ -5266,6 +5598,7 @@
       }
     },
     "Initialized" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -5301,6 +5634,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已初始化"
+          }
+        }
+      }
+    },
+    "Initialized runtime successfully. Default route: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runtime erfolgreich initialisiert. Standardroute: %1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runtime initialisé avec succès. Route par défaut : %1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ランタイムを正常に初期化しました。デフォルトルート：%1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "런타임이 성공적으로 초기화되었습니다. 기본 경로: %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行时初始化成功。默认路由：%1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行階段初始化成功。預設路由：%1$@"
           }
         }
       }
@@ -5398,46 +5772,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "介面"
-          }
-        }
-      }
-    },
-    "Link Display Mode" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Link-Anzeigemodus"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mode d’affichage des liens"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "リンク表示モード"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "링크 표시 모드"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "链接显示模式"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "連結顯示模式"
           }
         }
       }
@@ -6187,6 +6521,46 @@
     "Link" : {
 
     },
+    "Link Display Mode" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link-Anzeigemodus"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode d’affichage des liens"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リンク表示モード"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "링크 표시 모드"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "链接显示模式"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "連結顯示模式"
+          }
+        }
+      }
+    },
     "Loading Clipboard History…" : {
       "localizations" : {
         "de" : {
@@ -6228,6 +6602,7 @@
       }
     },
     "Local" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -6263,6 +6638,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "本地"
+          }
+        }
+      }
+    },
+    "Local route active. Refresh only updated the timestamp" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lokale Route aktiv. Die Aktualisierung hat nur den Zeitstempel aktualisiert"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Route locale active. L’actualisation a uniquement mis à jour l’horodatage"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ローカルルートが有効です。更新ではタイムスタンプのみを更新しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "로컬 경로가 활성 상태입니다. 새로 고침은 타임스탬프만 업데이트했습니다"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前为本地路由，刷新操作仅更新时间戳"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前為本機路由，重新整理僅更新時間戳記"
           }
         }
       }
@@ -6846,6 +7262,47 @@
         }
       }
     },
+    "No" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nein"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Non"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "いいえ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "아니요"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "否"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "否"
+          }
+        }
+      }
+    },
     "No Custom Groups" : {
       "localizations" : {
         "de" : {
@@ -7109,6 +7566,7 @@
 
     },
     "None" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7189,6 +7647,7 @@
       }
     },
     "Not Initialized" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7229,6 +7688,7 @@
       }
     },
     "Off" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7272,6 +7732,7 @@
 
     },
     "On" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7384,6 +7845,22 @@
         }
       }
     },
+    "Open Clipboard History" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开剪贴板历史"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開剪貼簿歷史"
+          }
+        }
+      }
+    },
     "Open in %@" : {
       "localizations" : {
         "de" : {
@@ -7420,22 +7897,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在 %1$@ 中打開"
-          }
-        }
-      }
-    },
-    "Open Clipboard History" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开剪贴板历史"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打開剪貼簿歷史"
           }
         }
       }
@@ -7770,6 +8231,7 @@
       }
     },
     "Pending Disable" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -7810,6 +8272,7 @@
       }
     },
     "Pending Enable" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -8833,6 +9296,88 @@
         }
       }
     },
+    "Received sync status refresh request. Current route: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anfrage zum Aktualisieren des Synchronisierungsstatus erhalten. Aktuelle Route: %1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demande d’actualisation de l’état de synchronisation reçue. Route actuelle : %1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同期状態の更新リクエストを受信しました。現在のルート：%1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "동기화 상태 새로 고침 요청을 받았습니다. 현재 경로: %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收到同步状态刷新请求。当前路由：%1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收到同步狀態重新整理要求。目前路由：%1$@"
+          }
+        }
+      }
+    },
+    "Received sync toggle request: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronisierungsschalter-Anfrage erhalten: %1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demande de bascule de synchronisation reçue : %1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同期切り替えリクエストを受信しました：%1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "동기화 전환 요청을 받았습니다: %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收到同步开关请求：%1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收到同步開關要求：%1$@"
+          }
+        }
+      }
+    },
     "Recent Error" : {
       "localizations" : {
         "de" : {
@@ -8869,46 +9414,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "最近錯誤"
-          }
-        }
-      }
-    },
-    "Rich Mode" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erweiterter Modus"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mode enrichi"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "リッチモード"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "풍부한 모드"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "丰富模式"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "豐富模式"
           }
         }
       }
@@ -9029,6 +9534,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "紅色"
+          }
+        }
+      }
+    },
+    "Refreshing sync status. Current route: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronisierungsstatus wird aktualisiert. Aktuelle Route: %1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualisation de l’état de synchronisation. Route actuelle : %1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同期状態を更新しています。現在のルート：%1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "동기화 상태를 새로 고치는 중입니다. 현재 경로: %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始刷新同步状态。当前路由：%1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始重新整理同步狀態。目前路由：%1$@"
           }
         }
       }
@@ -9247,6 +9793,129 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "重新命名群組"
+          }
+        }
+      }
+    },
+    "Repaired %@ app icon dominant color record(s)" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ Datensatz/Datensätze für dominante App-Symbolfarben repariert"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ enregistrement(s) de couleur dominante d’icône d’app réparé(s)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ 件の App アイコン主要色レコードを修復しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@개의 앱 아이콘 대표 색상 레코드를 복구했습니다"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已修复 %1$@ 条 App 图标主色记录"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已修復 %1$@ 筆 App 圖示主色記錄"
+          }
+        }
+      }
+    },
+    "Repaired %@ migrated record timestamp baseline issue(s)" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ Zeitstempel-Basisproblem(e) migrierter Datensätze repariert"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ problème(s) de base d’horodatage d’enregistrements migrés réparé(s)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ 件の移行済みレコードのタイムスタンプ基準問題を修復しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@개의 마이그레이션된 레코드 타임스탬프 기준 문제를 복구했습니다"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已修复 %1$@ 条迁移记录的时间戳基准错误"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已修復 %1$@ 筆遷移記錄的時間戳記基準錯誤"
+          }
+        }
+      }
+    },
+    "Repaired %@ text/code classification record(s)" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ Text-/Code-Klassifizierungsdatensatz/-datensätze repariert"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ enregistrement(s) de classification texte/code réparé(s)"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ 件のテキスト/コード分類レコードを修復しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@개의 텍스트/코드 분류 레코드를 복구했습니다"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已修复 %1$@ 条文本/代码分类记录"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已修復 %1$@ 筆文字/程式碼分類記錄"
           }
         }
       }
@@ -9508,6 +10177,127 @@
         }
       }
     },
+    "Reusing cached %@ runtime" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zwischengespeicherte %@-Runtime wird wiederverwendet"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réutilisation du runtime %@ en cache"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キャッシュ済みの %@ ランタイムを再利用します"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "캐시된 %@ 런타임을 재사용합니다"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复用已缓存的 %@ 运行时"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重複使用已快取的 %@ 執行階段"
+          }
+        }
+      }
+    },
+    "Rich Mode" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erweiterter Modus"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode enrichi"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リッチモード"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "풍부한 모드"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "丰富模式"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "豐富模式"
+          }
+        }
+      }
+    },
+    "Rich mode shows link titles, favicons, and domains. Default mode shows only the URL." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der erweiterte Modus zeigt Linktitel, Favicons und Domains. Der Standardmodus zeigt nur die URL."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le mode enrichi affiche les titres des liens, les favicons et les domaines. Le mode par défaut affiche uniquement l’URL."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "リッチモードではリンクのタイトル、favicon、ドメインを表示します。デフォルトモードでは URL のみを表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "풍부한 모드는 링크 제목, 파비콘, 도메인을 표시합니다. 기본 모드는 URL만 표시합니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "丰富模式显示链接标题、favicon 和域名。默认模式只显示 URL。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "豐富模式會顯示連結標題、favicon 和網域。預設模式只顯示 URL。"
+          }
+        }
+      }
+    },
     "Runs automatically after login and appears in the menu bar, without interrupting your workflow." : {
       "localizations" : {
         "zh-Hans" : {
@@ -9560,6 +10350,88 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "執行階段代次"
+          }
+        }
+      }
+    },
+    "Runtime switch completed. Current route: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runtime-Wechsel abgeschlossen. Aktuelle Route: %1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basculement du runtime terminé. Route actuelle : %1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ランタイムの切り替えが完了しました。現在のルート：%1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "런타임 전환이 완료되었습니다. 현재 경로: %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行时切换完成。当前路由：%1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行階段切換完成。目前路由：%1$@"
+          }
+        }
+      }
+    },
+    "Runtime switch failed: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runtime-Wechsel fehlgeschlagen: %1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec du basculement du runtime : %1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ランタイムの切り替えに失敗しました：%1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "런타임 전환 실패: %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运行时切换失败：%1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "執行階段切換失敗：%1$@"
           }
         }
       }
@@ -11044,6 +11916,129 @@
         }
       }
     },
+    "Starting queued sync request: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wartende Synchronisierungsanfrage wird gestartet: %1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrage de la demande de synchronisation en file d’attente : %1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キュー内の同期リクエストを開始します：%1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "대기 중인 동기화 요청을 시작합니다: %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始执行排队中的同步请求：%1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始執行佇列中的同步要求：%1$@"
+          }
+        }
+      }
+    },
+    "Starting runtime rebuild. Target route: %@, merge current store: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runtime-Neuaufbau wird gestartet. Zielroute: %1$@, aktuellen Store zusammenführen: %2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrage de la reconstruction du runtime. Route cible : %1$@, fusionner le store actuel : %2$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ランタイムの再構築を開始します。ターゲットルート：%1$@、現在のストアを統合：%2$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "런타임 재구성을 시작합니다. 대상 경로: %1$@, 현재 저장소 병합: %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始重建运行时。目标路由：%1$@，合并当前存储：%2$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始重建執行階段。目標路由：%1$@，合併目前儲存：%2$@"
+          }
+        }
+      }
+    },
+    "Starting startup legacy-store import check" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prüfung des Legacy-Store-Imports beim Start wird gestartet"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Démarrage de la vérification d’importation du store hérité au lancement"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "起動時のレガシーストア取り込みチェックを開始します"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시작 시 기존 저장소 가져오기 검사를 시작합니다"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始执行启动期旧库导入检查"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開始執行啟動期間舊資料庫匯入檢查"
+          }
+        }
+      }
+    },
     "Starts in the menu bar after login, without interrupting your workflow." : {
       "extractionState" : "stale",
       "localizations" : {
@@ -11121,6 +12116,88 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "啟動與語言"
+          }
+        }
+      }
+    },
+    "Startup legacy-store import check completed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Prüfung des Legacy-Store-Imports beim Start abgeschlossen"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vérification d’importation du store hérité au lancement terminée"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "起動時のレガシーストア取り込みチェックが完了しました"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시작 시 기존 저장소 가져오기 검사가 완료되었습니다"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启动期旧库导入检查完成"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟動期間舊資料庫匯入檢查完成"
+          }
+        }
+      }
+    },
+    "Startup legacy-store import failed: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import des Legacy-Stores beim Start fehlgeschlagen: %1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de l’importation du store hérité au lancement : %1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "起動時のレガシーストア取り込みに失敗しました：%1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "시작 시 기존 저장소 가져오기에 실패했습니다: %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启动期旧库导入失败：%1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟動期間舊資料庫匯入失敗：%1$@"
           }
         }
       }
@@ -11305,6 +12382,88 @@
         }
       }
     },
+    "Sync status refresh failed: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualisierung des Synchronisierungsstatus fehlgeschlagen: %1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Échec de l’actualisation de l’état de synchronisation : %1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同期状態の更新に失敗しました：%1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "동기화 상태 새로 고침 실패: %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步状态刷新失败：%1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步狀態重新整理失敗：%1$@"
+          }
+        }
+      }
+    },
+    "Sync toggle already in progress. Queued request: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Synchronisierungsschalter bereits in Bearbeitung. Anfrage in Warteschlange: %1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bascule de synchronisation déjà en cours. Demande mise en file d’attente : %1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同期切り替えはすでに処理中です。リクエストをキューに追加しました：%1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "동기화 전환이 이미 진행 중입니다. 요청을 대기열에 추가했습니다: %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步切换进行中，已排队请求：%1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步切換進行中，已將要求加入佇列：%1$@"
+          }
+        }
+      }
+    },
     "Sync via iCloud" : {
       "localizations" : {
         "de" : {
@@ -11463,6 +12622,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "系統關於面板…"
+          }
+        }
+      }
+    },
+    "Target runtime is ready: %@" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ziel-Runtime ist bereit: %1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runtime cible prêt : %1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ターゲットランタイムの準備ができました：%1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "대상 런타임이 준비되었습니다: %1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目标运行时已就绪：%1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目標執行階段已就緒：%1$@"
           }
         }
       }
@@ -12758,6 +13958,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "視窗"
+          }
+        }
+      }
+    },
+    "Yes" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ja"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oui"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "はい"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "예"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
           }
         }
       }

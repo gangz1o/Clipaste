@@ -287,13 +287,21 @@ class ClipboardPanelManager {
         executeHide()
     }
 
+    /// Hides only the clipboard panel, keeping the currently active Clipaste window interactive.
+    func hidePanelPreservingActiveApp() {
+        guard isVisible else { return }
+        if isPinned { return }
+        if suppressHide { return }
+        executeHide(restorePreviousActiveApp: false)
+    }
+
     /// Force-hides the panel regardless of pin state (used by paste/settings/about).
     func forceHidePanel() {
         guard isVisible else { return }
         executeHide()
     }
 
-    private func executeHide() {
+    private func executeHide(restorePreviousActiveApp: Bool = true) {
         guard let panel = panel else { return }
         removeEventMonitor()
         panel.orderOut(nil)
@@ -301,7 +309,7 @@ class ClipboardPanelManager {
         isVisible = false
 
         // 将焦点精准归还给呼出面板前的 App（保证 Cmd+V 粘贴命中目标窗口）
-        if let app = previousActiveApp, !app.isTerminated {
+        if restorePreviousActiveApp, let app = previousActiveApp, !app.isTerminated {
             app.activate()
         }
         previousActiveApp = nil

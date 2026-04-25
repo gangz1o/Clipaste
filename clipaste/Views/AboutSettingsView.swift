@@ -346,7 +346,8 @@ private extension AboutSettingsView {
     }
 
     private func xcstringsLocalized(_ key: String, locale: Locale) -> String {
-        String(localized: String.LocalizationValue(key), bundle: .main, locale: locale)
+        let resource = LocalizedStringResource(String.LocalizationValue(key), locale: locale, bundle: .main)
+        return String(localized: resource)
     }
 }
 

@@ -10,22 +10,79 @@ enum ClipboardSyncDiagnosticLevel: String, Sendable {
     case error = "ERROR"
 }
 
+struct ClipboardSyncDiagnosticMessage: Sendable {
+    enum Argument: Sendable {
+        case string(String)
+        case route(String)
+        case syncState(Bool)
+        case bool(Bool)
+        case count(Int)
+
+        func localized(locale: Locale) -> String {
+            switch self {
+            case .string(let value):
+                return value
+            case .route(let route):
+                let key = route == "cloud" ? "iCloud" : "Local"
+                return Self.localized(key, locale: locale)
+            case .syncState(let isEnabled):
+                let key = isEnabled ? "On" : "Off"
+                return Self.localized(key, locale: locale)
+            case .bool(let value):
+                let key = value ? "Yes" : "No"
+                return Self.localized(key, locale: locale)
+            case .count(let value):
+                let formatter = NumberFormatter()
+                formatter.locale = locale
+                formatter.numberStyle = .decimal
+                return formatter.string(from: NSNumber(value: value)) ?? String(value)
+            }
+        }
+
+        private static func localized(_ key: String, locale: Locale) -> String {
+            let resource = LocalizedStringResource(String.LocalizationValue(key), locale: locale, bundle: .main)
+            return String(localized: resource)
+        }
+    }
+
+    let key: String
+    let arguments: [Argument]
+
+    init(_ key: String, arguments: [Argument] = []) {
+        self.key = key
+        self.arguments = arguments
+    }
+
+    func localized(locale: Locale) -> String {
+        let resource = LocalizedStringResource(String.LocalizationValue(key), locale: locale, bundle: .main)
+        let template = String(localized: resource)
+        guard arguments.isEmpty == false else { return template }
+
+        let localizedArguments = arguments.map { $0.localized(locale: locale) }
+        return String(format: template, locale: locale, arguments: localizedArguments)
+    }
+}
+
 struct ClipboardSyncDiagnosticEntry: Identifiable, Sendable {
     let id: UUID
     let timestamp: Date
     let level: ClipboardSyncDiagnosticLevel
-    let message: String
+    let message: ClipboardSyncDiagnosticMessage
 
     init(
         id: UUID = UUID(),
         timestamp: Date = Date(),
         level: ClipboardSyncDiagnosticLevel,
-        message: String
+        message: ClipboardSyncDiagnosticMessage
     ) {
         self.id = id
         self.timestamp = timestamp
         self.level = level
         self.message = message
+    }
+
+    func localizedMessage(locale: Locale) -> String {
+        message.localized(locale: locale)
     }
 }
 
@@ -96,7 +153,10 @@ final class ClipboardRuntimeStore: ObservableObject {
             initialDiagnostics.append(
                 ClipboardSyncDiagnosticEntry(
                     level: .info,
-                    message: "初始化运行时成功，默认路由：\(preferredSyncEnabled ? "cloud" : "local")"
+                    message: ClipboardSyncDiagnosticMessage(
+                        "Initialized runtime successfully. Default route: %@",
+                        arguments: [.route(preferredSyncEnabled ? "cloud" : "local")]
+                    )
                 )
             )
         } catch {
@@ -117,7 +177,10 @@ final class ClipboardRuntimeStore: ObservableObject {
                 initialDiagnostics.append(
                     ClipboardSyncDiagnosticEntry(
                         level: .error,
-                        message: "默认云路由初始化失败，已回退到本地：\(CloudSyncErrorFormatter.message(for: cloudError))"
+                        message: ClipboardSyncDiagnosticMessage(
+                            "Default iCloud route failed to initialize. Fell back to local storage: %@",
+                            arguments: [.string(CloudSyncErrorFormatter.message(for: cloudError))]
+                        )
                     )
                 )
                 defaults.set(false, forKey: Keys.syncEnabled)
@@ -138,7 +201,10 @@ final class ClipboardRuntimeStore: ObservableObject {
         ClipboardStorageRegistry.update(storage: runtime.storage)
         appendDiagnostic(
             level: .info,
-            message: "当前激活路由：\(resolvedSyncEnabled ? "cloud" : "local")，generation=\(runtimeGeneration.uuidString)"
+            message: ClipboardSyncDiagnosticMessage(
+                "Active route: %@, generation=%@",
+                arguments: [.route(resolvedSyncEnabled ? "cloud" : "local"), .string(runtimeGeneration.uuidString)]
+            )
         )
         scheduleWarmCacheRefresh(using: runtime.storage, routeKey: rootIdentity)
 
@@ -177,34 +243,58 @@ final class ClipboardRuntimeStore: ObservableObject {
     func setSyncEnabled(_ enabled: Bool) {
         guard enabled != isSyncEnabled else {
             pendingSyncEnabled = nil
-            appendDiagnostic(level: .info, message: "忽略重复的同步开关请求：\(enabled ? "开启" : "关闭")")
+            appendDiagnostic(
+                level: .info,
+                message: ClipboardSyncDiagnosticMessage(
+                    "Ignored duplicate sync toggle request: %@",
+                    arguments: [.syncState(enabled)]
+                )
+            )
             return
         }
 
         if isSyncing {
             pendingSyncEnabled = enabled
-            appendDiagnostic(level: .warning, message: "同步切换进行中，已排队请求：\(enabled ? "开启" : "关闭")")
+            appendDiagnostic(
+                level: .warning,
+                message: ClipboardSyncDiagnosticMessage(
+                    "Sync toggle already in progress. Queued request: %@",
+                    arguments: [.syncState(enabled)]
+                )
+            )
             return
         }
 
-        appendDiagnostic(level: .info, message: "收到同步切换请求：\(enabled ? "开启 iCloud" : "关闭 iCloud")")
+        appendDiagnostic(
+            level: .info,
+            message: ClipboardSyncDiagnosticMessage(
+                "Received sync toggle request: %@",
+                arguments: [.syncState(enabled)]
+            )
+        )
         Task {
             await rebuildRuntime(syncEnabled: enabled, mergeCurrentStore: true)
         }
     }
 
     func refreshCurrentRoute() {
-        appendDiagnostic(level: .info, message: "收到同步状态刷新请求，当前路由：\(isSyncEnabled ? "cloud" : "local")")
+        appendDiagnostic(
+            level: .info,
+            message: ClipboardSyncDiagnosticMessage(
+                "Received sync status refresh request. Current route: %@",
+                arguments: [.route(isSyncEnabled ? "cloud" : "local")]
+            )
+        )
         Task {
             await refreshSyncStatus()
         }
     }
 
-    func diagnosticsReport() -> String {
+    func diagnosticsReport(locale: Locale = .current) -> String {
         let snapshot = diagnosticsSnapshot
         let reportDate = Date().formatted(date: .numeric, time: .standard)
         let entries = diagnosticsEntries.map {
-            "[\($0.timestamp.formatted(date: .omitted, time: .standard))] [\($0.level.rawValue)] \($0.message)"
+            "[\($0.timestamp.formatted(date: .omitted, time: .standard))] [\($0.level.rawValue)] \($0.localizedMessage(locale: locale))"
         }.joined(separator: "\n")
 
         return """
@@ -230,7 +320,10 @@ final class ClipboardRuntimeStore: ObservableObject {
     private func performInitialBootstrap() async {
         isSyncing = true
         syncError = nil
-        appendDiagnostic(level: .info, message: "开始执行启动期旧库导入检查")
+        appendDiagnostic(
+            level: .info,
+            message: ClipboardSyncDiagnosticMessage("Starting startup legacy-store import check")
+        )
 
         do {
             try await bootstrapper.importLegacyStoreIfNeeded(into: currentRuntime.storage)
@@ -241,20 +334,47 @@ final class ClipboardRuntimeStore: ObservableObject {
                 NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
             }
             if repairedCount > 0 {
-                appendDiagnostic(level: .info, message: "已修复 \(repairedCount) 条迁移记录的时间戳基准错误")
+                appendDiagnostic(
+                    level: .info,
+                    message: ClipboardSyncDiagnosticMessage(
+                        "Repaired %@ migrated record timestamp baseline issue(s)",
+                        arguments: [.count(repairedCount)]
+                    )
+                )
             }
             if repairedClassificationCount > 0 {
-                appendDiagnostic(level: .info, message: "已修复 \(repairedClassificationCount) 条文本/代码分类记录")
+                appendDiagnostic(
+                    level: .info,
+                    message: ClipboardSyncDiagnosticMessage(
+                        "Repaired %@ text/code classification record(s)",
+                        arguments: [.count(repairedClassificationCount)]
+                    )
+                )
             }
             if repairedAppIconColorCount > 0 {
-                appendDiagnostic(level: .info, message: "已修复 \(repairedAppIconColorCount) 条 App 图标主色记录")
+                appendDiagnostic(
+                    level: .info,
+                    message: ClipboardSyncDiagnosticMessage(
+                        "Repaired %@ app icon dominant color record(s)",
+                        arguments: [.count(repairedAppIconColorCount)]
+                    )
+                )
             }
             scheduleWarmCacheRefresh(using: currentRuntime.storage, routeKey: rootIdentity)
-            appendDiagnostic(level: .info, message: "启动期旧库导入检查完成")
+            appendDiagnostic(
+                level: .info,
+                message: ClipboardSyncDiagnosticMessage("Startup legacy-store import check completed")
+            )
         } catch {
             let message = CloudSyncErrorFormatter.message(for: error)
             syncError = message
-            appendDiagnostic(level: .error, message: "启动期旧库导入失败：\(message)")
+            appendDiagnostic(
+                level: .error,
+                message: ClipboardSyncDiagnosticMessage(
+                    "Startup legacy-store import failed: %@",
+                    arguments: [.string(message)]
+                )
+            )
         }
 
         isSyncing = false
@@ -270,7 +390,10 @@ final class ClipboardRuntimeStore: ObservableObject {
         ClipboardMonitor.shared.stopMonitoring()
         appendDiagnostic(
             level: .info,
-            message: "开始重建运行时，目标路由：\(syncEnabled ? "cloud" : "local")，mergeCurrentStore=\(mergeCurrentStore)"
+            message: ClipboardSyncDiagnosticMessage(
+                "Starting runtime rebuild. Target route: %@, merge current store: %@",
+                arguments: [.route(syncEnabled ? "cloud" : "local"), .bool(mergeCurrentStore)]
+            )
         )
 
         do {
@@ -280,22 +403,40 @@ final class ClipboardRuntimeStore: ObservableObject {
             let exportPayload = shouldMergeStores ? await sourceRuntime.storage.exportStore() : nil
             appendDiagnostic(
                 level: .info,
-                message: "当前路由：\(sourceRuntime.syncEnabled ? "cloud" : "local")，是否执行跨路由合并：\(shouldMergeStores)"
+                message: ClipboardSyncDiagnosticMessage(
+                    "Current route: %@. Cross-route merge: %@",
+                    arguments: [.route(sourceRuntime.syncEnabled ? "cloud" : "local"), .bool(shouldMergeStores)]
+                )
             )
 
             if syncEnabled {
                 try await CloudSyncAvailabilityService.preflight(
                     containerIdentifier: ClipboardModelContainerFactory.cloudKitContainerIdentifier
                 )
-                appendDiagnostic(level: .info, message: "iCloud 账户预检通过")
+                appendDiagnostic(
+                    level: .info,
+                    message: ClipboardSyncDiagnosticMessage("iCloud account preflight passed")
+                )
             }
 
             targetRuntime = try runtime(for: syncEnabled)
-            appendDiagnostic(level: .info, message: "目标 runtime 已就绪：\(syncEnabled ? "cloud" : "local")")
+            appendDiagnostic(
+                level: .info,
+                message: ClipboardSyncDiagnosticMessage(
+                    "Target runtime is ready: %@",
+                    arguments: [.route(syncEnabled ? "cloud" : "local")]
+                )
+            )
 
             if let exportPayload {
                 try await targetRuntime.storage.importStoreExport(exportPayload)
-                appendDiagnostic(level: .info, message: "跨路由数据合并完成，records=\(exportPayload.records.count)，groups=\(exportPayload.groups.count)")
+                appendDiagnostic(
+                    level: .info,
+                    message: ClipboardSyncDiagnosticMessage(
+                        "Cross-route data merge completed. Records: %@, groups: %@",
+                        arguments: [.count(exportPayload.records.count), .count(exportPayload.groups.count)]
+                    )
+                )
             }
 
             try await bootstrapper.importLegacyStoreIfNeeded(into: targetRuntime.storage)
@@ -306,12 +447,24 @@ final class ClipboardRuntimeStore: ObservableObject {
                 persistPreference: true,
                 updateLastSyncDate: true
             )
-            appendDiagnostic(level: .info, message: "运行时切换完成，当前路由：\(syncEnabled ? "cloud" : "local")")
+            appendDiagnostic(
+                level: .info,
+                message: ClipboardSyncDiagnosticMessage(
+                    "Runtime switch completed. Current route: %@",
+                    arguments: [.route(syncEnabled ? "cloud" : "local")]
+                )
+            )
             scheduleMaintenance()
         } catch {
             let message = CloudSyncErrorFormatter.message(for: error)
             syncError = message
-            appendDiagnostic(level: .error, message: "运行时切换失败：\(message)")
+            appendDiagnostic(
+                level: .error,
+                message: ClipboardSyncDiagnosticMessage(
+                    "Runtime switch failed: %@",
+                    arguments: [.string(message)]
+                )
+            )
 
             // 构建失败时，UI 必须反映当前真实路由，而不是用户刚才试图切换到的目标状态。
             isSyncEnabled = currentRuntime.syncEnabled
@@ -333,7 +486,13 @@ final class ClipboardRuntimeStore: ObservableObject {
 
         isSyncing = true
         syncError = nil
-        appendDiagnostic(level: .info, message: "开始刷新同步状态，当前路由：\(currentRuntime.syncEnabled ? "cloud" : "local")")
+        appendDiagnostic(
+            level: .info,
+            message: ClipboardSyncDiagnosticMessage(
+                "Refreshing sync status. Current route: %@",
+                arguments: [.route(currentRuntime.syncEnabled ? "cloud" : "local")]
+            )
+        )
 
         defer {
             isSyncing = false
@@ -343,7 +502,10 @@ final class ClipboardRuntimeStore: ObservableObject {
         guard currentRuntime.syncEnabled else {
             lastSyncDate = Date()
             defaults.set(lastSyncDate, forKey: Keys.lastSyncDate)
-            appendDiagnostic(level: .info, message: "当前为本地路由，刷新操作仅更新时间戳")
+            appendDiagnostic(
+                level: .info,
+                message: ClipboardSyncDiagnosticMessage("Local route active. Refresh only updated the timestamp")
+            )
             return
         }
 
@@ -355,11 +517,20 @@ final class ClipboardRuntimeStore: ObservableObject {
             lastSyncDate = Date()
             defaults.set(lastSyncDate, forKey: Keys.lastSyncDate)
             NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
-            appendDiagnostic(level: .info, message: "iCloud 连接状态刷新成功")
+            appendDiagnostic(
+                level: .info,
+                message: ClipboardSyncDiagnosticMessage("iCloud connection status refreshed successfully")
+            )
         } catch {
             let message = CloudSyncErrorFormatter.message(for: error)
             syncError = message
-            appendDiagnostic(level: .error, message: "同步状态刷新失败：\(message)")
+            appendDiagnostic(
+                level: .error,
+                message: ClipboardSyncDiagnosticMessage(
+                    "Sync status refresh failed: %@",
+                    arguments: [.string(message)]
+                )
+            )
         }
     }
 
@@ -389,31 +560,58 @@ final class ClipboardRuntimeStore: ObservableObject {
         scheduleWarmCacheRefresh(using: runtime.storage, routeKey: rootIdentity)
         appendDiagnostic(
             level: .info,
-            message: "激活 runtime：route=\(syncEnabled ? "cloud" : "local") generation=\(runtimeGeneration.uuidString)"
+            message: ClipboardSyncDiagnosticMessage(
+                "Activated runtime: route=%@ generation=%@",
+                arguments: [.route(syncEnabled ? "cloud" : "local"), .string(runtimeGeneration.uuidString)]
+            )
         )
     }
 
     private func runtime(for syncEnabled: Bool) throws -> ClipboardRuntime {
         if syncEnabled {
             if let cloudRuntime {
-                appendDiagnostic(level: .info, message: "复用已缓存的 cloud runtime")
+                appendDiagnostic(
+                    level: .info,
+                    message: ClipboardSyncDiagnosticMessage(
+                        "Reusing cached %@ runtime",
+                        arguments: [.route("cloud")]
+                    )
+                )
                 return cloudRuntime
             }
 
             let runtime = try containerFactory.makeRuntime(syncEnabled: true)
             cloudRuntime = runtime
-            appendDiagnostic(level: .info, message: "创建新的 cloud runtime")
+            appendDiagnostic(
+                level: .info,
+                message: ClipboardSyncDiagnosticMessage(
+                    "Created new %@ runtime",
+                    arguments: [.route("cloud")]
+                )
+            )
             return runtime
         }
 
         if let localRuntime {
-            appendDiagnostic(level: .info, message: "复用已缓存的 local runtime")
+            appendDiagnostic(
+                level: .info,
+                message: ClipboardSyncDiagnosticMessage(
+                    "Reusing cached %@ runtime",
+                    arguments: [.route("local")]
+                )
+            )
             return localRuntime
         }
 
         let runtime = try containerFactory.makeRuntime(syncEnabled: false)
         localRuntime = runtime
-        appendDiagnostic(level: .info, message: "创建新的 local runtime")
+        appendDiagnostic(
+            level: .info,
+            message: ClipboardSyncDiagnosticMessage(
+                "Created new %@ runtime",
+                arguments: [.route("local")]
+            )
+        )
         return runtime
     }
 
@@ -422,7 +620,13 @@ final class ClipboardRuntimeStore: ObservableObject {
         self.pendingSyncEnabled = nil
 
         guard pendingSyncEnabled != isSyncEnabled else { return }
-        appendDiagnostic(level: .info, message: "开始执行排队中的同步请求：\(pendingSyncEnabled ? "开启" : "关闭")")
+        appendDiagnostic(
+            level: .info,
+            message: ClipboardSyncDiagnosticMessage(
+                "Starting queued sync request: %@",
+                arguments: [.syncState(pendingSyncEnabled)]
+            )
+        )
 
         Task {
             await rebuildRuntime(syncEnabled: pendingSyncEnabled, mergeCurrentStore: true)
@@ -516,7 +720,7 @@ final class ClipboardRuntimeStore: ObservableObject {
         return repairedCount
     }
 
-    private func appendDiagnostic(level: ClipboardSyncDiagnosticLevel, message: String) {
+    private func appendDiagnostic(level: ClipboardSyncDiagnosticLevel, message: ClipboardSyncDiagnosticMessage) {
         diagnosticsEntries.insert(
             ClipboardSyncDiagnosticEntry(level: level, message: message),
             at: 0

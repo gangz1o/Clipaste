@@ -260,7 +260,7 @@ struct SettingsWindowObserver: NSViewRepresentable {
                 }
 
                 if event.window === observedWindow {
-                    ClipboardPanelManager.shared.hidePanel()
+                    ClipboardPanelManager.shared.hidePanelPreservingActiveApp()
                 }
 
                 return event

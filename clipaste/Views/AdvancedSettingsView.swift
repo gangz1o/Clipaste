@@ -211,14 +211,14 @@ private extension AdvancedSettingsView {
                     Text("Active Route")
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Text(runtimeStore.diagnosticsSnapshot.activeRoute == "cloud" ? String(localized: "iCloud") : String(localized: "Local"))
+                    Text(localizedRouteName(runtimeStore.diagnosticsSnapshot.activeRoute))
                 }
 
                 HStack {
                     Text("Current Toggle State")
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Text(runtimeStore.diagnosticsSnapshot.currentSyncEnabled ? String(localized: "On") : String(localized: "Off"))
+                    Text(localizedToggleState(runtimeStore.diagnosticsSnapshot.currentSyncEnabled))
                 }
 
                 HStack {
@@ -232,14 +232,14 @@ private extension AdvancedSettingsView {
                     Text("Local Runtime")
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Text(runtimeStore.diagnosticsSnapshot.localRuntimeReady ? String(localized: "Initialized") : String(localized: "Not Initialized"))
+                    Text(localizedRuntimeState(runtimeStore.diagnosticsSnapshot.localRuntimeReady))
                 }
 
                 HStack {
                     Text("Cloud Runtime")
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Text(runtimeStore.diagnosticsSnapshot.cloudRuntimeReady ? String(localized: "Initialized") : String(localized: "Not Initialized"))
+                    Text(localizedRuntimeState(runtimeStore.diagnosticsSnapshot.cloudRuntimeReady))
                 }
 
                 HStack {
@@ -284,7 +284,7 @@ private extension AdvancedSettingsView {
                         Text("Recent Events")
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Button(copiedDiagnostics ? String(localized: "Copied") : String(localized: "Copy Diagnostics")) {
+                        Button(copiedDiagnostics ? xcstringsLocalized("Copied", locale: locale) : xcstringsLocalized("Copy Diagnostics", locale: locale)) {
                             copyDiagnosticsToPasteboard()
                         }
                         .buttonStyle(.borderless)
@@ -307,7 +307,7 @@ private extension AdvancedSettingsView {
                                     .bold()
                                     .foregroundStyle(color(for: entry.level))
 
-                                Text(entry.message)
+                                Text(entry.localizedMessage(locale: locale))
                                     .font(.caption)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
@@ -325,9 +325,21 @@ private extension AdvancedSettingsView {
 
     var pendingSyncDescription: String {
         guard let pending = runtimeStore.diagnosticsSnapshot.pendingSyncEnabled else {
-            return String(localized: "None")
+            return xcstringsLocalized("None", locale: locale)
         }
-        return pending ? String(localized: "Pending Enable") : String(localized: "Pending Disable")
+        return pending ? xcstringsLocalized("Pending Enable", locale: locale) : xcstringsLocalized("Pending Disable", locale: locale)
+    }
+
+    func localizedRouteName(_ route: String) -> String {
+        route == "cloud" ? xcstringsLocalized("iCloud", locale: locale) : xcstringsLocalized("Local", locale: locale)
+    }
+
+    func localizedToggleState(_ isEnabled: Bool) -> String {
+        xcstringsLocalized(isEnabled ? "On" : "Off", locale: locale)
+    }
+
+    func localizedRuntimeState(_ isReady: Bool) -> String {
+        xcstringsLocalized(isReady ? "Initialized" : "Not Initialized", locale: locale)
     }
 
     func color(for level: ClipboardSyncDiagnosticLevel) -> Color {
@@ -341,7 +353,7 @@ private extension AdvancedSettingsView {
     func copyDiagnosticsToPasteboard() {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
-        pasteboard.setString(runtimeStore.diagnosticsReport(), forType: .string)
+        pasteboard.setString(runtimeStore.diagnosticsReport(locale: locale), forType: .string)
         copiedDiagnostics = true
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
@@ -350,7 +362,8 @@ private extension AdvancedSettingsView {
     }
 
     private func xcstringsLocalized(_ key: String, locale: Locale) -> String {
-        String(localized: String.LocalizationValue(key), bundle: .main, locale: locale)
+        let resource = LocalizedStringResource(String.LocalizationValue(key), locale: locale, bundle: .main)
+        return String(localized: resource)
     }
 }
 
