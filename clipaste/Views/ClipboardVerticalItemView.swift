@@ -249,42 +249,19 @@ struct ClipboardVerticalItemView: View {
                             )
                             .frame(maxWidth: .infinity, alignment: .leading)
                     } else if item.isFastLink {
-                        // 链接 — 标题优先的书签样式
-                        if !isCompact {
-                            VStack(alignment: .leading, spacing: 2) {
-                                if let title = item.linkTitle, !title.isEmpty {
-                                    HighlightedText(text: title, highlight: viewModel.activeSearchQuery)
-                                        .font(.system(size: 13, weight: .medium))
-                                        .lineLimit(1)
-                                        .truncationMode(.tail)
-                                    Text(previewText)
-                                        .font(.system(size: 11))
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(1)
-                                        .truncationMode(.tail)
-                                } else {
-                                    HighlightedText(text: previewText, highlight: viewModel.activeSearchQuery)
-                                        .lineLimit(2)
-                                        .truncationMode(.tail)
-                                        .foregroundColor(.blue)
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        } else {
-                            // Compact: single line with title or URL
-                            if let title = item.linkTitle, !title.isEmpty {
-                                Text(title)
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.blue)
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-                            } else {
-                                Text(previewText)
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.blue)
-                                    .lineLimit(1)
-                                    .truncationMode(.tail)
-                            }
+                        switch viewModel.settingsViewModel.linkDisplayMode {
+                        case .rich:
+                            ClipboardLinkPreviewRowView(
+                                viewModel: ClipboardLinkPreviewViewModel(item: item),
+                                highlight: viewModel.activeSearchQuery,
+                                isCompact: isCompact
+                            )
+                        case .plain:
+                            ClipboardLinkPlainRowView(
+                                viewModel: ClipboardLinkPreviewViewModel(item: item),
+                                highlight: viewModel.activeSearchQuery,
+                                isCompact: isCompact
+                            )
                         }
                     } else {
                         // ⚠️ 渲染核心：ListRenderEngine 缓存优先

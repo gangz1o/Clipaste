@@ -210,7 +210,6 @@ private struct AppearanceThemePreview: View {
 
     private func previewWindow(style: PreviewWindowStyle, size: CGSize, compact: Bool) -> some View {
         let cornerRadius: CGFloat = compact ? 9 : 11
-        let bottomBarHeight: CGFloat = compact ? 10 : 12
         let sidebarWidth = size.width * (compact ? 0.18 : 0.20)
         let bubbleWidth = compact ? 14.0 : 28.0
         let bubbleHeight = compact ? 5.0 : 8.0

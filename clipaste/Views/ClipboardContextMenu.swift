@@ -19,6 +19,23 @@ private struct ClipboardCountMenuLabel: View {
     }
 }
 
+private struct OpenLinkMenuLabel: View {
+    let browserName: String
+
+    @Environment(\.locale) private var locale
+
+    var body: some View {
+        let format = String(localized: "Open in %@", locale: locale)
+        let title = String(format: format, locale: locale, browserName)
+
+        Label {
+            Text(verbatim: title)
+        } icon: {
+            Image(systemName: "safari")
+        }
+    }
+}
+
 extension View {
     /// Attach context-aware right-click context menu to any clipboard item.
     /// Automatically switches between batch mode (multi-select) and single-item mode.
@@ -144,6 +161,18 @@ extension View {
             viewModel.copyToClipboard(item: item)
         } label: {
             Label("Copy", systemImage: "doc.on.doc")
+        }
+
+        if let linkURL = ClipboardLinkOpeningService.url(from: item) {
+            let browserName = ClipboardLinkOpeningService.defaultBrowserName(for: linkURL)
+                ?? String(localized: "Browser")
+
+            Button {
+                viewModel.handleSelection(id: item.id, isCommand: false, isShift: false)
+                viewModel.openLinkInDefaultBrowser(item: item)
+            } label: {
+                OpenLinkMenuLabel(browserName: browserName)
+            }
         }
 
         Divider()

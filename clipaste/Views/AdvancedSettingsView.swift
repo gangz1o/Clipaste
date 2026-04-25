@@ -71,11 +71,20 @@ private extension AdvancedSettingsView {
             Toggle(isOn: $isSmartGroupsEnabled) {
                 Text("Show Smart Groups")
             }
+
+            Picker("Link Display Mode", selection: $viewModel.linkDisplayMode) {
+                ForEach(ClipboardLinkDisplayMode.allCases) { mode in
+                    Text(mode.localizedTitle).tag(mode)
+                }
+            }
         } header: {
             SettingsSectionHeader(title: "Interface")
         } footer: {
             SettingsSectionFooter {
-                Text("Display preset category tabs like Text, Links, and Images in the navigation bar.")
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Display preset category tabs like Text, Links, and Images in the navigation bar.")
+                    Text("Rich mode shows link titles, favicons, and domains. Default mode shows only the URL.")
+                }
             }
         }
     }

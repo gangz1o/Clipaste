@@ -360,6 +360,14 @@ extension ClipboardViewModel {
         sharingItem = item
     }
 
+    func openLinkInDefaultBrowser(item: ClipboardItem) {
+        guard let url = ClipboardLinkOpeningService.url(from: item) else {
+            return
+        }
+
+        ClipboardLinkOpeningService.open(url)
+    }
+
     func deleteItem(item: ClipboardItem) {
         guard item.isPinned == false else {
             showFavoritesDeletionBlockedNotice()

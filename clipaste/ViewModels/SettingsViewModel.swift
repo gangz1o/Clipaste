@@ -88,6 +88,10 @@ final class SettingsViewModel: @preconcurrency ObservableObject {
         willSet { objectWillChange.send() }
     }
 
+    @AppStorage("linkDisplayMode") var linkDisplayMode: ClipboardLinkDisplayMode = .rich {
+        willSet { objectWillChange.send() }
+    }
+
     @AppStorage("historyLimit") var historyLimit: HistoryLimit = .month {
         willSet { objectWillChange.send() }
     }

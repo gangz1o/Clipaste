@@ -235,6 +235,20 @@ enum PasteTextFormat: String, CaseIterable, Identifiable {
     }
 }
 
+enum ClipboardLinkDisplayMode: String, CaseIterable, Identifiable {
+    case rich
+    case plain
+
+    var id: String { rawValue }
+
+    var localizedTitle: LocalizedStringResource {
+        switch self {
+        case .rich: return LocalizedStringResource("Rich Mode")
+        case .plain: return LocalizedStringResource("Default Mode")
+        }
+    }
+}
+
 enum PreviewPanelMode: String, CaseIterable, Identifiable {
     case disabled
     case enabled

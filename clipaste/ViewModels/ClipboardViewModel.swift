@@ -92,6 +92,7 @@ final class ClipboardViewModel: ObservableObject {
     var historyLoadTask: Task<Void, Never>? = nil
     var itemIndexByID: [UUID: Int] = [:]
     var itemIndexByHash: [String: Int] = [:]
+    var pendingLinkMetadataHashes: Set<String> = []
     var operationNoticeHideTask: Task<Void, Never>? = nil
     var suppressedPasteItemIDs: Set<UUID> = []
     let settingsViewModel: SettingsViewModel

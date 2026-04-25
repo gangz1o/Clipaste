@@ -278,35 +278,18 @@ struct ClipboardCardView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .cornerRadius(8)
         } else if item.isFastLink {
-            // ── 链接：Safari 风格地址栏样式 ────────────────────────────────
-            VStack(alignment: .leading, spacing: 6) {
-                if let title = item.linkTitle, !title.isEmpty {
-                    HighlightedText(text: title, highlight: searchHighlight,
-                                    font: .system(size: 12, weight: .medium),
-                                    highlightFont: .system(size: 12, weight: .bold))
-                        .lineLimit(3)
-                        .truncationMode(.tail)
-                }
-
-                // Safari-style URL bar
-                HStack(spacing: 5) {
-                    Image(systemName: "globe")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(.tertiary)
-                    Text(previewText)
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.primary.opacity(0.04))
+            switch viewModel.settingsViewModel.linkDisplayMode {
+            case .rich:
+                ClipboardLinkPreviewCardView(
+                    viewModel: ClipboardLinkPreviewViewModel(item: item),
+                    highlight: searchHighlight
+                )
+            case .plain:
+                ClipboardLinkPlainCardView(
+                    viewModel: ClipboardLinkPreviewViewModel(item: item),
+                    highlight: searchHighlight
                 )
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         } else {
             // ── 普通文本（含代码）：▄▀ ListRenderEngine 缓存优先
             if let richPreviewText {

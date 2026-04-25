@@ -28,6 +28,7 @@ extension ClipboardViewModel {
     func replaceItems(_ newItems: [ClipboardItem]) {
         items = newItems
         rebuildItemIndexes()
+        enqueueMissingLinkMetadata(for: newItems)
     }
 
     func mergeItems(_ incomingItems: [ClipboardItem], prepend: Bool) {
@@ -37,6 +38,7 @@ extension ClipboardViewModel {
         let deduplicated = deduplicatedItemsPreservingOrder(combined)
         items = deduplicated
         rebuildItemIndexes()
+        enqueueMissingLinkMetadata(for: incomingItems)
     }
 
     func removeItems(withIDs ids: Set<UUID>) {
@@ -84,6 +86,7 @@ extension ClipboardViewModel {
 
         refreshDisplayedItemsFromCurrentScope()
         rebuildItemIndexes()
+        enqueueMissingLinkMetadata(for: [item])
     }
 }
 
@@ -161,5 +164,23 @@ private extension ClipboardViewModel {
         }
 
         return result
+    }
+
+    func enqueueMissingLinkMetadata(for sourceItems: [ClipboardItem]) {
+        let candidates = sourceItems
+            .lazy
+            .filter { $0.isFastLink && ($0.linkTitle == nil || $0.linkIconData == nil) }
+            .prefix(24)
+
+        for item in candidates {
+            guard pendingLinkMetadataHashes.contains(item.contentHash) == false else { continue }
+
+            let urlText = (item.rawText ?? item.previewText ?? item.textPreview)
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            guard urlText.isEmpty == false else { continue }
+
+            pendingLinkMetadataHashes.insert(item.contentHash)
+            StorageManager.shared.processLinkMetadata(hash: item.contentHash, urlString: urlText)
+        }
     }
 }

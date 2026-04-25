@@ -997,6 +997,10 @@ private struct ClipboardHeaderPreview: View {
 // MARK: - 极简原生 Tab 按钮子组件
 
 struct MinimalGroupTabButton: View {
+    private enum Metrics {
+        static let iconSize: CGFloat = 14
+    }
+
     enum Title {
         case localized(LocalizedStringResource)
         case verbatim(String)
@@ -1019,16 +1023,8 @@ struct MinimalGroupTabButton: View {
         Button(action: action) {
             HStack(spacing: resolvedIconName == nil ? 0 : iconSpacing) {
                 if let resolvedIconName {
-                    if IconPickerViewModel.customIconNames.contains(resolvedIconName) {
-                        Image(resolvedIconName)
-                            .renderingMode(.template)
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 11, height: 11)
-                    } else {
-                        Image(systemName: resolvedIconName)
-                            .frame(width: 11, height: 11)
-                    }
+                    GroupIconView(iconName: resolvedIconName, size: Metrics.iconSize)
+                        .frame(width: Metrics.iconSize, height: Metrics.iconSize)
                 }
                 Group {
                     switch title {
