@@ -3,6 +3,44 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>1.2.1</title>
+            <pubDate>Sat, 25 Apr 2026 13:15:25 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.2.1</sparkle:fullReleaseNotesLink>
+            <sparkle:version>10201</sparkle:version>
+            <sparkle:shortVersionString>1.2.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
+
+🚀 功能与体验增强
+
+- **全新链接展示模式**：新增「丰富模式」（默认开启），直观呈现网页标题、图标及域名信息。如果您更偏爱极简外观，也可在「高级 - 链接显示模式」中随时切换。
+- **链接快捷操作**：为 URL 卡片新增了右键菜单，现在可以直接呼出菜单并在默认浏览器中快速打开该链接。
+
+🐛 修复与优化
+
+- **Dock 栏图标逻辑**：修复了应用后台运行时，图标仍然异常常驻 macOS Dock 栏的问题，让应用更纯粹地在状态栏默默工作。
+- **首次启动体验修复**：修复了全新安装后，首次同时打开剪切板与设置页时，点击设置页面会导致窗口意外隐藏的 Bug。
+- **国际化翻译补全**：完善了部分界面和极端场景下的多语言显示，提升不同语言环境下的使用体验。
+
+---
+
+### ✨ What's New
+
+🚀 Features & Enhancements
+
+- **New URL Display Modes**: Introducing "Rich Mode" (enabled by default) to intuitively display web titles, favicons, and domains. You can easily switch back to the minimal mode in Advanced Settings.
+- **URL Context Menu**: Added a handy right-click menu to URL cards, allowing you to quickly open links directly in your default browser.
+
+🐛 Bug Fixes & Improvements
+
+- **Dock Icon Behavior**: Fixed an issue where the app icon would persistently and incorrectly remain in the macOS Dock.
+- **First-Launch Experience**: Resolved a bug that caused the window to unexpectedly hide when interacting with the settings page immediately after a fresh installation.
+- **Localization Updates**: Completed missing multi-language translations across various scenarios to improve the experience for global users.
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.2.1/Clipaste-v1.2.1.zip" length="4798072" type="application/octet-stream" sparkle:edSignature="kLjTNIh1KS2HDcl/wwKqw0btjACmNuWn40+IXYZEgl8RTK2Acmhi8ebY6Z3eYfJphBQskmk7GpCSrLwxD9J2Ag=="/>
+        </item>
+        <item>
             <title>1.2.0</title>
             <pubDate>Sat, 25 Apr 2026 07:26:44 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -63,33 +101,6 @@
 - Optimized the display effect of vertical list previews
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.1.9/Clipaste-v1.1.9.zip" length="4664538" type="application/octet-stream" sparkle:edSignature="se7ySD01Wbgee/wGY2oYvk/U84ewDMP+NNgI/Y3wIZAmfGoALTVpcTbB+tlwzsMQtPrFkx1/wJSo50UYTtBuBA=="/>
-        </item>
-        <item>
-            <title>1.1.8</title>
-            <pubDate>Wed, 22 Apr 2026 14:56:25 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.1.8</sparkle:fullReleaseNotesLink>
-            <sparkle:version>10108</sparkle:version>
-            <sparkle:shortVersionString>1.1.8</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
-
-🎨 优化
-
-- 优化盲打搜索输入链路，现已更好支持中文输入法首字符拼音组合，以及 `Shift + 字母` 的大写输入
-- 优化菜单栏图标交互：左键点击直接打开剪贴板面板，右键点击继续显示菜单
-
----
-
-### ✨ What's New
-
-🎨 Improvements
-
-- Improved the type-to-search input flow with better support for first-character IME composition and uppercase input via `Shift + letter`
-- Improved the menu bar icon behavior: left click now opens the clipboard panel directly, while right click continues to show the menu
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.1.8/Clipaste-v1.1.8.zip" length="4668790" type="application/octet-stream" sparkle:edSignature="IfpsWBPGxhS8JR26X1levPvqBmcvQRfJI3NKBII0B/qBrButtVbkNdj3C61joAdUTztvx99l2ueeUF1h6TkmCA=="/>
         </item>
     </channel>
 </rss>
