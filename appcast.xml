@@ -3,6 +3,41 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>1.2.3</title>
+            <pubDate>Sun, 26 Apr 2026 15:55:54 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.2.3</sparkle:fullReleaseNotesLink>
+            <sparkle:version>10203</sparkle:version>
+            <sparkle:shortVersionString>1.2.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
+
+🎨 视觉与体验优化
+
+- **焕新应用图标**：换上全新设计的 App Icon，视觉表达更契合应用的高效剪贴板定位。
+- **界面细节打磨**：对部分界面的 UI 进行了微调，视觉呈现更加自然协调。
+
+🚀 功能与交互增强
+
+- **新增专属交流群**：新增了 Telegram 用户交流群组入口，欢迎随时加入，与我们聊聊你的想法和建议。
+- **优化安装页视觉体验**: 新增安装页背景和拖拽提醒
+---
+
+### ✨ What's New
+
+🎨 Visual & UX Improvements
+
+- **Brand New App Icon**: Upgraded to a newly designed icon that better reflects our core product philosophy and positioning.
+- **UI Refinements**: Made several minor visual adjustments across the app for a more polished and cohesive look.
+
+🚀 Features & Enhancements
+
+- **Join Our Community**: Added a link to our official Telegram group. Come hang out, share your feedback, and chat with us!
+- **Optimize the installation page visual experience**: Added installation page background and drag reminder
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.2.3/Clipaste-v1.2.3.zip" length="5889199" type="application/octet-stream" sparkle:edSignature="gWxO0yOqcDmlNSDQM/4WeuZabPTE+APLg1ao8ma1MyseFagA160o5s5dWPeqh3n/Phuq/nu4F7ft5tH4qz8KDw=="/>
+        </item>
+        <item>
             <title>1.2.2</title>
             <pubDate>Sun, 26 Apr 2026 15:14:36 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -75,44 +110,6 @@
 - **Localization Updates**: Completed missing multi-language translations across various scenarios to improve the experience for global users.
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.2.1/Clipaste-v1.2.1.zip" length="4798072" type="application/octet-stream" sparkle:edSignature="kLjTNIh1KS2HDcl/wwKqw0btjACmNuWn40+IXYZEgl8RTK2Acmhi8ebY6Z3eYfJphBQskmk7GpCSrLwxD9J2Ag=="/>
-        </item>
-        <item>
-            <title>1.2.0</title>
-            <pubDate>Sat, 25 Apr 2026 07:26:44 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.2.0</sparkle:fullReleaseNotesLink>
-            <sparkle:version>10200</sparkle:version>
-            <sparkle:shortVersionString>1.2.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
-
-🎨 视觉与体验优化
-
-- **新增自定义主题色**：支持多种品牌色自由切换，快去设置中选择你的专属色彩吧。
-- **UI 界面全面升级**：外观设计深度适配系统原生风格，视觉观感更加精致和谐。
-- **图标细节优化**：修复了自定义分组图标在部分场景下显示过大的问题，布局更美观。
-
-⚙️ 性能与稳定性
-
-- **快捷键逻辑优化**：修复了特定场景下快捷键冲突的问题，操作响应更准确。
-- **底层性能调优**：优化了部分极端场景下的运行效率，使用过程更加丝滑顺畅。
-
----
-
-### ✨ What's New
-
-🎨 Visual & UX Improvements
-
-- **New Theme Colors**: Added support for customizable theme colors. Go pick your favorite one now!
-- **System-Native Design**: Re-aligned the UI design with system standards for a more integrated look and feel.
-- **Icon Display Fix**: Resolved an issue where custom group icons appeared oversized in certain views.
-
-⚙️ Performance & Stability
-
-- **Shortcut Conflict Fix**: Fixed shortcut key conflicts in specific scenarios for a more reliable workflow.
-- **Performance Optimization**: Improved system performance in various use cases to ensure a smoother experience.
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.2.0/Clipaste-v1.2.0.zip" length="4737743" type="application/octet-stream" sparkle:edSignature="Uoj1sgGhp6zoYt4SSVlNA2pZlEyqym7be4M85C9in9Sa4hkik7HLK/NMJ7hOw9nS8cUocBAteTSsethPpVspAA=="/>
         </item>
     </channel>
 </rss>
