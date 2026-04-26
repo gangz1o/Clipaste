@@ -235,23 +235,22 @@ create_styled_dmg() {
   chflags hidden "$DMG_MOUNT_DIR/.background" || true
 
   osascript <<EOF
+set mountFolder to POSIX file "$DMG_MOUNT_DIR" as alias
 tell application "Finder"
-  tell disk "$APP_NAME"
-    open
-    set current view of container window to icon view
-    set toolbar visible of container window to false
-    set statusbar visible of container window to false
-    set bounds of container window to {120, 120, 880, 600}
-    set theViewOptions to icon view options of container window
-    set arrangement of theViewOptions to not arranged
-    set icon size of theViewOptions to 108
-    set background picture of theViewOptions to file ".background:$background_name"
-    set position of item "$APP_NAME.app" of container window to {230, 250}
-    set position of item "Applications" of container window to {530, 250}
-    update without registering applications
-    delay 1
-    close
-  end tell
+  open mountFolder
+  set current view of container window of mountFolder to icon view
+  set toolbar visible of container window of mountFolder to false
+  set statusbar visible of container window of mountFolder to false
+  set bounds of container window of mountFolder to {120, 120, 880, 600}
+  set theViewOptions to icon view options of container window of mountFolder
+  set arrangement of theViewOptions to not arranged
+  set icon size of theViewOptions to 108
+  set background picture of theViewOptions to file ".background:$background_name" of mountFolder
+  set position of item "$APP_NAME.app" of mountFolder to {230, 250}
+  set position of item "Applications" of mountFolder to {530, 250}
+  update mountFolder without registering applications
+  delay 1
+  close container window of mountFolder
 end tell
 EOF
 
