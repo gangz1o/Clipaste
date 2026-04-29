@@ -3,6 +3,44 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>1.2.4</title>
+            <pubDate>Wed, 29 Apr 2026 15:18:42 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.2.4</sparkle:fullReleaseNotesLink>
+            <sparkle:version>10204</sparkle:version>
+            <sparkle:shortVersionString>1.2.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
+
+🚀 功能与体验增强
+
+- **灵活的历史记录管理**：新增历史记录保留时长选项，让你更自由地掌控数据与存储空间。
+- **菜单栏图标隐身**：现在支持隐藏顶部系统菜单栏图标了，为你提供更纯净的桌面环境。
+- **通用设置界面焕新**：全面优化了「通用」设置模块的布局与 UI 设计，视觉更清晰，操作更直观。
+- **界面视觉减负**：精简并移除了部分冗余的提示语，进一步提升了应用界面的清爽度与美观度。
+
+⚙️ 性能与稳定性
+
+- **CPU 性能调优**：优化了底层逻辑，修复了特定场景下 CPU 占用率短暂异常飙高的问题，应用运行更加平稳省电。
+
+---
+
+### ✨ What's New
+
+🚀 Features & Enhancements
+
+- **Custom History Retention**: Added a new setting to choose how long your clipboard history is saved, giving you better control over your data storage.
+- **Hideable Menu Bar Icon**: You can now choose to hide the app icon from the macOS menu bar for a completely clutter-free status bar.
+- **General Settings Redesign**: Adjusted the layout and UI of the General settings module, making it more intuitive and organized.
+- **Cleaner Interface**: Removed unnecessary prompts and tooltips to keep the visual experience sleek and distraction-free.
+
+⚙️ Performance & Stability
+
+- **CPU Usage Optimization**: Fixed an issue that caused sudden CPU usage spikes in certain scenarios, ensuring smoother and more energy-efficient performance in the background.
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.2.4/Clipaste-v1.2.4.zip" length="5897465" type="application/octet-stream" sparkle:edSignature="193aW1UbCfQqxprziRgoKt4qxnfTXJr6fMfU4P3lNfmlrOwIgXP8RQmcvDjigfiVlZS+HozTMF6HlC8uwUurAQ=="/>
+        </item>
+        <item>
             <title>1.2.3</title>
             <pubDate>Sun, 26 Apr 2026 15:55:54 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -72,44 +110,6 @@
 - **Join Our Community**: Added a link to our official Telegram group. Come hang out, share your feedback, and chat with us!
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.2.2/Clipaste-v1.2.2.zip" length="5889211" type="application/octet-stream" sparkle:edSignature="xkAK8PUcLxTbzoJOIOCn90SC+9GSsDbEBCg/LJkJvmvDKmGr3UeJ9pqvVS3A20OsPPhgrzl4SBuHKIwTKeCoAA=="/>
-        </item>
-        <item>
-            <title>1.2.1</title>
-            <pubDate>Sat, 25 Apr 2026 13:15:25 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.2.1</sparkle:fullReleaseNotesLink>
-            <sparkle:version>10201</sparkle:version>
-            <sparkle:shortVersionString>1.2.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
-
-🚀 功能与体验增强
-
-- **全新链接展示模式**：新增「丰富模式」（默认开启），直观呈现网页标题、图标及域名信息。如果您更偏爱极简外观，也可在「高级 - 链接显示模式」中随时切换。
-- **链接快捷操作**：为 URL 卡片新增了右键菜单，现在可以直接呼出菜单并在默认浏览器中快速打开该链接。
-
-🐛 修复与优化
-
-- **Dock 栏图标逻辑**：修复了应用后台运行时，图标仍然异常常驻 macOS Dock 栏的问题，让应用更纯粹地在状态栏默默工作。
-- **首次启动体验修复**：修复了全新安装后，首次同时打开剪切板与设置页时，点击设置页面会导致窗口意外隐藏的 Bug。
-- **国际化翻译补全**：完善了部分界面和极端场景下的多语言显示，提升不同语言环境下的使用体验。
-
----
-
-### ✨ What's New
-
-🚀 Features & Enhancements
-
-- **New URL Display Modes**: Introducing "Rich Mode" (enabled by default) to intuitively display web titles, favicons, and domains. You can easily switch back to the minimal mode in Advanced Settings.
-- **URL Context Menu**: Added a handy right-click menu to URL cards, allowing you to quickly open links directly in your default browser.
-
-🐛 Bug Fixes & Improvements
-
-- **Dock Icon Behavior**: Fixed an issue where the app icon would persistently and incorrectly remain in the macOS Dock.
-- **First-Launch Experience**: Resolved a bug that caused the window to unexpectedly hide when interacting with the settings page immediately after a fresh installation.
-- **Localization Updates**: Completed missing multi-language translations across various scenarios to improve the experience for global users.
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.2.1/Clipaste-v1.2.1.zip" length="4798072" type="application/octet-stream" sparkle:edSignature="kLjTNIh1KS2HDcl/wwKqw0btjACmNuWn40+IXYZEgl8RTK2Acmhi8ebY6Z3eYfJphBQskmk7GpCSrLwxD9J2Ag=="/>
         </item>
     </channel>
 </rss>
