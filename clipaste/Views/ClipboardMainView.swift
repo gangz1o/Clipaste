@@ -6,7 +6,7 @@ struct ClipboardMainView: View {
         case selectFirstItem
     }
 
-    @EnvironmentObject private var runtimeStore: ClipboardRuntimeStore
+    @Environment(ClipboardRuntimeStore.self) private var runtimeStore
     @Environment(\.openSettings) private var openSettings
     @StateObject var viewModel = ClipboardViewModel()
     @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
@@ -435,5 +435,5 @@ struct ClipboardMainView: View {
 #Preview {
     ClipboardMainView()
         .environmentObject(AppPreferencesStore.shared)
-        .environmentObject(ClipboardRuntimeStore.shared)
+        .environment(ClipboardRuntimeStore.shared)
 }

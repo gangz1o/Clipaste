@@ -5,6 +5,7 @@ enum SettingsTab: String, CaseIterable, Identifiable, Hashable {
     case shortcuts = "shortcuts"
     case ignoredApps = "ignoredApps"
     case advanced = "advanced"
+    case ai = "ai"
     case about = "about"
 
     var id: String { self.rawValue }
@@ -15,6 +16,7 @@ enum SettingsTab: String, CaseIterable, Identifiable, Hashable {
         case .shortcuts: return "Shortcuts"
         case .ignoredApps: return "Ignored Apps"
         case .advanced: return "Advanced"
+        case .ai: return "AI Magic"
         case .about: return "About"
         }
     }
@@ -25,6 +27,7 @@ enum SettingsTab: String, CaseIterable, Identifiable, Hashable {
         case .shortcuts: return LocalizedStringResource("Shortcuts")
         case .ignoredApps: return LocalizedStringResource("Ignored Apps")
         case .advanced: return LocalizedStringResource("Advanced")
+        case .ai: return LocalizedStringResource("AI Magic")
         case .about: return LocalizedStringResource("About")
         }
     }
@@ -37,6 +40,7 @@ enum SettingsTab: String, CaseIterable, Identifiable, Hashable {
         case .shortcuts: return "keyboard"
         case .ignoredApps: return "nosign"
         case .advanced: return "slider.horizontal.3"
+        case .ai: return "sparkles"
         case .about: return "info.circle"
         }
     }
@@ -197,6 +201,8 @@ private extension SettingsView {
             IgnoredAppsSettingsView()
         case .advanced:
             AdvancedSettingsView()
+        case .ai:
+            AISettingsView()
         case .about:
             AboutSettingsView()
         }

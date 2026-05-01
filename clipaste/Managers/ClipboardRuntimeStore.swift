@@ -1,4 +1,3 @@
-import Combine
 import CloudKit
 import Foundation
 import os
@@ -102,16 +101,17 @@ struct ClipboardSyncDiagnosticsSnapshot: Sendable {
 }
 
 @MainActor
-final class ClipboardRuntimeStore: ObservableObject {
+@Observable
+final class ClipboardRuntimeStore {
     static let shared = ClipboardRuntimeStore()
 
-    @Published private(set) var container: ModelContainer
-    @Published private(set) var isSyncEnabled: Bool
-    @Published private(set) var isSyncing: Bool = false
-    @Published private(set) var syncError: String?
-    @Published private(set) var lastSyncDate: Date?
-    @Published private(set) var runtimeGeneration: UUID
-    @Published private(set) var diagnosticsEntries: [ClipboardSyncDiagnosticEntry]
+    private(set) var container: ModelContainer
+    private(set) var isSyncEnabled: Bool
+    private(set) var isSyncing: Bool = false
+    private(set) var syncError: String?
+    private(set) var lastSyncDate: Date?
+    private(set) var runtimeGeneration: UUID
+    private(set) var diagnosticsEntries: [ClipboardSyncDiagnosticEntry]
 
     private let defaults: UserDefaults
     private let containerFactory: ClipboardModelContainerFactory
