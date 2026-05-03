@@ -1,12 +1,13 @@
 import SwiftUI
 
 struct AISettingsView: View {
-    @State private var viewModel = AISettingsViewModel()
+    @State private var viewModel = AISettingsViewModel.shared
     @AppStorage("appLanguage") private var appLanguage: AppLanguage = .auto
 
     var body: some View {
         Form {
             configurationsSection
+            skillsSection
         }
         .settingsPageChrome()
         .id("ai-settings-\(appLanguage.rawValue)")
@@ -15,6 +16,60 @@ struct AISettingsView: View {
             AIConfigurationEditorView(viewModel: viewModel)
                 .id("ai-settings-editor-\(appLanguage.rawValue)")
                 .environment(\.locale, appLanguage.resolvedLocale)
+        }
+        .sheet(isPresented: $viewModel.isSkillEditorPresented) {
+            AISkillEditorView(viewModel: viewModel)
+                .id("ai-skill-editor-\(appLanguage.rawValue)")
+                .environment(\.locale, appLanguage.resolvedLocale)
+        }
+    }
+
+    // MARK: - Skills List Section
+
+    private var skillsSection: some View {
+        Section {
+            if viewModel.skills.isEmpty {
+                emptySkillsState
+            } else {
+                ForEach(viewModel.skills) { skill in
+                    AISkillRow(
+                        skill: skill,
+                        configurationTitle: configurationTitle(for: skill),
+                        onToggle: { isEnabled in viewModel.setSkillEnabled(skill, isEnabled: isEnabled) },
+                        onEdit: { viewModel.edit(skill) },
+                        onDelete: { viewModel.delete(skill) }
+                    )
+                }
+                .onMove(perform: viewModel.moveSkills)
+            }
+        } header: {
+            HStack {
+                SettingsSectionHeader(title: LocalizedStringKey("AI Skills"))
+                Spacer()
+                Button {
+                    viewModel.addDefaultSkillsIfMissing()
+                } label: {
+                    Label(LocalizedStringKey("Add Preset Skills"), systemImage: "wand.and.sparkles")
+                }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.borderless)
+                .controlSize(.small)
+                .help(LocalizedStringKey("Add Preset Skills"))
+
+                Button {
+                    viewModel.addNewSkill()
+                } label: {
+                    Label(LocalizedStringKey("Add Skill"), systemImage: "plus")
+                }
+                .labelStyle(.iconOnly)
+                .buttonStyle(.borderless)
+                .controlSize(.small)
+                .help(LocalizedStringKey("Add Skill"))
+            }
+        } footer: {
+            SettingsSectionFooter {
+                Text(LocalizedStringKey("AI Skills Footer"))
+            }
         }
     }
 
@@ -74,6 +129,33 @@ struct AISettingsView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 24)
+    }
+
+    private var emptySkillsState: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "wand.and.sparkles")
+                .font(.system(size: 28))
+                .foregroundStyle(.tertiary)
+            Text(LocalizedStringKey("No AI Skills"))
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Button(LocalizedStringKey("Add Your First Skill")) {
+                viewModel.addNewSkill()
+            }
+            .buttonStyle(.borderless)
+            .controlSize(.small)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 24)
+    }
+
+    private func configurationTitle(for skill: AISkill) -> String {
+        guard let configurationID = skill.configurationID else {
+            return String(localized: "Use Active Configuration")
+        }
+
+        return viewModel.configurations.first { $0.id == configurationID }?.displayTitle
+            ?? String(localized: "Missing AI Configuration")
     }
 }
 
@@ -153,6 +235,98 @@ private struct AIConfigurationRow: View {
             Button(LocalizedStringKey("Cancel"), role: .cancel) {}
         } message: {
             Text(LocalizedStringKey("Delete AI Configuration Confirmation Message"))
+        }
+    }
+}
+
+// MARK: - Skill Row
+
+private struct AISkillRow: View {
+    let skill: AISkill
+    let configurationTitle: String
+    let onToggle: (Bool) -> Void
+    let onEdit: () -> Void
+    let onDelete: () -> Void
+
+    @AppStorage("appAccentColor") private var appAccentColor: AppAccentColor = .defaultValue
+    @State private var isDeleteConfirmationPresented = false
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Toggle(isOn: Binding(
+                get: { skill.isEnabled },
+                set: onToggle
+            )) {
+                EmptyView()
+            }
+            .toggleStyle(.checkbox)
+            .labelsHidden()
+            .help(LocalizedStringKey("Enable Skill"))
+
+            Image(systemName: skill.outputMode.systemImage)
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(skill.isEnabled ? appAccentColor.color : Color.secondary)
+                .frame(width: 18)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(skill.displayTitle)
+                    .fontWeight(.medium)
+                    .foregroundStyle(skill.isEnabled ? .primary : .secondary)
+
+                Text("\(contentSummary) · \(configurationTitle)")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
+
+            Button(action: onEdit) {
+                Image(systemName: "square.and.pencil")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(appAccentColor.color)
+            }
+            .buttonStyle(.borderless)
+            .help(LocalizedStringKey("Edit Skill"))
+
+            Button(role: .destructive) {
+                isDeleteConfirmationPresented = true
+            } label: {
+                Image(systemName: "trash")
+                    .foregroundStyle(.red.opacity(0.8))
+            }
+            .buttonStyle(.borderless)
+            .help(LocalizedStringKey("Delete Skill"))
+        }
+        .padding(.vertical, 4)
+        .confirmationDialog(
+            LocalizedStringKey("Delete AI Skill Confirmation Title"),
+            isPresented: $isDeleteConfirmationPresented,
+            titleVisibility: .visible
+        ) {
+            Button(LocalizedStringKey("Delete Skill"), role: .destructive, action: onDelete)
+            Button(LocalizedStringKey("Cancel"), role: .cancel) {}
+        } message: {
+            Text(LocalizedStringKey("Delete AI Skill Confirmation Message"))
+        }
+    }
+
+    private var contentSummary: String {
+        let orderedTypes: [ClipboardContentType] = [.text, .code, .link, .image, .fileURL, .color]
+        let titles = orderedTypes
+            .filter { skill.supportedContentTypes.contains($0) }
+            .map { contentTypeTitle($0) }
+
+        return titles.isEmpty ? String(localized: "No Supported Content") : titles.joined(separator: ", ")
+    }
+
+    private func contentTypeTitle(_ contentType: ClipboardContentType) -> String {
+        switch contentType {
+        case .text: return String(localized: "Text Content")
+        case .code: return String(localized: "Code Content")
+        case .link: return String(localized: "Link Content")
+        case .image: return String(localized: "Image Content")
+        case .fileURL: return String(localized: "File Content")
+        case .color: return String(localized: "Color Content")
         }
     }
 }

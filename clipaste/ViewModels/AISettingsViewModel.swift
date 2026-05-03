@@ -8,6 +8,7 @@ enum AITestResult: Equatable {
 
 @Observable
 final class AISettingsViewModel {
+    static let shared = AISettingsViewModel()
 
     // MARK: - Persistent State
 
@@ -17,11 +18,18 @@ final class AISettingsViewModel {
     /// The ID of the configuration currently selected as "active" (used by the clipboard panel).
     var activeConfigurationID: UUID? = nil
 
+    /// User-defined AI actions shown in the clipboard item context menu.
+    var skills: [AISkill] = []
+
     // MARK: - Sheet / Editor State
 
     var isEditorPresented: Bool = false
     var editingConfiguration: AIConfiguration = AIConfiguration()
     var isEditingExisting: Bool = false
+
+    var isSkillEditorPresented: Bool = false
+    var editingSkill: AISkill = AISkill()
+    var isEditingExistingSkill: Bool = false
 
     // MARK: - Connection Test State
 
@@ -83,26 +91,141 @@ final class AISettingsViewModel {
         configurations.first { $0.id == activeConfigurationID }
     }
 
+    func addNewSkill() {
+        editingSkill = AISkill(sortOrder: skills.count)
+        isEditingExistingSkill = false
+        isSkillEditorPresented = true
+    }
+
+    func edit(_ skill: AISkill) {
+        editingSkill = skill
+        isEditingExistingSkill = true
+        isSkillEditorPresented = true
+    }
+
+    func saveEditingSkill() {
+        editingSkill.name = editingSkill.name.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if isEditingExistingSkill {
+            if let index = skills.firstIndex(where: { $0.id == editingSkill.id }) {
+                skills[index] = editingSkill
+            }
+        } else {
+            skills.append(editingSkill)
+        }
+
+        normalizeSkillSortOrder()
+        isSkillEditorPresented = false
+        save()
+    }
+
+    func delete(_ skill: AISkill) {
+        skills.removeAll { $0.id == skill.id }
+        normalizeSkillSortOrder()
+        save()
+    }
+
+    func moveSkills(from source: IndexSet, to destination: Int) {
+        skills.move(fromOffsets: source, toOffset: destination)
+        normalizeSkillSortOrder()
+        save()
+    }
+
+    func setSkillEnabled(_ skill: AISkill, isEnabled: Bool) {
+        guard let index = skills.firstIndex(where: { $0.id == skill.id }) else { return }
+        skills[index].isEnabled = isEnabled
+        save()
+    }
+
+    func addDefaultSkillsIfMissing() {
+        let existingPresetIDs = Set(skills.compactMap(\.presetIdentifier))
+        let missingPresets = Self.defaultSkills(startingSortOrder: skills.count)
+            .filter { skill in
+                guard let presetIdentifier = skill.presetIdentifier else { return false }
+                return existingPresetIDs.contains(presetIdentifier) == false
+            }
+
+        guard missingPresets.isEmpty == false else { return }
+
+        skills.append(contentsOf: missingPresets)
+        normalizeSkillSortOrder()
+        save()
+    }
+
+    func availableSkills(for item: ClipboardItem) -> [AISkill] {
+        skills
+            .sorted { $0.sortOrder < $1.sortOrder }
+            .filter { $0.supports(item) && $0.displayTitle.isEmpty == false }
+    }
+
     // MARK: - Persistence
 
     private let configurationsKey = "ai_configurations"
     private let activeIDKey = "ai_active_configuration_id"
+    private let skillsKey = "ai_skills"
 
     private func save() {
         if let data = try? JSONEncoder().encode(configurations) {
             UserDefaults.standard.set(data, forKey: configurationsKey)
         }
+        if let data = try? JSONEncoder().encode(skills) {
+            UserDefaults.standard.set(data, forKey: skillsKey)
+        }
         UserDefaults.standard.set(activeConfigurationID?.uuidString, forKey: activeIDKey)
     }
 
     private func load() {
+        var shouldPersistDefaultSkills = false
+
         if let data = UserDefaults.standard.data(forKey: configurationsKey),
            let decoded = try? JSONDecoder().decode([AIConfiguration].self, from: data) {
             configurations = decoded
         }
+        if let data = UserDefaults.standard.data(forKey: skillsKey),
+           let decoded = try? JSONDecoder().decode([AISkill].self, from: data) {
+            skills = decoded.sorted { $0.sortOrder < $1.sortOrder }
+        } else {
+            skills = Self.defaultSkills()
+            shouldPersistDefaultSkills = true
+        }
         if let idString = UserDefaults.standard.string(forKey: activeIDKey),
            let uuid = UUID(uuidString: idString) {
             activeConfigurationID = uuid
+        }
+
+        if shouldPersistDefaultSkills {
+            save()
+        }
+    }
+
+    private func normalizeSkillSortOrder() {
+        for index in skills.indices {
+            skills[index].sortOrder = index
+        }
+    }
+
+    private static func defaultSkills(startingSortOrder: Int = 0) -> [AISkill] {
+        let presets: [DefaultAISkillPreset] = [
+            .extractEmails,
+            .summarizeText,
+            .translateToEnglish,
+            .improveWriting,
+            .formatJSON,
+            .minifyJSON,
+            .jsonToTypeScript,
+            .explainCode
+        ]
+
+        return presets.enumerated().map { offset, preset in
+            AISkill(
+                name: preset.localizedName,
+                promptTemplate: preset.localizedPrompt,
+                supportedContentTypes: preset.supportedContentTypes,
+                outputMode: preset.outputMode,
+                opensConversation: preset.opensConversation,
+                sortOrder: startingSortOrder + offset,
+                presetIdentifier: preset.rawValue
+            )
         }
     }
 

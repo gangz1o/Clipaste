@@ -96,12 +96,15 @@ final class ClipboardViewModel: ObservableObject {
     var operationNoticeHideTask: Task<Void, Never>? = nil
     var suppressedPasteItemIDs: Set<UUID> = []
     let settingsViewModel: SettingsViewModel
+    let aiSettingsViewModel: AISettingsViewModel
 
     init(
         clipboardMonitor _: ClipboardMonitor? = nil,
-        settingsViewModel: SettingsViewModel? = nil
+        settingsViewModel: SettingsViewModel? = nil,
+        aiSettingsViewModel: AISettingsViewModel? = nil
     ) {
         self.settingsViewModel = settingsViewModel ?? SettingsViewModel.shared
+        self.aiSettingsViewModel = aiSettingsViewModel ?? AISettingsViewModel.shared
         ModifierKey.migrateStoredPreferences()
 
         self.groups = [
