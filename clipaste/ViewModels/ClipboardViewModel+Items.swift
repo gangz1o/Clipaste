@@ -167,6 +167,10 @@ private extension ClipboardViewModel {
     }
 
     func enqueueMissingLinkMetadata(for sourceItems: [ClipboardItem]) {
+        // In plain (Default) mode neither titles nor icons are shown,
+        // so there is no point making background network requests.
+        guard settingsViewModel.linkDisplayMode == .rich else { return }
+
         let candidates = sourceItems
             .lazy
             .filter { $0.isFastLink && ($0.linkTitle == nil || $0.linkIconData == nil) }
