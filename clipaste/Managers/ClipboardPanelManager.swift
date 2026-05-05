@@ -65,7 +65,7 @@ class ClipboardPanelManager {
         let hostingController = NSHostingController(
             rootView: ClipboardPanelRootView()
                 .environmentObject(AppPreferencesStore.shared)
-                .environmentObject(ClipboardRuntimeStore.shared)
+                .environment(ClipboardRuntimeStore.shared)
         )
         hostingController.sizingOptions = []   // 禁止 SwiftUI 内容撑大面板，由 setFrame 控制
         panel.contentViewController = hostingController
@@ -353,13 +353,13 @@ class ClipboardPanelManager {
 
 private struct ClipboardPanelRootView: View {
     @EnvironmentObject private var preferencesStore: AppPreferencesStore
-    @EnvironmentObject private var runtimeStore: ClipboardRuntimeStore
+    @Environment(ClipboardRuntimeStore.self) private var runtimeStore
     @AppStorage("appLanguage") private var appLanguage: AppLanguage = .auto
 
     var body: some View {
         ClipboardMainView()
             .environmentObject(preferencesStore)
-            .environmentObject(runtimeStore)
+            .environment(runtimeStore)
             .modelContainer(runtimeStore.container)
             .id("\(runtimeStore.rootIdentity)-\(appLanguage.rawValue)")
             .environment(\.locale, appLanguage.resolvedLocale)

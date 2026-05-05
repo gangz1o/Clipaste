@@ -222,6 +222,24 @@ extension ClipboardViewModel {
         EditWindowManager.shared.openEditor(for: item, viewModel: self)
     }
 
+    func recognizeTextFromImage(item: ClipboardItem) {
+        guard item.contentType == .image else { return }
+
+        Task { @MainActor in
+            var imageData = await StorageManager.shared.loadImageData(id: item.id)
+            if imageData == nil {
+                imageData = await StorageManager.shared.loadPreviewImageData(id: item.id)
+            }
+            guard let imageData else {
+                print("❌ [recognizeTextFromImage] 找不到原图数据: \(item.id)")
+                return
+            }
+
+            let title = item.customTitle ?? item.appName
+            OCRResultWindowManager.shared.openResult(imageData: imageData, sourceTitle: title)
+        }
+    }
+
     func editImage(item: ClipboardItem) {
         guard item.contentType == .image else { return }
 
@@ -368,6 +386,40 @@ extension ClipboardViewModel {
         ClipboardLinkOpeningService.open(url)
     }
 
+    func runAISkill(_ skill: AISkill, for item: ClipboardItem) {
+        selectedItemIDs = [item.id]
+        lastSelectedID = item.id
+        aiSettingsViewModel.markSkillUsed(skill)
+
+        guard let configuration = aiConfiguration(for: skill) else {
+            showOperationNotice(String(localized: "No active AI configuration is available."))
+            NotificationCenter.default.post(name: .openSettingsIntent, object: nil)
+            return
+        }
+
+        showOperationNotice(String(localized: "Running AI skill…"))
+
+        Task { @MainActor in
+            do {
+                let prompt = try await AIExecutionService.shared.prompt(for: skill, item: item)
+                let userMessage = AIChatMessage(role: "user", content: prompt)
+                let result = try await AIExecutionService.shared.send(messages: [userMessage], configuration: configuration)
+                let assistantMessage = AIChatMessage(role: "assistant", content: result)
+                applyAIResult(result, mode: skill.outputMode, item: item)
+
+                if skill.opensConversation || skill.outputMode == .openConversation {
+                    AIConversationWindowManager.shared.openConversation(
+                        title: skill.displayTitle,
+                        configuration: configuration,
+                        messages: [userMessage, assistantMessage]
+                    )
+                }
+            } catch {
+                showOperationNotice(error.localizedDescription)
+            }
+        }
+    }
+
     func deleteItem(item: ClipboardItem) {
         guard item.isPinned == false else {
             showFavoritesDeletionBlockedNotice()
@@ -387,6 +439,55 @@ extension ClipboardViewModel {
 }
 
 private extension ClipboardViewModel {
+    func aiConfiguration(for skill: AISkill) -> AIConfiguration? {
+        if let configurationID = skill.configurationID {
+            return aiSettingsViewModel.configurations.first { $0.id == configurationID }
+        }
+
+        return aiSettingsViewModel.activeConfiguration
+    }
+
+    func applyAIResult(_ result: String, mode: AISkillOutputMode, item: ClipboardItem? = nil) {
+        switch mode {
+        case .copyToClipboard:
+            PasteEngine.shared.writePlainTextToPasteboard(text: result)
+            playCopySound()
+            showOperationNotice(String(localized: "AI result copied to clipboard."))
+        case .openConversation:
+            showOperationNotice(String(localized: "AI conversation opened."))
+        case .createClipboardItem:
+            createClipboardItemFromAIResult(result)
+            showOperationNotice(String(localized: "AI result added to clipboard history."))
+        case .replaceCurrentItem:
+            guard let item else {
+                showOperationNotice(String(localized: "No clipboard item is available to replace."))
+                return
+            }
+            saveEditedItem(item, newText: result)
+            ListRenderEngine.shared.invalidate(id: item.id)
+            showOperationNotice(String(localized: "AI result replaced the current item."))
+        case .pasteToActiveApp:
+            PasteEngine.shared.writePlainTextToPasteboard(text: result)
+            ClipboardPanelManager.shared.forceHidePanel()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                PasteEngine.shared.simulateCommandV()
+            }
+        }
+    }
+
+    func createClipboardItemFromAIResult(_ result: String) {
+        let data = Data(result.utf8)
+        let hash = CryptoHelper.sha256(data: data)
+
+        StorageManager.shared.upsertRecord(
+            hash: hash,
+            text: result,
+            appID: Bundle.main.bundleIdentifier,
+            appName: "Clipaste AI",
+            type: ClipboardContentType.text.rawValue
+        )
+    }
+
     var operationNoticeLocale: Locale {
         let language = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "appLanguage") ?? "") ?? .auto
         return language.resolvedLocale

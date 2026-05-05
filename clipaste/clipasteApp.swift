@@ -226,7 +226,7 @@ struct clipasteApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var preferencesStore = AppPreferencesStore.shared
     @StateObject private var settingsViewModel = SettingsViewModel.shared
-    @StateObject private var runtimeStore = ClipboardRuntimeStore.shared
+    private let runtimeStore = ClipboardRuntimeStore.shared
     private let appUpdateViewModel = AppUpdateViewModel.shared
     @AppStorage("appLanguage") private var appLanguage: AppLanguage = .auto
 
@@ -242,7 +242,7 @@ struct clipasteApp: App {
             SettingsView()
                 .environmentObject(preferencesStore)
                 .environmentObject(settingsViewModel)
-                .environmentObject(runtimeStore)
+                .environment(runtimeStore)
                 .modelContainer(runtimeStore.container)
                 .environment(\.locale, appLanguage.resolvedLocale)
                 .environment(appUpdateViewModel)

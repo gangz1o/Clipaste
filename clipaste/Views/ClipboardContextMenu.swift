@@ -177,6 +177,12 @@ extension View {
 
         Divider()
 
+        ClipboardAIActionMenu(item: item, viewModel: viewModel) {
+            Label("AI", systemImage: "sparkles")
+        }
+
+        Divider()
+
         // 2. Organize & manage
         Menu {
             if viewModel.customGroups.isEmpty {
@@ -216,6 +222,12 @@ extension View {
 
         // 3. Edit (context-aware: dispatch by type)
         if item.contentType == .image {
+            Button {
+                viewModel.recognizeTextFromImage(item: item)
+            } label: {
+                Label("Recognize Text (OCR)", systemImage: "text.viewfinder")
+            }
+
             Button {
                 viewModel.editImage(item: item)
             } label: {
@@ -259,4 +271,5 @@ extension View {
             Label("Delete", systemImage: "trash")
         }
     }
+
 }

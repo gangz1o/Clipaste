@@ -3,7 +3,7 @@ import SwiftUI
 
 struct AdvancedSettingsView: View {
     @EnvironmentObject private var viewModel: SettingsViewModel
-    @EnvironmentObject private var runtimeStore: ClipboardRuntimeStore
+    @Environment(ClipboardRuntimeStore.self) private var runtimeStore
     @Environment(\.locale) private var locale
     @AppStorage("appAccentColor") private var appAccentColor: AppAccentColor = .defaultValue
     @AppStorage("enable_smart_groups") private var isSmartGroupsEnabled: Bool = true
@@ -358,5 +358,5 @@ private extension AdvancedSettingsView {
 #Preview {
     AdvancedSettingsView()
         .environmentObject(SettingsViewModel())
-        .environmentObject(ClipboardRuntimeStore.shared)
+        .environment(ClipboardRuntimeStore.shared)
 }
