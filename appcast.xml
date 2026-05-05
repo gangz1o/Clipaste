@@ -3,6 +3,40 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.0.0</title>
+            <pubDate>Tue, 05 May 2026 07:43:28 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.0.0</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20000</sparkle:version>
+            <sparkle:shortVersionString>2.0.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
+
+🤖 AI 能力重磅上线
+
+- **引入强大 AI 引擎**：剪贴板全面进化！现已原生支持图片文字识别 (AI OCR)，并无缝接入 Claude、DeepSeek、ChatGPT、Gemini 及所有兼容 OpenAI 接口的大模型。
+- **自定义 AI 技能菜单**：你的提示词就是快捷菜单！支持完全自定义 AI 操作指令，打造专属工作流。同时系统内置多款实用预设，助你开箱即用。
+
+🐛 修复与优化
+
+- **链接解析优化**：修复了链接为纯文本格式时，仍会错误触发元数据 (metadata) 网络请求的 Bug，提升后台运行效率。
+
+---
+
+### ✨ What's New
+
+🤖 AI Powers Up Your Clipboard
+
+- **Powerful AI Integration**: Supercharge your clipboard with new AI capabilities, including built-in Image AI OCR. Seamlessly supports Claude, DeepSeek, ChatGPT, Gemini, and all OpenAI-compatible models.
+- **Custom AI Skills**: Your prompts become your menu items! Fully customize your AI actions to build your own workflow, or get started instantly with our built-in system prompt presets.
+
+🐛 Bug Fixes & Improvements
+
+- **Text-Only URL Fix**: Fixed a bug where metadata network requests were incorrectly triggered for URLs formatted as plain text, improving overall efficiency.
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.0.0/Clipaste-v2.0.0.zip" length="6352038" type="application/octet-stream" sparkle:edSignature="2VXkT4rNj4jHHQDUrJN6KDbpgwiRrOWVThdX1tdbL47mpNpybSsf9I6zXoQU4hg+SI3apXeLMmHWLoJQIETpAA=="/>
+        </item>
+        <item>
             <title>1.2.4</title>
             <pubDate>Wed, 29 Apr 2026 15:18:42 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -74,42 +108,6 @@
 - **Optimize the installation page visual experience**: Added installation page background and drag reminder
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.2.3/Clipaste-v1.2.3.zip" length="5889199" type="application/octet-stream" sparkle:edSignature="gWxO0yOqcDmlNSDQM/4WeuZabPTE+APLg1ao8ma1MyseFagA160o5s5dWPeqh3n/Phuq/nu4F7ft5tH4qz8KDw=="/>
-        </item>
-        <item>
-            <title>1.2.2</title>
-            <pubDate>Sun, 26 Apr 2026 15:14:36 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.2.2</sparkle:fullReleaseNotesLink>
-            <sparkle:version>10202</sparkle:version>
-            <sparkle:shortVersionString>1.2.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
-
-🎨 视觉与体验优化
-
-- **焕新应用图标**：换上全新设计的 App Icon，视觉表达更契合应用的高效剪贴板定位。
-- **界面细节打磨**：对部分界面的 UI 进行了微调，视觉呈现更加自然协调。
-
-🚀 功能与交互增强
-
-- **权限授权无缝衔接**：大幅优化辅助功能授权体验，现在点击“去系统设置授权”后，Clipaste 会自动出现在系统的辅助功能列表中，免去手动寻找的烦恼。
-- **新增专属交流群**：新增了 Telegram 用户交流群组入口，欢迎随时加入，与我们聊聊你的想法和建议。
-
----
-
-### ✨ What's New
-
-🎨 Visual & UX Improvements
-
-- **Brand New App Icon**: Upgraded to a newly designed icon that better reflects our core product philosophy and positioning.
-- **UI Refinements**: Made several minor visual adjustments across the app for a more polished and cohesive look.
-
-🚀 Features & Enhancements
-
-- **Seamless Authorization**: Optimized the Accessibility permission flow. Clicking "Open System Settings" will now automatically reveal Clipaste in the macOS settings list, saving you time.
-- **Join Our Community**: Added a link to our official Telegram group. Come hang out, share your feedback, and chat with us!
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.2.2/Clipaste-v1.2.2.zip" length="5889211" type="application/octet-stream" sparkle:edSignature="xkAK8PUcLxTbzoJOIOCn90SC+9GSsDbEBCg/LJkJvmvDKmGr3UeJ9pqvVS3A20OsPPhgrzl4SBuHKIwTKeCoAA=="/>
         </item>
     </channel>
 </rss>
