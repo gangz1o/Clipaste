@@ -389,6 +389,7 @@ extension ClipboardViewModel {
     func runAISkill(_ skill: AISkill, for item: ClipboardItem) {
         selectedItemIDs = [item.id]
         lastSelectedID = item.id
+        aiSettingsViewModel.markSkillUsed(skill)
 
         guard let configuration = aiConfiguration(for: skill) else {
             showOperationNotice(String(localized: "No active AI configuration is available."))

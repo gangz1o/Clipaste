@@ -296,7 +296,7 @@ struct ClipboardVerticalItemView: View {
 
                     Spacer(minLength: 4)
 
-                    quickPasteInlineLabel
+                    bottomInlineAction
                 }
                 .padding(.top, 4)
                 .help(item.timestamp.formatted(date: .complete, time: .standard))
@@ -324,7 +324,7 @@ struct ClipboardVerticalItemView: View {
     }
 
     @ViewBuilder
-    private var quickPasteInlineLabel: some View {
+    private var bottomInlineAction: some View {
         if let quickPasteNumber, showsQuickPasteBadge {
             QuickPasteShortcutBadge(
                 modifierKey: viewModel.quickPasteModifier,
@@ -332,7 +332,35 @@ struct ClipboardVerticalItemView: View {
                 color: timeTextColor
             )
             .transition(.opacity)
+        } else if showsAIShortcut {
+            ClipboardAIActionMenu(item: item, viewModel: viewModel) {
+                HStack(spacing: -4) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 7, weight: .medium))
+
+                    Text("AI")
+                        .font(.system(size: 9, weight: .medium))
+                }
+                .foregroundStyle(dateTextColor.opacity(0.78))
+                .padding(.horizontal, 2)
+                .frame(height: 20)
+                .background(.regularMaterial, in: Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(Color.black.opacity(0.10), lineWidth: 0.5)
+                }
+                .contentShape(Capsule())
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .help(Text("AI"))
+            .transition(.opacity.combined(with: .scale(scale: 0.96)))
         }
+    }
+
+    private var showsAIShortcut: Bool {
+        (isHovering || isSelected) && viewModel.isQuickPasteModifierHeld == false
     }
 
     @ViewBuilder

@@ -21,6 +21,9 @@ final class AISettingsViewModel {
     /// User-defined AI actions shown in the clipboard item context menu.
     var skills: [AISkill] = []
 
+    /// Last AI skill executed from the clipboard panel, used to make repeated actions faster.
+    var lastUsedSkillID: UUID? = nil
+
     /// When `true`, the image OCR right-click action prefers the active AI configuration
     /// (multimodal request) and falls back to Vision OCR on failure.
     /// Auto-disabled when no configuration is available.
@@ -198,12 +201,23 @@ final class AISettingsViewModel {
             .filter { $0.supports(item) && $0.displayTitle.isEmpty == false }
     }
 
+    func lastUsedAvailableSkill(for item: ClipboardItem) -> AISkill? {
+        guard let lastUsedSkillID else { return nil }
+        return availableSkills(for: item).first { $0.id == lastUsedSkillID }
+    }
+
+    func markSkillUsed(_ skill: AISkill) {
+        lastUsedSkillID = skill.id
+        UserDefaults.standard.set(skill.id.uuidString, forKey: lastUsedSkillIDKey)
+    }
+
     // MARK: - Persistence
 
     private let configurationsKey = "ai_configurations"
     private let activeIDKey = "ai_active_configuration_id"
     private let skillsKey = "ai_skills"
     private let aiOCREnabledKey = "ai_ocr_enabled"
+    private let lastUsedSkillIDKey = "ai_last_used_skill_id"
 
     private func save() {
         if let data = try? JSONEncoder().encode(configurations) {
@@ -232,6 +246,10 @@ final class AISettingsViewModel {
         if let idString = UserDefaults.standard.string(forKey: activeIDKey),
            let uuid = UUID(uuidString: idString) {
             activeConfigurationID = uuid
+        }
+        if let idString = UserDefaults.standard.string(forKey: lastUsedSkillIDKey),
+           let uuid = UUID(uuidString: idString) {
+            lastUsedSkillID = uuid
         }
 
         if UserDefaults.standard.object(forKey: aiOCREnabledKey) != nil {

@@ -109,16 +109,7 @@ struct ClipboardCardView: View {
             }
         }
         .overlay(alignment: .bottomTrailing) {
-            if let quickPasteNumber, showsQuickPasteBadge {
-                QuickPasteShortcutBadge(
-                    modifierKey: viewModel.quickPasteModifier,
-                    number: quickPasteNumber,
-                    color: .secondary
-                )
-                .padding(.trailing, 12)
-                .padding(.bottom, 12)
-                .transition(.opacity)
-            }
+            bottomAccessory
         }
         .overlay {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -153,6 +144,9 @@ struct ClipboardCardView: View {
             await refreshHeaderDominantColorHex()
         }
         .clipboardContextMenu(for: item, viewModel: viewModel)
+        .onHover { hovering in
+            isHovered = hovering
+        }
         .onDrag {
             viewModel.draggedItemId = item.id
             return item.universalDragProvider
@@ -198,6 +192,47 @@ struct ClipboardCardView: View {
         }
         .overlay(alignment: .leading) {
             headerCustomTitleOverlay
+        }
+    }
+
+    @ViewBuilder
+    private var bottomAccessory: some View {
+        if let quickPasteNumber, showsQuickPasteBadge {
+            QuickPasteShortcutBadge(
+                modifierKey: viewModel.quickPasteModifier,
+                number: quickPasteNumber,
+                color: .secondary
+            )
+            .padding(.trailing, 12)
+            .padding(.bottom, 12)
+            .transition(.opacity)
+        } else if showsAIShortcut {
+            ClipboardAIActionMenu(item: item, viewModel: viewModel) {
+                HStack(spacing: -4) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 9, weight: .medium))
+
+                    Text("AI")
+                        .font(.system(size: 10, weight: .semibold))
+                }
+                .foregroundStyle(.secondary.opacity(0.62))
+                .padding(.horizontal, 4)
+                .frame(height: 22)
+                .background(.regularMaterial, in: Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(Color.black.opacity(0.10), lineWidth: 0.5)
+                }
+                .shadow(color: Color.black.opacity(0.12), radius: 3, x: 0, y: 1)
+                .contentShape(Capsule())
+            }
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .help(Text("AI"))
+            .padding(.trailing, 12)
+            .padding(.bottom, 12)
+            .transition(.opacity.combined(with: .scale(scale: 0.96)))
         }
     }
 
@@ -318,6 +353,10 @@ struct ClipboardCardView: View {
 
     private var isCodeContent: Bool {
         item.contentType == .code
+    }
+
+    private var showsAIShortcut: Bool {
+        (isHovered || isSelected) && viewModel.isQuickPasteModifierHeld == false
     }
 
     @ViewBuilder

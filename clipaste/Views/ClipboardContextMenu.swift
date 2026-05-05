@@ -177,7 +177,9 @@ extension View {
 
         Divider()
 
-        aiMenuContent(item: item, viewModel: viewModel)
+        ClipboardAIActionMenu(item: item, viewModel: viewModel) {
+            Label("AI", systemImage: "sparkles")
+        }
 
         Divider()
 
@@ -270,50 +272,4 @@ extension View {
         }
     }
 
-    @ViewBuilder
-    private func aiMenuContent(item: ClipboardItem, viewModel: ClipboardViewModel) -> some View {
-        Menu {
-            if viewModel.aiSettingsViewModel.configurations.isEmpty {
-                Text("No AI Configurations")
-                    .foregroundStyle(.secondary)
-
-                Button {
-                    NotificationCenter.default.post(name: .openSettingsIntent, object: nil)
-                } label: {
-                    Label("Open AI Settings…", systemImage: "gearshape")
-                }
-            } else {
-                let skills = viewModel.aiSettingsViewModel.availableSkills(for: item)
-
-                if skills.isEmpty {
-                    Text("No AI Skills Available")
-                        .foregroundStyle(.secondary)
-
-                    Button {
-                        NotificationCenter.default.post(name: .openSettingsIntent, object: nil)
-                    } label: {
-                        Label("Add AI Skill…", systemImage: "plus")
-                    }
-                } else {
-                    ForEach(skills) { skill in
-                        Button {
-                            viewModel.runAISkill(skill, for: item)
-                        } label: {
-                            Label(skill.displayTitle, systemImage: skill.outputMode.systemImage)
-                        }
-                    }
-
-                    Divider()
-
-                    Button {
-                        NotificationCenter.default.post(name: .openSettingsIntent, object: nil)
-                    } label: {
-                        Label("Manage AI Skills…", systemImage: "slider.horizontal.3")
-                    }
-                }
-            }
-        } label: {
-            Label("AI", systemImage: "sparkles")
-        }
-    }
 }
