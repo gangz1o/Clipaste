@@ -58,6 +58,34 @@ struct AIConfiguration: Identifiable, Codable, Equatable, Hashable {
         name.isEmpty ? providerType.rawValue : name
     }
 
+    var providerIconAssetName: String? {
+        switch providerType {
+        case .openai:
+            return "ai-openai"
+        case .claude:
+            return "ai-anthropic"
+        case .deepseek:
+            return "ai-deepseek"
+        case .gemini:
+            return "ai-googlegemini"
+        case .custom:
+            let searchableText = "\(name) \(model) \(endpoint)".lowercased()
+            if searchableText.contains("deepseek") {
+                return "ai-deepseek"
+            }
+            if searchableText.contains("gemini") || searchableText.contains("google") {
+                return "ai-googlegemini"
+            }
+            if searchableText.contains("claude") || searchableText.contains("anthropic") {
+                return "ai-anthropic"
+            }
+            if searchableText.contains("openai") {
+                return "ai-openai"
+            }
+            return nil
+        }
+    }
+
     /// Heuristic guess for whether a provider+model combo accepts image input.
     /// Used as the default when the user hasn't toggled the flag explicitly.
     static func defaultSupportsImage(provider: AIProviderType, model: String) -> Bool {

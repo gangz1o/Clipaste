@@ -545,9 +545,8 @@ struct ClipboardHeaderView: View {
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 4) {
                         ForEach(aiSettingsViewModel.configurations) { config in
-                            GroupOverflowRow(
-                                title: .verbatim(config.displayTitle),
-                                icon: "sparkles",
+                            AIModelOverflowRow(
+                                configuration: config,
                                 isSelected: aiSettingsViewModel.activeConfigurationID == config.id,
                                 accentColor: appAccentColor
                             ) {
@@ -1066,6 +1065,51 @@ private struct GroupOverflowRow: View {
             Text(resource)
         case .verbatim(let string):
             Text(verbatim: string)
+        }
+    }
+}
+
+private struct AIModelOverflowRow: View {
+    let configuration: AIConfiguration
+    let isSelected: Bool
+    let accentColor: AppAccentColor
+    let action: () -> Void
+
+    @State private var isHovered = false
+
+    private var isHighlighted: Bool {
+        isSelected || isHovered
+    }
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                AIProviderIconView(configuration: configuration, size: 14)
+                    .frame(width: 14, height: 14)
+
+                Text(verbatim: configuration.displayTitle)
+                    .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                    .lineLimit(1)
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "checkmark")
+                    .font(.system(size: 11, weight: .bold))
+                    .opacity(isSelected ? 1 : 0)
+            }
+            .foregroundStyle(isHighlighted ? accentColor.selectedContentColor : Color.primary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .fill(isHighlighted ? accentColor.color : Color.clear)
+            }
+            .contentShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
         }
     }
 }
