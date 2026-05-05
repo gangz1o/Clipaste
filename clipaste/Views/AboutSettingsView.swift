@@ -294,7 +294,7 @@ private extension AboutSettingsView {
             }
             return xcstringsLocalized("Ready to check for updates", locale: locale)
         case .checking:
-            return xcstringsLocalized("Checking for updates…", locale: locale)
+            return xcstringsLocalized("Checking for updates", locale: locale)
         case .updateAvailable:
             if let version = viewModel.availableUpdate?.version {
                 let format = xcstringsLocalized("A new version is ready: %@", locale: locale)

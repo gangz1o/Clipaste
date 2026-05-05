@@ -357,7 +357,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gangz1o.clipaste;
 				PRODUCT_NAME = Clipaste;
 				REGISTER_APP_GROUPS = YES;
@@ -405,7 +405,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 1.1.7;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.gangz1o.clipaste;
 				PRODUCT_NAME = Clipaste;
 				PROVISIONING_PROFILE_SPECIFIER = "$(CLIPASTE_RELEASE_PROFILE_SPECIFIER)";

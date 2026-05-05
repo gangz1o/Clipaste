@@ -129,7 +129,6 @@ extension ClipboardViewModel {
             fallbackID: fallbackSelectionID,
             preservedSelectionIDs: protectedIDs
         )
-        print("✅ 批量删除 \(hashesToDelete.count) 条记录，保留 \(protectedItems.count) 条收藏记录")
     }
 
     func pasteToActiveApp(item: ClipboardItem) {
@@ -137,14 +136,12 @@ extension ClipboardViewModel {
             return
         }
 
-        print("🚀 触发双击事件: \(item.id)")
 
         selectedItemIDs = [item.id]
         lastSelectedID = item.id
 
         Task { @MainActor in
             guard let record = await StorageManager.shared.loadPasteRecord(id: item.id) else {
-                print("❌ 未找到可复制的记录: \(item.id)")
                 return
             }
 
@@ -153,7 +150,6 @@ extension ClipboardViewModel {
                 preferPlainText: shouldForcePlainTextOutput
             )
             guard wroteToPasteboard else {
-                print("❌ 写入系统剪贴板失败: \(item.id)")
                 return
             }
 
@@ -169,7 +165,6 @@ extension ClipboardViewModel {
                     PasteEngine.shared.simulateCommandV()
                 }
             } else {
-                print("🛑 用户关闭了自动粘贴，仅执行复制并隐藏面板")
             }
 
             let moveToTop = UserDefaults.standard.bool(forKey: "moveToTopAfterPaste")
@@ -231,7 +226,6 @@ extension ClipboardViewModel {
                 imageData = await StorageManager.shared.loadPreviewImageData(id: item.id)
             }
             guard let imageData else {
-                print("❌ [recognizeTextFromImage] 找不到原图数据: \(item.id)")
                 return
             }
 
@@ -248,7 +242,6 @@ extension ClipboardViewModel {
             let previewData = await StorageManager.shared.loadPreviewImageData(id: item.id)
 
             guard let sourceData = imageData ?? previewData else {
-                print("❌ [editImage] 找不到原图数据: \(item.id)")
                 return
             }
 
@@ -262,7 +255,6 @@ extension ClipboardViewModel {
             do {
                 try sourceData.write(to: tempURL, options: .atomic)
             } catch {
-                print("❌ [editImage] 写入临时图片失败: \(error)")
                 return
             }
 

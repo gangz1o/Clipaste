@@ -2267,6 +2267,7 @@
       }
     },
     "AI Skills Footer" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -3127,6 +3128,36 @@
     },
     "Built-in Groups" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Integrierte Gruppen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Built-in Groups"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Groupes intégrés"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "組み込みグループ"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기본 그룹"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3310,43 +3341,43 @@
     "Checkerboard pattern for transparent image background" : {
 
     },
-    "Checking for updates…" : {
+    "Checking for updates" : {
       "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Suche nach Updates…"
+            "value" : "Suche nach Updates"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Recherche des mises à jour…"
+            "value" : "Recherche des mises à jour"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "アップデートを確認中…"
+            "value" : "アップデートを確認中"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "업데이트를 확인하는 중…"
+            "value" : "업데이트를 확인하는 중"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在检查更新…"
+            "value" : "正在检查更新"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在檢查更新…"
+            "value" : "正在檢查更新"
           }
         }
       }
@@ -3679,6 +3710,36 @@
     },
     "Clear" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Effacer"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "消去"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "지우기"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3817,6 +3878,36 @@
     },
     "Clear History" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verlauf löschen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear History"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Effacer l’historique"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "履歴を消去"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "기록 지우기"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -3843,47 +3934,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "清除歷史記錄？"
-          }
-        }
-      }
-    },
-    "Clear History…" : {
-      "extractionState" : "stale",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verlauf löschen…"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Effacer l'historique…"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "履歴を消去…"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "기록 지우기…"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除历史记录…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清除歷史記錄…"
           }
         }
       }
@@ -4063,6 +4113,36 @@
     },
     "Clipaste needs Accessibility permission to securely simulate paste in any app." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipaste benötigt Bedienungshilfen-Berechtigung, um Einfügen in jeder App sicher zu simulieren."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipaste needs Accessibility permission to securely simulate paste in any app."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipaste a besoin de l’autorisation Accessibilité pour simuler le collage en toute sécurité dans n’importe quelle app."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipaste があらゆるアプリで安全に貼り付けをシミュレートするには、アクセシビリティ権限が必要です。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipaste가 모든 앱에서 붙여넣기를 안전하게 시뮬레이션하려면 손쉬운 사용 권한이 필요합니다."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -8373,6 +8453,7 @@
       }
     },
     "Image OCR Footer" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9335,6 +9416,12 @@
             "value" : "Layout-Modus"
           }
         },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Layout Mode"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -9370,6 +9457,36 @@
     "Layout Mode controls how clipboard items are displayed. Preview Panel shows detailed preview when using vertical layouts." : {
       "extractionState" : "stale",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Layoutmodus steuert, wie Zwischenablageelemente angezeigt werden. Das Vorschaufenster zeigt eine detaillierte Vorschau bei vertikalen Layouts."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Layout Mode controls how clipboard items are displayed. Preview Panel shows detailed preview when using vertical layouts."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le mode de disposition contrôle l’affichage des éléments du presse-papiers. Le panneau d’aperçu affiche un aperçu détaillé lors de l’utilisation de dispositions verticales."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "レイアウトモードは、クリップボード項目の表示方法を制御します。プレビューパネルは、縦レイアウト使用時に詳細プレビューを表示します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "레이아웃 모드는 클립보드 항목의 표시 방식을 제어합니다. 세로 레이아웃을 사용할 때 미리보기 패널에 자세한 미리보기가 표시됩니다."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16257,6 +16374,12 @@
             "value" : "Als aktiv setzen"
           }
         },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set as Active"
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16291,6 +16414,36 @@
     },
     "Set Preferences" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einstellungen festlegen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set Preferences"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Définir les préférences"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "環境設定を行う"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "환경설정하기"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16307,6 +16460,36 @@
     },
     "Set Up Your Activation Shortcut" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Richte deinen Aktivierungs-Kurzbefehl ein"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set Up Your Activation Shortcut"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurez votre raccourci d’activation"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "起動ショートカットを設定"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "활성화 단축키 설정"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -16328,6 +16511,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Einstellungen anpassen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set Up Your Preferences"
           }
         },
         "fr" : {
@@ -16369,6 +16558,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Persönlichen Aktivierungskurzbefehl festlegen"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set your personal wake shortcut"
           }
         },
         "fr" : {
@@ -18465,6 +18660,36 @@
     },
     "These options can be changed anytime in Settings." : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Optionen können jederzeit in den Einstellungen geändert werden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "These options can be changed anytime in Settings."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ces options peuvent être modifiées à tout moment dans les paramètres."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "これらのオプションは、いつでも設定で変更できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 옵션은 언제든지 설정에서 변경할 수 있습니다."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18488,10 +18713,16 @@
             "value" : "Diese Optionen können jederzeit in den Einstellungen geändert werden."
           }
         },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "These options can be changed in Settings at any time."
+          }
+        },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ces options peuvent être modifiées à tout moment dans les Réglages."
+            "value" : "Ces options peuvent être modifiées à tout moment dans les paramètres."
           }
         },
         "ja" : {
@@ -18523,6 +18754,36 @@
     "These shortcuts are handled only when the Clipaste panel is the active window, so native shortcuts in Notes, browsers, Terminal, and other apps stay intact." : {
       "extractionState" : "stale",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Kurzbefehle werden nur verarbeitet, wenn das Clipaste-Panel das aktive Fenster ist. Native Kurzbefehle in Notizen, Browsern, Terminal und anderen Apps bleiben unverändert."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "These shortcuts are handled only when the Clipaste panel is the active window, so native shortcuts in Notes, browsers, Terminal, and other apps stay intact."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ces raccourcis ne sont gérés que lorsque le panneau Clipaste est la fenêtre active, afin de préserver les raccourcis natifs dans Notes, les navigateurs, Terminal et les autres apps."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "これらのショートカットは、Clipaste パネルがアクティブウィンドウのときにのみ処理されるため、メモ、ブラウザ、Terminal など他のアプリの標準ショートカットには影響しません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 단축키는 Clipaste 패널이 활성 창일 때만 처리되므로, 메모, 브라우저, 터미널 및 기타 앱의 기본 단축키는 그대로 유지됩니다."
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18585,6 +18846,36 @@
     },
     "Toggle Favorites for Selection" : {
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorit für Auswahl umschalten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toggle Favorites for Selection"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basculer le favori pour la sélection"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選択項目のお気に入りを切り替え"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "선택 항목 즐겨찾기 전환"
+          }
+        },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
@@ -18600,7 +18891,50 @@
       }
     },
     "Toggle Sidebar" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seitenleiste ein-/ausblenden"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toggle Sidebar"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Afficher/Masquer la barre latérale"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "サイドバーの表示/非表示を切り替え"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "사이드바 표시/숨기기 전환"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换侧边栏显示"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換側邊欄顯示"
+          }
+        }
+      }
     },
     "Toggle Vertical Clipboard" : {
       "localizations" : {
@@ -18608,6 +18942,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vertikale Zwischenablage umschalten"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toggle Vertical Clipboard"
           }
         },
         "fr" : {
@@ -19900,35 +20240,458 @@
       }
     },
     "今天" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heute"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aujourd'hui"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "오늘"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天"
+          }
+        }
+      }
     },
     "从 %@ 迁移数据" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daten von %@ migrieren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Migrate data from %@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Migrer les données depuis %@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ からデータを移行"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@에서 데이터 마이그레이션"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从 %@ 迁移数据"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從 %@ 遷移資料"
+          }
+        }
+      }
     },
     "导入器会读取 JSON 结构中的历史条目，并映射到 Clipaste 的 SwiftData 模型。" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Importer liest Verlaufseinträge aus der JSON-Struktur und ordnet sie dem SwiftData-Modell von Clipaste zu."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The importer reads history entries from the JSON structure and maps them to Clipaste's SwiftData model."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'importateur lit les éléments d'historique de la structure JSON et les associe au modèle SwiftData de Clipaste."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インポーターは JSON 構造内の履歴項目を読み取り、Clipaste の SwiftData モデルにマッピングします。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "가져오기 도구는 JSON 구조의 기록 항목을 읽어 Clipaste의 SwiftData 모델에 매핑합니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入器会读取 JSON 结构中的历史条目，并映射到 Clipaste 的 SwiftData 模型。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯入器會讀取 JSON 結構中的歷史項目，並對應到 Clipaste 的 SwiftData 模型。"
+          }
+        }
+      }
     },
     "导入器将使用原生 SQLite3 读取 t_data 表的纯文本记录，不依赖任何第三方数据库库。" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Importer verwendet natives SQLite3, um Klartextdatensätze aus der Tabelle t_data zu lesen, ohne Bibliotheken von Drittanbietern."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The importer uses native SQLite3 to read plain-text records from the t_data table, without relying on any third-party database libraries."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'importateur utilise SQLite3 natif pour lire les enregistrements en texte brut de la table t_data, sans dépendre de bibliothèques de base de données tierces."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インポーターはネイティブ SQLite3 を使用して t_data テーブルのプレーンテキスト記録を読み取り、サードパーティ製データベースライブラリには依存しません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "가져오기 도구는 네이티브 SQLite3를 사용해 t_data 테이블의 일반 텍스트 레코드를 읽으며, 서드파티 데이터베이스 라이브러리에 의존하지 않습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入器将使用原生 SQLite3 读取 t_data 表的纯文本记录，不依赖任何第三方数据库库。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯入器將使用原生 SQLite3 讀取 t_data 資料表的純文字記錄，不依賴任何第三方資料庫函式庫。"
+          }
+        }
+      }
     },
     "导入器将使用原生 SQLite3 读取 ZHISTORYITEM 表的文本记录，不依赖任何第三方数据库库。" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Importer verwendet natives SQLite3, um Textdatensätze aus der Tabelle ZHISTORYITEM zu lesen, ohne Bibliotheken von Drittanbietern."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The importer uses native SQLite3 to read text records from the ZHISTORYITEM table, without relying on any third-party database libraries."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'importateur utilise SQLite3 natif pour lire les enregistrements texte de la table ZHISTORYITEM, sans dépendre de bibliothèques de base de données tierces."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インポーターはネイティブ SQLite3 を使用して ZHISTORYITEM テーブルのテキスト記録を読み取り、サードパーティ製データベースライブラリには依存しません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "가져오기 도구는 네이티브 SQLite3를 사용해 ZHISTORYITEM 테이블의 텍스트 레코드를 읽으며, 서드파티 데이터베이스 라이브러리에 의존하지 않습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入器将使用原生 SQLite3 读取 ZHISTORYITEM 表的文本记录，不依赖任何第三方数据库库。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯入器將使用原生 SQLite3 讀取 ZHISTORYITEM 資料表的文字記錄，不依賴任何第三方資料庫函式庫。"
+          }
+        }
+      }
     },
     "导入器将使用原生 SQLite3 读取 ZRAWPREVIEW 二进制 JSON，不依赖任何第三方数据库库。" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Importer verwendet natives SQLite3, um binäres JSON aus ZRAWPREVIEW zu lesen, ohne Bibliotheken von Drittanbietern."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The importer uses native SQLite3 to read binary JSON from ZRAWPREVIEW, without relying on any third-party database libraries."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'importateur utilise SQLite3 natif pour lire le JSON binaire depuis ZRAWPREVIEW, sans dépendre de bibliothèques de base de données tierces."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インポーターはネイティブ SQLite3 を使用して ZRAWPREVIEW のバイナリ JSON を読み取り、サードパーティ製データベースライブラリには依存しません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "가져오기 도구는 네이티브 SQLite3를 사용해 ZRAWPREVIEW의 바이너리 JSON을 읽으며, 서드파티 데이터베이스 라이브러리에 의존하지 않습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入器将使用原生 SQLite3 读取 ZRAWPREVIEW 二进制 JSON，不依赖任何第三方数据库库。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯入器將使用原生 SQLite3 讀取 ZRAWPREVIEW 二進位 JSON，不依賴任何第三方資料庫函式庫。"
+          }
+        }
+      }
     },
     "昨天" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gestern"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yesterday"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hier"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "昨日"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "어제"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "昨天"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "昨天"
+          }
+        }
+      }
     },
     "请选择 %@ 导出的 JSON 文件。Clipaste 会按 PasteNow 专用 JSON 路由解析。" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle die von %@ exportierte JSON-Datei aus. Clipaste analysiert sie über den speziellen PasteNow-JSON-Pfad."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select the JSON file exported by %@. Clipaste will parse it using the dedicated PasteNow JSON route."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sélectionnez le fichier JSON exporté par %@. Clipaste l'analysera via la route JSON dédiée à PasteNow."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ が書き出した JSON ファイルを選択してください。Clipaste は PasteNow 専用の JSON ルートで解析します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@에서 내보낸 JSON 파일을 선택하세요. Clipaste가 PasteNow 전용 JSON 경로로 파싱합니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择 %@ 导出的 JSON 文件。Clipaste 会按 PasteNow 专用 JSON 路由解析。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請選擇 %@ 匯出的 JSON 檔案。Clipaste 會以 PasteNow 專用 JSON 路由解析。"
+          }
+        }
+      }
     },
     "请选择 %@ 的 SQLite 数据库。" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle die SQLite-Datenbank von %@ aus."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select the SQLite database of %@."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sélectionnez la base de données SQLite de %@."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ の SQLite データベースを選択してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@의 SQLite 데이터베이스를 선택하세요."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择 %@ 的 SQLite 数据库。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請選擇 %@ 的 SQLite 資料庫。"
+          }
+        }
+      }
     },
     "请选择 Maccy 的 SQLite 数据库文件。" : {
       "extractionState" : "stale",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle die SQLite-Datenbankdatei von Maccy aus."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select the Maccy SQLite database file."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sélectionnez le fichier de base de données SQLite de Maccy."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maccy の SQLite データベースファイルを選択してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maccy SQLite 데이터베이스 파일을 선택하세요."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择 Maccy 的 SQLite 数据库文件。"
+          }
+        },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",

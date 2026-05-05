@@ -8,6 +8,10 @@ enum AIProviderType: String, CaseIterable, Identifiable, Codable {
     case custom = "Custom (OpenAI Compatible)"
     
     var id: String { self.rawValue }
+
+    var localizedName: String {
+        NSLocalizedString(self.rawValue, comment: "")
+    }
     
     var defaultEndpoint: String {
         switch self {
