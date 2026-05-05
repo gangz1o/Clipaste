@@ -3,6 +3,32 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.0.1</title>
+            <pubDate>Tue, 05 May 2026 15:37:23 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.0.1</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20001</sparkle:version>
+            <sparkle:shortVersionString>2.0.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
+
+#### 🎨 视觉体验
+* **AI 配置界面重塑**：全面优化了 AI 设置页面的 UI 布局。通过精细化调整控件间距与视觉层级，使大模型参数配置过程更加直观、清晰，提升了整体交互的沉浸感。
+
+#### 🌍 国际化适配
+* **多语言场景补完**：对应用内部分遗漏场景进行了深度的国际化（i18n）校对与补充。确保在不同语言环境下，UI 文本展示更准确，消除文案溢出或语义模糊问题。
+
+---
+### ✨  What‘s New
+#### 🎨 UI/UX Enhancements
+* **Refined AI Settings Interface**: Reimagined the AI configuration panel with a focus on visual hierarchy and control layout. The new design streamlines the parameter adjustment process, making the setup experience more intuitive and professional.
+
+#### 🌍 Internationalization
+* **Expanded Multilingual Support**: Completed internationalization (i18n) supplements for specific modules and edge-case scenarios. This ensures consistent, accurate, and localized text rendering across all supported languages, preventing UI clipping or translation gaps.
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.0.1/Clipaste-v2.0.1.zip" length="6396837" type="application/octet-stream" sparkle:edSignature="yyNg65qWRPzihvPMUFmW5p6zsZNOR1AC7qWanPxV8Peydbc1CyOFsNVjqVqROM0E5xRxJVElE9VMO2t4+IJ8AA=="/>
+        </item>
+        <item>
             <title>2.0.0</title>
             <pubDate>Tue, 05 May 2026 07:43:28 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -73,41 +99,6 @@
 - **CPU Usage Optimization**: Fixed an issue that caused sudden CPU usage spikes in certain scenarios, ensuring smoother and more energy-efficient performance in the background.
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.2.4/Clipaste-v1.2.4.zip" length="5897465" type="application/octet-stream" sparkle:edSignature="193aW1UbCfQqxprziRgoKt4qxnfTXJr6fMfU4P3lNfmlrOwIgXP8RQmcvDjigfiVlZS+HozTMF6HlC8uwUurAQ=="/>
-        </item>
-        <item>
-            <title>1.2.3</title>
-            <pubDate>Sun, 26 Apr 2026 15:55:54 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v1.2.3</sparkle:fullReleaseNotesLink>
-            <sparkle:version>10203</sparkle:version>
-            <sparkle:shortVersionString>1.2.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
-
-🎨 视觉与体验优化
-
-- **焕新应用图标**：换上全新设计的 App Icon，视觉表达更契合应用的高效剪贴板定位。
-- **界面细节打磨**：对部分界面的 UI 进行了微调，视觉呈现更加自然协调。
-
-🚀 功能与交互增强
-
-- **新增专属交流群**：新增了 Telegram 用户交流群组入口，欢迎随时加入，与我们聊聊你的想法和建议。
-- **优化安装页视觉体验**: 新增安装页背景和拖拽提醒
----
-
-### ✨ What's New
-
-🎨 Visual & UX Improvements
-
-- **Brand New App Icon**: Upgraded to a newly designed icon that better reflects our core product philosophy and positioning.
-- **UI Refinements**: Made several minor visual adjustments across the app for a more polished and cohesive look.
-
-🚀 Features & Enhancements
-
-- **Join Our Community**: Added a link to our official Telegram group. Come hang out, share your feedback, and chat with us!
-- **Optimize the installation page visual experience**: Added installation page background and drag reminder
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v1.2.3/Clipaste-v1.2.3.zip" length="5889199" type="application/octet-stream" sparkle:edSignature="gWxO0yOqcDmlNSDQM/4WeuZabPTE+APLg1ao8ma1MyseFagA160o5s5dWPeqh3n/Phuq/nu4F7ft5tH4qz8KDw=="/>
         </item>
     </channel>
 </rss>
