@@ -203,7 +203,11 @@ private struct AIConfigurationRow: View {
             .buttonStyle(.plain)
             .help(LocalizedStringKey("Set as Active"))
 
-            // Provider icon + info
+            AIProviderIconView(configuration: config, size: 18)
+                .foregroundStyle(appAccentColor.color)
+                .frame(width: 18)
+
+            // Configuration info
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
                     Text(config.displayTitle)
@@ -219,7 +223,7 @@ private struct AIConfigurationRow: View {
                             .clipShape(Capsule())
                     }
                 }
-                Text("\(config.providerType.rawValue) · \(config.model)")
+                Text("\(config.providerType.localizedName) · \(config.model)")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }

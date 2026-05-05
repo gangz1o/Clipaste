@@ -35,7 +35,7 @@ class EditWindowManager: NSObject, NSWindowDelegate {
             defer: false
         )
 
-        window.title = "编辑文本"
+        window.title = localized("Edit Text")
         window.center()
         window.contentViewController = hostingController
         window.isReleasedWhenClosed = false
@@ -57,11 +57,11 @@ class EditWindowManager: NSObject, NSWindowDelegate {
         guard let windowId = openWindows.first(where: { $1 === sender })?.key else { return true }
 
         let alert = NSAlert()
-        alert.messageText = "您想要保存更改吗？"
-        alert.informativeText = "如果不保存，你的更改将会丢失。"
-        alert.addButton(withTitle: "保存")
-        alert.addButton(withTitle: "不保存")
-        alert.addButton(withTitle: "取消")
+        alert.messageText = localized("Save Changes?")
+        alert.informativeText = localized("Unsaved Edit Changes Message")
+        alert.addButton(withTitle: localized("Save"))
+        alert.addButton(withTitle: localized("Don't Save"))
+        alert.addButton(withTitle: localized("Cancel"))
 
         // 使用原生的 Sheet 形式附着在当前窗口上
         alert.beginSheetModal(for: sender) { response in
@@ -97,5 +97,11 @@ class EditWindowManager: NSObject, NSWindowDelegate {
         if let window = openWindows[windowId] {
             closeAndCleanUp(windowId: windowId, window: window)
         }
+    }
+
+    private func localized(_ key: String) -> String {
+        let language = AppLanguage(rawValue: UserDefaults.standard.string(forKey: "appLanguage") ?? "") ?? .auto
+        let resource = LocalizedStringResource(String.LocalizationValue(key), locale: language.resolvedLocale, bundle: .main)
+        return String(localized: resource)
     }
 }

@@ -55,7 +55,56 @@ struct AIConfiguration: Identifiable, Codable, Equatable, Hashable {
 
     /// A short display label shown in the clipboard panel picker.
     var displayTitle: String {
-        name.isEmpty ? providerType.rawValue : name
+        name.isEmpty ? providerType.localizedName : name
+    }
+
+    var providerIconAssetName: String? {
+        switch providerType {
+        case .openai:
+            return "ai-openai"
+        case .claude:
+            return "ai-anthropic"
+        case .deepseek:
+            return "ai-deepseek"
+        case .gemini:
+            return "ai-googlegemini"
+        case .custom:
+            let searchableText = "\(name) \(model) \(endpoint)".lowercased()
+            if searchableText.containsAny(["grok", "x-ai", "x.ai", "xai"]) {
+                return "ai-grok"
+            }
+            if searchableText.containsAny(["ollama", "localhost:11434", "127.0.0.1:11434"]) {
+                return "ai-ollama"
+            }
+            if searchableText.containsAny(["qwen", "qwq", "qvq", "tongyi", "dashscope", "千问", "通义"]) {
+                return "ai-qwen"
+            }
+            if searchableText.containsAny(["kimi", "moonshot"]) {
+                return "ai-moonshotai"
+            }
+            if searchableText.containsAny(["glm", "chatglm", "zhipu", "z.ai", "bigmodel", "智谱"]) {
+                return "ai-zai"
+            }
+            if searchableText.containsAny(["minimax", "abab", "hailuo", "海螺"]) {
+                return "ai-minimax"
+            }
+            if searchableText.contains("deepseek") {
+                return "ai-deepseek"
+            }
+            if searchableText.contains("gemini") || searchableText.contains("google") {
+                return "ai-googlegemini"
+            }
+            if searchableText.contains("claude") || searchableText.contains("anthropic") {
+                return "ai-anthropic"
+            }
+            if searchableText.contains("openai") {
+                return "ai-openai"
+            }
+            if searchableText.containsAny(["alibaba", "aliyun", "阿里云"]) {
+                return "ai-alibabacloud"
+            }
+            return nil
+        }
     }
 
     /// Heuristic guess for whether a provider+model combo accepts image input.
@@ -76,5 +125,11 @@ struct AIConfiguration: Identifiable, Codable, Equatable, Hashable {
         case .custom:
             return false
         }
+    }
+}
+
+private extension String {
+    func containsAny(_ needles: [String]) -> Bool {
+        needles.contains { contains($0) }
     }
 }

@@ -13,6 +13,7 @@ struct StandaloneEditView: View {
     let item: ClipboardItem
     @ObservedObject var viewModel: ClipboardViewModel
     let windowId: String
+    @AppStorage("appLanguage") private var appLanguage: AppLanguage = .auto
 
     // ⚠️ 物理隔离：不在 State 中持有 NSAttributedString，仅缓存原始 RTF 数据。
     private let fallbackInitialText: NSAttributedString
@@ -45,10 +46,10 @@ struct StandaloneEditView: View {
                     VStack(spacing: 4) {
                         Image(systemName: "doc.plaintext")
                             .font(.system(size: 16))
-                        Text("Use Plain Text")
-                            .font(.system(size: 10))
+                        Text(LocalizedStringKey("Use Plain Text"))
+                            .editActionLabelStyle()
                     }
-                    .frame(width: 60)
+                    .frame(width: 104)
                 }
                 .buttonStyle(.plain)
                 .foregroundColor(.secondary)
@@ -57,10 +58,10 @@ struct StandaloneEditView: View {
                     VStack(spacing: 4) {
                         Image(systemName: "square.and.arrow.down")
                             .font(.system(size: 16))
-                        Text("Save")
-                            .font(.system(size: 10))
+                        Text(LocalizedStringKey("Save"))
+                            .editActionLabelStyle()
                     }
-                    .frame(width: 50)
+                    .frame(width: 72)
                 }
                 .buttonStyle(.plain)
                 .foregroundColor(.secondary)
@@ -87,6 +88,7 @@ struct StandaloneEditView: View {
         .task(id: item.id) {
             await loadInitialContentIfNeeded()
         }
+        .environment(\.locale, appLanguage.resolvedLocale)
         // 监听来自 WindowManager 的红绿灯拦截保存事件
         .onReceive(NotificationCenter.default.publisher(for: NSNotification.Name("SaveEdit-\(windowId)"))) { _ in
             saveData()
@@ -136,5 +138,15 @@ struct StandaloneEditView: View {
 
         guard item.hasRTF else { return }
         initialRTFData = await StorageManager.shared.loadRTFData(id: item.id)
+    }
+}
+
+private extension Text {
+    func editActionLabelStyle() -> some View {
+        self
+            .font(.system(size: 11))
+            .lineLimit(1)
+            .minimumScaleFactor(0.7)
+            .allowsTightening(true)
     }
 }
