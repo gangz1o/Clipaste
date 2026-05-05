@@ -7,6 +7,7 @@ struct AISettingsView: View {
     var body: some View {
         Form {
             configurationsSection
+            imageOCRSection
             skillsSection
         }
         .settingsPageChrome()
@@ -107,6 +108,33 @@ struct AISettingsView: View {
         } footer: {
             SettingsSectionFooter {
                 Text(LocalizedStringKey("AI Configurations Footer"))
+            }
+        }
+    }
+
+    // MARK: - Image OCR Section
+
+    private var imageOCRSection: some View {
+        Section {
+            Toggle(isOn: Binding(
+                get: { viewModel.isAIOCREnabled },
+                set: { viewModel.isAIOCREnabled = $0 }
+            )) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(LocalizedStringKey("Use AI for Image OCR"))
+                    if viewModel.canEnableAIOCR == false {
+                        Text(LocalizedStringKey("AI OCR Requires Configuration"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .disabled(viewModel.canEnableAIOCR == false)
+        } header: {
+            SettingsSectionHeader(title: LocalizedStringKey("Image OCR"))
+        } footer: {
+            SettingsSectionFooter {
+                Text(LocalizedStringKey("Image OCR Footer"))
             }
         }
     }

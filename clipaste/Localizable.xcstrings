@@ -1026,6 +1026,52 @@
         }
       }
     },
+    "Add Preset Skills": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Voreingestellte Fähigkeiten hinzufügen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Preset Skills"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouter des compétences prédéfinies"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プリセットスキルを追加"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "프리셋 기술 추가"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加预置技能"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入預置技能"
+          }
+        }
+      }
+    },
     "Add Skill": {
       "localizations": {
         "de": {
@@ -1705,6 +1751,144 @@
         }
       }
     },
+    "AI OCR · %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KI-OCR · %@"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI OCR · %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OCR IA · %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI OCR · %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI OCR · %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI OCR · %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI OCR · %@"
+          }
+        }
+      }
+    },
+    "AI OCR Failed Fallback Notice %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KI-OCR fehlgeschlagen (%@). Es wird auf Vision-OCR zurückgegriffen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI OCR failed (%@). Falling back to Vision OCR."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Échec de l’OCR IA (%@). Repli sur l’OCR Vision."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI OCR に失敗しました（%@）。Vision OCR にフォールバックしました。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI OCR이 실패했습니다(%@). Vision OCR로 전환되었습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI OCR 调用失败（%@），已回退到 Vision OCR。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI OCR 呼叫失敗（%@），已回退到 Vision OCR。"
+          }
+        }
+      }
+    },
+    "AI OCR Requires Configuration": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fügen Sie mindestens eine KI-Konfiguration hinzu, um KI-OCR zu aktivieren."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add at least one AI configuration to enable AI OCR."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajoutez au moins une configuration IA pour activer l’OCR IA."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI OCR を有効にするには AI 設定を 1 件以上追加してください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI OCR을 사용하려면 AI 구성을 하나 이상 추가하세요."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要至少一条 AI 配置才能启用 AI OCR。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要至少一筆 AI 設定才能啟用 AI OCR。"
+          }
+        }
+      }
+    },
     "AI request failed (%lld): %@": {
       "localizations": {
         "de": {
@@ -1747,6 +1931,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "AI 請求失敗（%1$lld）：%2$@"
+          }
+        }
+      }
+    },
+    "AI request timed out. Please try again.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KI-Anfrage zeitüberschritten. Bitte versuche es erneut."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI request timed out. Please try again."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La requête IA a expiré. Veuillez réessayer."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AIリクエストがタイムアウトしました。もう一度お試しください。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 요청 시간이 초과되었습니다. 다시 시도해 주세요."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 请求超时，请重试。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 請求逾時，請重試。"
           }
         }
       }
@@ -1843,6 +2073,52 @@
         }
       }
     },
+    "AI result replaced the current item.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das KI-Ergebnis hat das aktuelle Element ersetzt."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI result replaced the current item."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le résultat IA a remplacé l’élément actuel."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AIの結果で現在の項目を置き換えました。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 결과가 현재 항목을 대체했습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 结果已替换当前 Item。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 結果已替換目前 Item。"
+          }
+        }
+      }
+    },
     "AI returned an empty response.": {
       "localizations": {
         "de": {
@@ -1891,22 +2167,22 @@
     },
     "AI Skill Prompt Template Hint": {
       "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Klicke auf eine Variable, um den Zwischenablagekontext in den Prompt einzufügen."
+          }
+        },
         "en": {
           "stringUnit": {
             "state": "translated",
             "value": "Click a variable to insert clipboard context into the prompt."
           }
         },
-        "zh-Hans": {
+        "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "点击变量即可将剪切板上下文插入到 Prompt 中。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "點擊變數即可將剪貼板上下文插入到 Prompt 中。"
+            "value": "Cliquez sur une variable pour insérer le contexte du presse-papiers dans le prompt."
           }
         },
         "ja": {
@@ -1921,16 +2197,16 @@
             "value": "변수를 클릭하면 클립보드 컨텍스트를 프롬프트에 삽입합니다."
           }
         },
-        "de": {
+        "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Klicke auf eine Variable, um den Zwischenablagekontext in den Prompt einzufügen."
+            "value": "点击变量即可将剪切板上下文插入到 Prompt 中。"
           }
         },
-        "fr": {
+        "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cliquez sur une variable pour insérer le contexte du presse-papiers dans le prompt."
+            "value": "點擊變數即可將剪貼板上下文插入到 Prompt 中。"
           }
         }
       }
@@ -2892,6 +3168,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "取消"
+          }
+        }
+      }
+    },
+    "Capabilities": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Funktionen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capabilities"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capacités"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "対応機能"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "지원 기능"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "能力"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "能力"
           }
         }
       }
@@ -4357,7 +4679,6 @@
       }
     },
     "Copied": {
-      "extractionState": "stale",
       "localizations": {
         "de": {
           "stringUnit": {
@@ -4554,6 +4875,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "拷貝"
+          }
+        }
+      }
+    },
+    "Copy and Close": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopieren und schließen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy & Close"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier et fermer"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コピーして閉じる"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "복사 후 닫기"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拷贝后关闭"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拷貝後關閉"
           }
         }
       }
@@ -4889,6 +5256,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "跨路由資料合併完成。記錄：%1$@，群組：%2$@"
+          }
+        }
+      }
+    },
+    "Current Model Does Not Support Images Notice": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das aktive KI-Modell unterstützt keine Bilder. Es wird Vision-OCR verwendet."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The active AI model does not support images. Using Vision OCR instead."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le modèle IA actif ne prend pas en charge les images. L’OCR Vision est utilisé à la place."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在の AI モデルは画像入力に対応していないため、Vision OCR を使用します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "현재 활성 AI 모델이 이미지를 지원하지 않아 Vision OCR을 사용했습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前激活的 AI 模型不支持图片，已使用 Vision OCR。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "目前啟用的 AI 模型不支援圖片，已使用 Vision OCR。"
           }
         }
       }
@@ -7890,6 +8303,98 @@
         }
       }
     },
+    "Image OCR": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bild-OCR"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image OCR"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OCR d’image"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画像 OCR"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이미지 OCR"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片 OCR"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "圖片 OCR"
+          }
+        }
+      }
+    },
+    "Image OCR Footer": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standardmäßig wird die geräteinterne Vision-OCR verwendet. Wenn aktiviert, wird zuerst die aktive multimodale KI-Konfiguration genutzt und bei Fehler oder fehlender Bildunterstützung auf Vision-OCR zurückgegriffen."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Defaults to on-device Vision OCR. When enabled, the active multimodal AI configuration is used first and falls back to Vision OCR if it fails or the model does not support images."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilise par défaut l’OCR Vision local. Si l’option est activée, la configuration IA multimodale active est utilisée en priorité, avec un repli automatique sur l’OCR Vision en cas d’échec ou de modèle non compatible avec les images."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "既定では端末内の Vision OCR を使用します。オンにすると、有効化されているマルチモーダル AI 設定を優先的に呼び出し、失敗時や画像非対応モデルでは Vision OCR にフォールバックします。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기본값은 기기 내 Vision OCR입니다. 켜면 활성화된 멀티모달 AI 구성을 먼저 사용하고, 실패하거나 이미지 미지원 모델인 경우 Vision OCR로 자동 전환됩니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认使用本机 Vision OCR。开启后将优先调用激活的多模态 AI 配置；若调用失败或模型不支持图片，会自动回退到 Vision OCR。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "預設使用本機 Vision OCR。開啟後將優先呼叫已啟用的多模態 AI 設定；若失敗或模型不支援圖片，會自動回退至 Vision OCR。"
+          }
+        }
+      }
+    },
     "Indigo": {
       "localizations": {
         "de": {
@@ -9476,6 +9981,98 @@
         }
       }
     },
+    "Model Supports Image Input": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modell unterstützt Bildeingabe (multimodal)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Model supports image input (multimodal)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le modèle accepte les images (multimodal)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このモデルは画像入力に対応（マルチモーダル）"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모델이 이미지 입력을 지원함 (멀티모달)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该模型支持图片输入（多模态）"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "該模型支援圖片輸入（多模態）"
+          }
+        }
+      }
+    },
+    "Model Supports Image Input Footer": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktivieren, wenn das gewählte Modell Bildeingaben akzeptiert. KI-OCR entscheidet anhand dieses Schalters, ob das Modell zur Bilderkennung aufgerufen werden kann."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable this when the chosen model accepts image input. AI OCR uses this flag to decide whether the model can be called for image recognition."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activez cette option si le modèle choisi accepte les images. L’OCR IA s’appuie sur ce drapeau pour décider d’utiliser ou non le modèle pour la reconnaissance d’image."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択したモデルが画像入力に対応している場合に有効にしてください。AI OCR はこの設定で画像認識にモデルを使えるかどうかを判定します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선택한 모델이 이미지 입력을 지원하는 경우 켜세요. AI OCR은 이 값을 기준으로 모델을 이미지 인식에 사용할 수 있는지 판단합니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当所选模型支持图片输入时勾选此项。AI OCR 会据此判断是否可以调用该模型进行图片识别。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "當所選模型支援圖片輸入時勾選此項。AI OCR 將據此判斷是否可以呼叫該模型進行圖片辨識。"
+          }
+        }
+      }
+    },
     "Modifier Keys": {
       "localizations": {
         "de": {
@@ -10113,6 +10710,52 @@
         }
       }
     },
+    "No clipboard item is available to replace.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Es ist kein Zwischenablageelement zum Ersetzen verfügbar."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No clipboard item is available to replace."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun élément du presse-papiers n’est disponible à remplacer."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "置き換えられるクリップボード項目がありません。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "바꿀 수 있는 클립보드 항목이 없습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有可替换的剪切板 Item。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有可替換的剪貼簿 Item。"
+          }
+        }
+      }
+    },
     "No Custom Groups": {
       "localizations": {
         "de": {
@@ -10535,6 +11178,98 @@
           "stringUnit": {
             "state": "translated",
             "value": "未初始化"
+          }
+        }
+      }
+    },
+    "OCR Found No Text": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Bild wurde kein Text gefunden."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No text was found in the image."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun texte détecté dans l’image."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画像内にテキストは見つかりませんでした。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이미지에서 텍스트를 찾을 수 없습니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未在图片中识别到文字。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未在圖片中辨識到文字。"
+          }
+        }
+      }
+    },
+    "OCR Result": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OCR-Ergebnis"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OCR Result"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Résultat OCR"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OCR 結果"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OCR 결과"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OCR 识别结果"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OCR 辨識結果"
           }
         }
       }
@@ -11897,6 +12632,836 @@
         }
       }
     },
+    "Preset Prompt Explain Code": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erkläre, was der folgende Code tut, einschließlich Eingaben, Ausgaben, Kernlogik und möglicher Risiken. Wenn es Verbesserungsmöglichkeiten gibt, schlage sie vor:\n\n{{clipboard.text}}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explain what the code below does, including inputs, outputs, key logic, and possible risks. If there are improvements, suggest them:\n\n{{clipboard.text}}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explique ce que fait le code ci-dessous, y compris les entrées, les sorties, la logique clé et les risques possibles. S’il peut être amélioré, propose des suggestions :\n\n{{clipboard.text}}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下のコードが何をするのか、入力、出力、主要なロジック、考えられるリスクを含めて説明してください。改善できる点があれば提案してください。\n\n{{clipboard.text}}"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아래 코드가 무엇을 하는지 입력, 출력, 핵심 로직, 가능한 위험을 포함해 설명하세요. 개선할 수 있는 점이 있다면 제안하세요.\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请解释以下代码的作用、输入输出、关键逻辑和可能的风险。如果能改进，请给出建议：\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請解釋以下程式碼的作用、輸入輸出、關鍵邏輯和可能的風險。如果能改進，請給出建議：\n\n{{clipboard.text}}"
+          }
+        }
+      }
+    },
+    "Preset Prompt Extract Emails": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extrahiere alle E-Mail-Adressen aus dem folgenden Zwischenablageninhalt. Entferne Duplikate, behalte die originale Groß- und Kleinschreibung bei, gib pro Zeile eine Adresse aus und füge keine weitere Erklärung hinzu:\n\n{{clipboard.text}}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extract all email addresses from the clipboard content below. Deduplicate them, keep original casing, output one email per line, and do not include any extra explanation:\n\n{{clipboard.text}}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extrais toutes les adresses e-mail du contenu du presse-papiers ci-dessous. Supprime les doublons, conserve la casse originale, affiche une adresse par ligne et n’ajoute aucune explication :\n\n{{clipboard.text}}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下のクリップボード内容からすべてのメールアドレスを抽出してください。重複を削除し、元の大文字小文字を保ち、1行に1件ずつ出力し、余計な説明は追加しないでください。\n\n{{clipboard.text}}"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아래 클립보드 내용에서 모든 이메일 주소를 추출하세요. 중복을 제거하고 원래 대소문자를 유지하며 한 줄에 하나씩 출력하고 추가 설명은 포함하지 마세요.\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请从以下剪切板内容中提取所有邮箱地址。去重，保留原始大小写，每行输出一个邮箱，不要输出其他说明：\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請從以下剪貼簿內容中提取所有郵箱地址。去重，保留原始大小寫，每行輸出一個郵箱，不要輸出其他說明：\n\n{{clipboard.text}}"
+          }
+        }
+      }
+    },
+    "Preset Prompt Format JSON": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analysiere und formatiere das folgende JSON mit 2 Leerzeichen Einrückung. Gib nur das formatierte JSON aus. Wenn der Inhalt kein gültiges JSON ist, erkläre den Fehler klar:\n\n{{clipboard.text}}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parse and format the JSON below using 2-space indentation. Output only the formatted JSON. If the content is not valid JSON, explain the error clearly:\n\n{{clipboard.text}}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyse et formate le JSON ci-dessous avec une indentation de 2 espaces. N’affiche que le JSON formaté. Si le contenu n’est pas un JSON valide, explique clairement l’erreur :\n\n{{clipboard.text}}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下のJSONを解析し、2スペースのインデントで整形してください。整形後のJSONのみを出力してください。内容が有効なJSONでない場合は、エラーの原因を明確に説明してください。\n\n{{clipboard.text}}"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아래 JSON을 파싱하고 2칸 들여쓰기로 서식을 지정하세요. 서식 지정된 JSON만 출력하세요. 유효한 JSON이 아니면 오류 원인을 명확히 설명하세요.\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请解析并格式化以下 JSON，使用 2 个空格缩进。只输出格式化后的 JSON；如果内容不是合法 JSON，请指出错误原因：\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請解析並格式化以下 JSON，使用 2 個空格縮排。只輸出格式化後的 JSON；如果內容不是合法 JSON，請指出錯誤原因：\n\n{{clipboard.text}}"
+          }
+        }
+      }
+    },
+    "Preset Prompt Image OCR": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereinige den folgenden OCR-Text aus dem Bild. Behalte die ursprüngliche Reihenfolge und Bedeutung bei, korrigiere offensichtliche OCR-Fehler, entferne unnötige Leerzeilen und gib nur den bereinigten Text aus:\n\n{{clipboard.text}}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clean up the OCR text extracted from the image below. Preserve the original order and meaning, fix obvious OCR mistakes, remove unnecessary blank lines, and output only the cleaned text:\n\n{{clipboard.text}}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nettoie le texte OCR extrait de l’image ci-dessous. Conserve l’ordre et le sens d’origine, corrige les erreurs OCR évidentes, supprime les lignes vides inutiles et n’affiche que le texte nettoyé :\n\n{{clipboard.text}}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下の画像から抽出されたOCRテキストを整えてください。元の順序と意味を保ち、明らかなOCRミスを修正し、不要な空行を削除して、整えたテキストのみを出力してください。\n\n{{clipboard.text}}"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아래 이미지에서 추출된 OCR 텍스트를 정리하세요. 원래 순서와 의미를 유지하고 명백한 OCR 오류를 수정하며 불필요한 빈 줄을 제거한 뒤 정리된 텍스트만 출력하세요.\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请整理以下从图片中识别出的 OCR 文本。保留原始顺序和含义，修正明显的识别错误，移除不必要的空行，只输出整理后的文本：\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請整理以下從圖片中識別出的 OCR 文字。保留原始順序和含義，修正明顯的識別錯誤，移除不必要的空行，只輸出整理後的文字：\n\n{{clipboard.text}}"
+          }
+        }
+      }
+    },
+    "Preset Prompt Improve Writing": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbessere den folgenden Text, damit er klarer, natürlicher und professioneller klingt. Behalte die ursprüngliche Bedeutung bei, füge keine unbelegten Informationen hinzu und gib nur die überarbeitete Fassung aus:\n\n{{clipboard.text}}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Improve the writing below so it is clearer, more natural, and more professional. Preserve the original meaning, do not add unsupported details, and output only the revised text:\n\n{{clipboard.text}}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Améliore le texte ci-dessous pour le rendre plus clair, plus naturel et plus professionnel. Conserve le sens original, n’ajoute aucune information non fournie et n’affiche que la version révisée :\n\n{{clipboard.text}}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下の文章を、より明確で自然かつプロフェッショナルに改善してください。元の意味を保ち、根拠のない情報は追加せず、修正版の文章のみを出力してください。\n\n{{clipboard.text}}"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아래 글을 더 명확하고 자연스러우며 전문적으로 다듬어 주세요. 원래 의미를 유지하고 근거 없는 내용은 추가하지 말며 수정된 텍스트만 출력하세요.\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请润色以下文本，让表达更清晰、自然、专业。保留原意，不要添加不存在的信息，只输出润色后的文本：\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請潤飾以下文字，讓表達更清晰、自然、專業。保留原意，不要添加不存在的資訊，只輸出潤飾後的文字：\n\n{{clipboard.text}}"
+          }
+        }
+      }
+    },
+    "Preset Prompt JSON to TypeScript": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erzeuge TypeScript-Interfaces aus dem folgenden JSON. Verwende klare Interface-Namen, behandle optionale Felder und Arrays sinnvoll und gib nur TypeScript-Code aus:\n\n{{clipboard.text}}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate TypeScript interfaces from the JSON below. Use clear interface names, handle optional fields and arrays reasonably, and output only TypeScript code:\n\n{{clipboard.text}}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Génère des interfaces TypeScript à partir du JSON ci-dessous. Utilise des noms d’interface clairs, gère raisonnablement les champs optionnels et les tableaux, et n’affiche que le code TypeScript :\n\n{{clipboard.text}}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下のJSONからTypeScript interfaceを生成してください。わかりやすいinterface名を使い、任意フィールドと配列を適切に扱い、TypeScriptコードのみを出力してください。\n\n{{clipboard.text}}"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아래 JSON을 기반으로 TypeScript interface를 생성하세요. 명확한 인터페이스 이름을 사용하고 선택 필드와 배열을 적절히 처리하며 TypeScript 코드만 출력하세요.\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请根据以下 JSON 生成 TypeScript interface。使用清晰的接口命名，合理处理可选字段和数组，只输出 TypeScript 代码：\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請根據以下 JSON 生成 TypeScript interface。使用清晰的介面命名，合理處理可選欄位和陣列，只輸出 TypeScript 程式碼：\n\n{{clipboard.text}}"
+          }
+        }
+      }
+    },
+    "Preset Prompt Minify JSON": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minimiere das folgende JSON, indem du unnötige Leerzeichen und Zeilenumbrüche entfernst. Gib nur das minimierte JSON aus. Wenn der Inhalt kein gültiges JSON ist, erkläre den Fehler klar:\n\n{{clipboard.text}}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minify the JSON below by removing unnecessary whitespace and line breaks. Output only the minified JSON. If the content is not valid JSON, explain the error clearly:\n\n{{clipboard.text}}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minifie le JSON ci-dessous en supprimant les espaces et retours à la ligne inutiles. N’affiche que le JSON minifié. Si le contenu n’est pas un JSON valide, explique clairement l’erreur :\n\n{{clipboard.text}}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下のJSONから不要な空白と改行を削除して圧縮してください。圧縮後のJSONのみを出力してください。内容が有効なJSONでない場合は、エラーの原因を明確に説明してください。\n\n{{clipboard.text}}"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아래 JSON에서 불필요한 공백과 줄바꿈을 제거해 압축하세요. 압축된 JSON만 출력하세요. 유효한 JSON이 아니면 오류 원인을 명확히 설명하세요.\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请压缩以下 JSON，移除不必要的空格和换行。只输出压缩后的 JSON；如果内容不是合法 JSON，请指出错误原因：\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請壓縮以下 JSON，移除不必要的空格和換行。只輸出壓縮後的 JSON；如果內容不是合法 JSON，請指出錯誤原因：\n\n{{clipboard.text}}"
+          }
+        }
+      }
+    },
+    "Preset Prompt Summarize Text": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fasse den folgenden Inhalt zusammen. Behalte wichtige Fakten, Schlussfolgerungen und Aufgaben bei. Beginne mit einer kurzen Zusammenfassung und liste danach die wichtigsten Details als Stichpunkte auf:\n\n{{clipboard.text}}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summarize the content below. Preserve key facts, conclusions, and action items. Start with a short summary, then list important details as bullets:\n\n{{clipboard.text}}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Résume le contenu ci-dessous. Conserve les faits clés, les conclusions et les actions à faire. Commence par un bref résumé, puis liste les détails importants en puces :\n\n{{clipboard.text}}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下の内容を要約してください。重要な事実、結論、対応事項を残してください。短い要約から始め、その後に重要な詳細を箇条書きで示してください。\n\n{{clipboard.text}}"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아래 내용을 요약하세요. 핵심 사실, 결론, 할 일을 유지하세요. 짧은 요약으로 시작한 뒤 중요한 세부 사항을 글머리표로 정리하세요.\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请总结以下内容，保留关键信息、结论和待办事项。先给出简短摘要，再用要点列出细节：\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請摘要以下內容，保留關鍵資訊、結論和待辦事項。先給出簡短摘要，再用要點列出細節：\n\n{{clipboard.text}}"
+          }
+        }
+      }
+    },
+    "Preset Prompt Translate to English": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Übersetze den folgenden Inhalt in natürliches und präzises Englisch. Behalte Eigennamen, Code, URLs und E-Mail-Adressen unverändert bei. Gib nur die Übersetzung aus:\n\n{{clipboard.text}}"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translate the content below into natural, accurate English. Preserve proper nouns, code, URLs, and email addresses. Output only the translation:\n\n{{clipboard.text}}"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traduis le contenu ci-dessous en anglais naturel et précis. Conserve les noms propres, le code, les URL et les adresses e-mail. N’affiche que la traduction :\n\n{{clipboard.text}}"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下の内容を自然で正確な英語に翻訳してください。固有名詞、コード、URL、メールアドレスは保持してください。翻訳文のみを出力してください。\n\n{{clipboard.text}}"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아래 내용을 자연스럽고 정확한 영어로 번역하세요. 고유명사, 코드, URL, 이메일 주소는 그대로 유지하세요. 번역문만 출력하세요.\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请将以下内容翻译为自然、准确的英文。保留专有名词、代码、URL 和邮箱地址，只输出译文：\n\n{{clipboard.text}}"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請將以下內容翻譯為自然、準確的英文。保留專有名詞、程式碼、URL 和郵箱地址，只輸出譯文：\n\n{{clipboard.text}}"
+          }
+        }
+      }
+    },
+    "Preset Skill Explain Code": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code erklären"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explain Code"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expliquer le code"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コードを説明"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "코드 설명"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解释代码"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解釋程式碼"
+          }
+        }
+      }
+    },
+    "Preset Skill Extract Emails": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "E-Mail-Adressen extrahieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extract Emails"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extraire les e-mails"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メールアドレスを抽出"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이메일 추출"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提取邮箱"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提取郵箱"
+          }
+        }
+      }
+    },
+    "Preset Skill Format JSON": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON analysieren und formatieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parse & Format JSON"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analyser et formater le JSON"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSONを解析して整形"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON 파싱 및 서식 지정"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解析并格式化 JSON"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "解析並格式化 JSON"
+          }
+        }
+      }
+    },
+    "Preset Skill Image OCR": {
+      "extractionState": "stale",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bild-OCR"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image OCR"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OCR d’image"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画像OCR"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이미지 OCR"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片 OCR"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "圖片 OCR"
+          }
+        }
+      }
+    },
+    "Preset Skill Improve Writing": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text verbessern"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Improve Writing"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Améliorer le texte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文章を改善"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "글 다듬기"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "润色文本"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "潤飾文字"
+          }
+        }
+      }
+    },
+    "Preset Skill JSON to TypeScript": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON in TypeScript-Interfaces umwandeln"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON to TypeScript Interfaces"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON vers interfaces TypeScript"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSONをTypeScriptインターフェースに変換"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON을 TypeScript 인터페이스로 변환"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON 转 TypeScript 接口"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON 轉 TypeScript 介面"
+          }
+        }
+      }
+    },
+    "Preset Skill Minify JSON": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON minimieren"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minify JSON"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minifier le JSON"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSONを圧縮"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON 압축"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "压缩 JSON"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "壓縮 JSON"
+          }
+        }
+      }
+    },
+    "Preset Skill Summarize Text": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text zusammenfassen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Summarize Text"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Résumer le texte"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テキストを要約"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "텍스트 요약"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "总结文本"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "摘要文字"
+          }
+        }
+      }
+    },
+    "Preset Skill Translate to English": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ins Englische übersetzen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Translate to English"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Traduire en anglais"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "英語に翻訳"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "영어로 번역"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻译为英文"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "翻譯為英文"
+          }
+        }
+      }
+    },
     "Preview": {
       "localizations": {
         "de": {
@@ -12707,6 +14272,144 @@
         }
       }
     },
+    "Recognition Result": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erkennungsergebnis"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recognition Result"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Résultat de la reconnaissance"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "認識結果"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "인식 결과"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "识别结果"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "辨識結果"
+          }
+        }
+      }
+    },
+    "Recognize Text (OCR)": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text erkennen (OCR)"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recognize Text (OCR)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconnaître le texte (OCR)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テキストを認識 (OCR)"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "텍스트 인식 (OCR)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "识别图片文字 (OCR)"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "辨識圖片文字 (OCR)"
+          }
+        }
+      }
+    },
+    "Recognizing…": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erkennung läuft…"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recognizing…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconnaissance en cours…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "認識しています…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "인식 중…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在识别…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "辨識中…"
+          }
+        }
+      }
+    },
     "Red": {
       "localizations": {
         "de": {
@@ -13129,6 +14832,52 @@
         }
       }
     },
+    "Replace Current Item": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktuelles Element ersetzen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replace Current Item"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remplacer l’élément actuel"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "現在の項目を置き換え"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "현재 항목 바꾸기"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "替换当前 Item"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "替換目前 Item"
+          }
+        }
+      }
+    },
     "Require Cmd+Backspace to Delete": {
       "localizations": {
         "de": {
@@ -13325,6 +15074,144 @@
           "stringUnit": {
             "state": "translated",
             "value": "保存期限"
+          }
+        }
+      }
+    },
+    "Retry with AI OCR": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit KI-OCR erneut versuchen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry with AI OCR"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessayer avec l’OCR IA"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI OCR で再試行"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI OCR로 다시 시도"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改用 AI OCR 重试"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改用 AI OCR 重試"
+          }
+        }
+      }
+    },
+    "Retry With Other Engine": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit der anderen OCR-Engine erneut versuchen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry with the other OCR engine"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessayer avec l’autre moteur OCR"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "別の OCR エンジンで再試行"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다른 OCR 엔진으로 다시 시도"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用另一种 OCR 引擎重试"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用另一種 OCR 引擎重試"
+          }
+        }
+      }
+    },
+    "Retry with Vision OCR": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mit Vision-OCR erneut versuchen"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry with Vision OCR"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réessayer avec l’OCR Vision"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vision OCR で再試行"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vision OCR로 다시 시도"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改用 Vision OCR 重试"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "改用 Vision OCR 重試"
           }
         }
       }
@@ -17032,6 +18919,52 @@
       }
     },
     "Use Active Configuration": {},
+    "Use AI for Image OCR": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KI für Bild-OCR verwenden"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use AI for image OCR"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utiliser l’IA pour l’OCR d’image"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画像 OCR に AI を使用"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이미지 OCR에 AI 사용"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 AI 进行图片 OCR"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用 AI 進行圖片 OCR"
+          }
+        }
+      }
+    },
     "Use Plain Text": {
       "localizations": {
         "zh-Hans": {
@@ -17367,6 +19300,52 @@
           "stringUnit": {
             "state": "translated",
             "value": "查看更新說明"
+          }
+        }
+      }
+    },
+    "Vision OCR": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vision OCR"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vision OCR"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vision OCR"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vision OCR"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vision OCR"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vision OCR"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vision OCR"
           }
         }
       }
@@ -17762,968 +19741,48 @@
         }
       }
     },
-    "AI request timed out. Please try again.": {
+    "Skill Name Already Exists": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI request timed out. Please try again."
+            "value": "A skill with this name already exists. Please choose a different name."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI 请求超时，请重试。"
+            "value": "已存在同名技能，请换一个名称。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI 請求逾時，請重試。"
+            "value": "已存在同名技能，請換一個名稱。"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "AIリクエストがタイムアウトしました。もう一度お試しください。"
+            "value": "同じ名前のスキルが既に存在します。別の名前を入力してください。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "AI 요청 시간이 초과되었습니다. 다시 시도해 주세요."
+            "value": "같은 이름의 스킬이 이미 있습니다. 다른 이름을 입력하세요."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "KI-Anfrage zeitüberschritten. Bitte versuche es erneut."
+            "value": "Es gibt bereits einen Skill mit diesem Namen. Bitte wählen Sie einen anderen Namen."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La requête IA a expiré. Veuillez réessayer."
-          }
-        }
-      }
-    },
-    "Add Preset Skills": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Voreingestellte Fähigkeiten hinzufügen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Add Preset Skills"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ajouter des compétences prédéfinies"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "プリセットスキルを追加"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "프리셋 기술 추가"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "添加预置技能"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "加入預置技能"
-          }
-        }
-      }
-    },
-    "Preset Skill Extract Emails": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "E-Mail-Adressen extrahieren"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Extract Emails"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Extraire les e-mails"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "メールアドレスを抽出"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이메일 추출"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "提取邮箱"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "提取郵箱"
-          }
-        }
-      }
-    },
-    "Preset Skill Summarize Text": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Text zusammenfassen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Summarize Text"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Résumer le texte"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "テキストを要約"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "텍스트 요약"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "总结文本"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "摘要文字"
-          }
-        }
-      }
-    },
-    "Preset Skill Translate to English": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ins Englische übersetzen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Translate to English"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Traduire en anglais"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "英語に翻訳"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "영어로 번역"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "翻译为英文"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "翻譯為英文"
-          }
-        }
-      }
-    },
-    "Preset Skill Improve Writing": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Text verbessern"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Improve Writing"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Améliorer le texte"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "文章を改善"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "글 다듬기"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "润色文本"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "潤飾文字"
-          }
-        }
-      }
-    },
-    "Preset Skill Format JSON": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSON analysieren und formatieren"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Parse & Format JSON"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Analyser et formater le JSON"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSONを解析して整形"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSON 파싱 및 서식 지정"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "解析并格式化 JSON"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "解析並格式化 JSON"
-          }
-        }
-      }
-    },
-    "Preset Skill Minify JSON": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSON minimieren"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Minify JSON"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Minifier le JSON"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSONを圧縮"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSON 압축"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "压缩 JSON"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "壓縮 JSON"
-          }
-        }
-      }
-    },
-    "Preset Skill JSON to TypeScript": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSON in TypeScript-Interfaces umwandeln"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSON to TypeScript Interfaces"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSON vers interfaces TypeScript"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSONをTypeScriptインターフェースに変換"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSON을 TypeScript 인터페이스로 변환"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSON 转 TypeScript 接口"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSON 轉 TypeScript 介面"
-          }
-        }
-      }
-    },
-    "Preset Skill Explain Code": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Code erklären"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Explain Code"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Expliquer le code"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "コードを説明"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "코드 설명"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "解释代码"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "解釋程式碼"
-          }
-        }
-      }
-    },
-    "Preset Prompt Extract Emails": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Extrahiere alle E-Mail-Adressen aus dem folgenden Zwischenablageninhalt. Entferne Duplikate, behalte die originale Groß- und Kleinschreibung bei, gib pro Zeile eine Adresse aus und füge keine weitere Erklärung hinzu:\n\n{{clipboard.text}}"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Extract all email addresses from the clipboard content below. Deduplicate them, keep original casing, output one email per line, and do not include any extra explanation:\n\n{{clipboard.text}}"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Extrais toutes les adresses e-mail du contenu du presse-papiers ci-dessous. Supprime les doublons, conserve la casse originale, affiche une adresse par ligne et n’ajoute aucune explication :\n\n{{clipboard.text}}"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "以下のクリップボード内容からすべてのメールアドレスを抽出してください。重複を削除し、元の大文字小文字を保ち、1行に1件ずつ出力し、余計な説明は追加しないでください。\n\n{{clipboard.text}}"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아래 클립보드 내용에서 모든 이메일 주소를 추출하세요. 중복을 제거하고 원래 대소문자를 유지하며 한 줄에 하나씩 출력하고 추가 설명은 포함하지 마세요.\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请从以下剪切板内容中提取所有邮箱地址。去重，保留原始大小写，每行输出一个邮箱，不要输出其他说明：\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請從以下剪貼簿內容中提取所有郵箱地址。去重，保留原始大小寫，每行輸出一個郵箱，不要輸出其他說明：\n\n{{clipboard.text}}"
-          }
-        }
-      }
-    },
-    "Preset Prompt Summarize Text": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fasse den folgenden Inhalt zusammen. Behalte wichtige Fakten, Schlussfolgerungen und Aufgaben bei. Beginne mit einer kurzen Zusammenfassung und liste danach die wichtigsten Details als Stichpunkte auf:\n\n{{clipboard.text}}"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Summarize the content below. Preserve key facts, conclusions, and action items. Start with a short summary, then list important details as bullets:\n\n{{clipboard.text}}"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Résume le contenu ci-dessous. Conserve les faits clés, les conclusions et les actions à faire. Commence par un bref résumé, puis liste les détails importants en puces :\n\n{{clipboard.text}}"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "以下の内容を要約してください。重要な事実、結論、対応事項を残してください。短い要約から始め、その後に重要な詳細を箇条書きで示してください。\n\n{{clipboard.text}}"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아래 내용을 요약하세요. 핵심 사실, 결론, 할 일을 유지하세요. 짧은 요약으로 시작한 뒤 중요한 세부 사항을 글머리표로 정리하세요.\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请总结以下内容，保留关键信息、结论和待办事项。先给出简短摘要，再用要点列出细节：\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請摘要以下內容，保留關鍵資訊、結論和待辦事項。先給出簡短摘要，再用要點列出細節：\n\n{{clipboard.text}}"
-          }
-        }
-      }
-    },
-    "Preset Prompt Translate to English": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Übersetze den folgenden Inhalt in natürliches und präzises Englisch. Behalte Eigennamen, Code, URLs und E-Mail-Adressen unverändert bei. Gib nur die Übersetzung aus:\n\n{{clipboard.text}}"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Translate the content below into natural, accurate English. Preserve proper nouns, code, URLs, and email addresses. Output only the translation:\n\n{{clipboard.text}}"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Traduis le contenu ci-dessous en anglais naturel et précis. Conserve les noms propres, le code, les URL et les adresses e-mail. N’affiche que la traduction :\n\n{{clipboard.text}}"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "以下の内容を自然で正確な英語に翻訳してください。固有名詞、コード、URL、メールアドレスは保持してください。翻訳文のみを出力してください。\n\n{{clipboard.text}}"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아래 내용을 자연스럽고 정확한 영어로 번역하세요. 고유명사, 코드, URL, 이메일 주소는 그대로 유지하세요. 번역문만 출력하세요.\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请将以下内容翻译为自然、准确的英文。保留专有名词、代码、URL 和邮箱地址，只输出译文：\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請將以下內容翻譯為自然、準確的英文。保留專有名詞、程式碼、URL 和郵箱地址，只輸出譯文：\n\n{{clipboard.text}}"
-          }
-        }
-      }
-    },
-    "Preset Prompt Improve Writing": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verbessere den folgenden Text, damit er klarer, natürlicher und professioneller klingt. Behalte die ursprüngliche Bedeutung bei, füge keine unbelegten Informationen hinzu und gib nur die überarbeitete Fassung aus:\n\n{{clipboard.text}}"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Improve the writing below so it is clearer, more natural, and more professional. Preserve the original meaning, do not add unsupported details, and output only the revised text:\n\n{{clipboard.text}}"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Améliore le texte ci-dessous pour le rendre plus clair, plus naturel et plus professionnel. Conserve le sens original, n’ajoute aucune information non fournie et n’affiche que la version révisée :\n\n{{clipboard.text}}"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "以下の文章を、より明確で自然かつプロフェッショナルに改善してください。元の意味を保ち、根拠のない情報は追加せず、修正版の文章のみを出力してください。\n\n{{clipboard.text}}"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아래 글을 더 명확하고 자연스러우며 전문적으로 다듬어 주세요. 원래 의미를 유지하고 근거 없는 내용은 추가하지 말며 수정된 텍스트만 출력하세요.\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请润色以下文本，让表达更清晰、自然、专业。保留原意，不要添加不存在的信息，只输出润色后的文本：\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請潤飾以下文字，讓表達更清晰、自然、專業。保留原意，不要添加不存在的資訊，只輸出潤飾後的文字：\n\n{{clipboard.text}}"
-          }
-        }
-      }
-    },
-    "Preset Prompt Format JSON": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Analysiere und formatiere das folgende JSON mit 2 Leerzeichen Einrückung. Gib nur das formatierte JSON aus. Wenn der Inhalt kein gültiges JSON ist, erkläre den Fehler klar:\n\n{{clipboard.text}}"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Parse and format the JSON below using 2-space indentation. Output only the formatted JSON. If the content is not valid JSON, explain the error clearly:\n\n{{clipboard.text}}"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Analyse et formate le JSON ci-dessous avec une indentation de 2 espaces. N’affiche que le JSON formaté. Si le contenu n’est pas un JSON valide, explique clairement l’erreur :\n\n{{clipboard.text}}"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "以下のJSONを解析し、2スペースのインデントで整形してください。整形後のJSONのみを出力してください。内容が有効なJSONでない場合は、エラーの原因を明確に説明してください。\n\n{{clipboard.text}}"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아래 JSON을 파싱하고 2칸 들여쓰기로 서식을 지정하세요. 서식 지정된 JSON만 출력하세요. 유효한 JSON이 아니면 오류 원인을 명확히 설명하세요.\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请解析并格式化以下 JSON，使用 2 个空格缩进。只输出格式化后的 JSON；如果内容不是合法 JSON，请指出错误原因：\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請解析並格式化以下 JSON，使用 2 個空格縮排。只輸出格式化後的 JSON；如果內容不是合法 JSON，請指出錯誤原因：\n\n{{clipboard.text}}"
-          }
-        }
-      }
-    },
-    "Preset Prompt Minify JSON": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Minimiere das folgende JSON, indem du unnötige Leerzeichen und Zeilenumbrüche entfernst. Gib nur das minimierte JSON aus. Wenn der Inhalt kein gültiges JSON ist, erkläre den Fehler klar:\n\n{{clipboard.text}}"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Minify the JSON below by removing unnecessary whitespace and line breaks. Output only the minified JSON. If the content is not valid JSON, explain the error clearly:\n\n{{clipboard.text}}"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Minifie le JSON ci-dessous en supprimant les espaces et retours à la ligne inutiles. N’affiche que le JSON minifié. Si le contenu n’est pas un JSON valide, explique clairement l’erreur :\n\n{{clipboard.text}}"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "以下のJSONから不要な空白と改行を削除して圧縮してください。圧縮後のJSONのみを出力してください。内容が有効なJSONでない場合は、エラーの原因を明確に説明してください。\n\n{{clipboard.text}}"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아래 JSON에서 불필요한 공백과 줄바꿈을 제거해 압축하세요. 압축된 JSON만 출력하세요. 유효한 JSON이 아니면 오류 원인을 명확히 설명하세요.\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请压缩以下 JSON，移除不必要的空格和换行。只输出压缩后的 JSON；如果内容不是合法 JSON，请指出错误原因：\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請壓縮以下 JSON，移除不必要的空格和換行。只輸出壓縮後的 JSON；如果內容不是合法 JSON，請指出錯誤原因：\n\n{{clipboard.text}}"
-          }
-        }
-      }
-    },
-    "Preset Prompt JSON to TypeScript": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Erzeuge TypeScript-Interfaces aus dem folgenden JSON. Verwende klare Interface-Namen, behandle optionale Felder und Arrays sinnvoll und gib nur TypeScript-Code aus:\n\n{{clipboard.text}}"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Generate TypeScript interfaces from the JSON below. Use clear interface names, handle optional fields and arrays reasonably, and output only TypeScript code:\n\n{{clipboard.text}}"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Génère des interfaces TypeScript à partir du JSON ci-dessous. Utilise des noms d’interface clairs, gère raisonnablement les champs optionnels et les tableaux, et n’affiche que le code TypeScript :\n\n{{clipboard.text}}"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "以下のJSONからTypeScript interfaceを生成してください。わかりやすいinterface名を使い、任意フィールドと配列を適切に扱い、TypeScriptコードのみを出力してください。\n\n{{clipboard.text}}"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아래 JSON을 기반으로 TypeScript interface를 생성하세요. 명확한 인터페이스 이름을 사용하고 선택 필드와 배열을 적절히 처리하며 TypeScript 코드만 출력하세요.\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请根据以下 JSON 生成 TypeScript interface。使用清晰的接口命名，合理处理可选字段和数组，只输出 TypeScript 代码：\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請根據以下 JSON 生成 TypeScript interface。使用清晰的介面命名，合理處理可選欄位和陣列，只輸出 TypeScript 程式碼：\n\n{{clipboard.text}}"
-          }
-        }
-      }
-    },
-    "Preset Prompt Explain Code": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Erkläre, was der folgende Code tut, einschließlich Eingaben, Ausgaben, Kernlogik und möglicher Risiken. Wenn es Verbesserungsmöglichkeiten gibt, schlage sie vor:\n\n{{clipboard.text}}"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Explain what the code below does, including inputs, outputs, key logic, and possible risks. If there are improvements, suggest them:\n\n{{clipboard.text}}"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Explique ce que fait le code ci-dessous, y compris les entrées, les sorties, la logique clé et les risques possibles. S’il peut être amélioré, propose des suggestions :\n\n{{clipboard.text}}"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "以下のコードが何をするのか、入力、出力、主要なロジック、考えられるリスクを含めて説明してください。改善できる点があれば提案してください。\n\n{{clipboard.text}}"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "아래 코드가 무엇을 하는지 입력, 출력, 핵심 로직, 가능한 위험을 포함해 설명하세요. 개선할 수 있는 점이 있다면 제안하세요.\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "请解释以下代码的作用、输入输出、关键逻辑和可能的风险。如果能改进，请给出建议：\n\n{{clipboard.text}}"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "請解釋以下程式碼的作用、輸入輸出、關鍵邏輯和可能的風險。如果能改進，請給出建議：\n\n{{clipboard.text}}"
-          }
-        }
-      }
-    },
-    "Replace Current Item": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aktuelles Element ersetzen"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Replace Current Item"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Remplacer l’élément actuel"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "現在の項目を置き換え"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "현재 항목 바꾸기"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "替换当前 Item"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "替換目前 Item"
-          }
-        }
-      }
-    },
-    "AI result replaced the current item.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Das KI-Ergebnis hat das aktuelle Element ersetzt."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AI result replaced the current item."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le résultat IA a remplacé l’élément actuel."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AIの結果で現在の項目を置き換えました。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AI 결과가 현재 항목을 대체했습니다."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AI 结果已替换当前 Item。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AI 結果已替換目前 Item。"
-          }
-        }
-      }
-    },
-    "No clipboard item is available to replace.": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Es ist kein Zwischenablageelement zum Ersetzen verfügbar."
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No clipboard item is available to replace."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aucun élément du presse-papiers n’est disponible à remplacer."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "置き換えられるクリップボード項目がありません。"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "바꿀 수 있는 클립보드 항목이 없습니다."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "没有可替换的剪切板 Item。"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "沒有可替換的剪貼簿 Item。"
+            "value": "Une compétence portant ce nom existe déjà. Veuillez choisir un autre nom."
           }
         }
       }

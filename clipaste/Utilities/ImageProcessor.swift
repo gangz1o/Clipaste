@@ -105,4 +105,15 @@ struct ImageProcessor {
 
         return ext
     }
+
+    nonisolated
+    static func mimeType(for data: Data) -> String? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let utTypeIdentifier = CGImageSourceGetType(source) as String?,
+              let utType = UTType(utTypeIdentifier),
+              let mime = utType.preferredMIMEType else {
+            return nil
+        }
+        return mime
+    }
 }

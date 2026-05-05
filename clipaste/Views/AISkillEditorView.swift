@@ -20,6 +20,11 @@ struct AISkillEditorView: View {
                 Section {
                     TextField(LocalizedStringKey("Skill Name"), text: $viewModel.editingSkill.name)
                         .textFieldStyle(.roundedBorder)
+                        .onChange(of: viewModel.editingSkill.name) { _, _ in
+                            if viewModel.skillEditorError != nil {
+                                viewModel.skillEditorError = nil
+                            }
+                        }
 
                     Toggle(LocalizedStringKey("Enabled"), isOn: $viewModel.editingSkill.isEnabled)
                         .toggleStyle(.checkbox)
@@ -105,9 +110,21 @@ struct AISkillEditorView: View {
             Divider()
 
             HStack {
+                if let error = viewModel.skillEditorError {
+                    Label {
+                        Text(verbatim: error)
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                    }
+                    .foregroundStyle(.orange)
+                    .font(.callout)
+                    .lineLimit(2)
+                }
+
                 Spacer()
 
                 Button(LocalizedStringKey("Cancel"), role: .cancel) {
+                    viewModel.skillEditorError = nil
                     viewModel.isSkillEditorPresented = false
                 }
 

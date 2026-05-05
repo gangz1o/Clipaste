@@ -54,6 +54,29 @@ final class AIExecutionService {
         return renderPrompt(skill.promptTemplate, item: item, text: text)
     }
 
+    /// Runs an OCR pass using a multimodal AI configuration. Throws on any failure so the caller
+    /// can decide whether to fall back (e.g., to Vision OCR).
+    func runVisionOCR(imageData: Data, configuration: AIConfiguration) async throws -> String {
+        guard configuration.apiKey.isEmpty == false else {
+            throw AIExecutionError.missingAPIKey
+        }
+
+        let prompt = "Extract all text from this image verbatim. Output only the raw text exactly as it appears, preserving line breaks. Do not add any commentary, explanations, or formatting."
+        let mediaType = ImageProcessor.mimeType(for: imageData) ?? "image/png"
+        let base64 = imageData.base64EncodedString()
+
+        return try await withTimeout(seconds: 60) {
+            switch configuration.providerType {
+            case .claude:
+                return try await self.sendClaudeVision(prompt: prompt, mediaType: mediaType, base64: base64, configuration: configuration)
+            case .gemini:
+                return try await self.sendGeminiVision(prompt: prompt, mediaType: mediaType, base64: base64, configuration: configuration)
+            case .openai, .deepseek, .custom:
+                return try await self.sendOpenAIVision(prompt: prompt, mediaType: mediaType, base64: base64, configuration: configuration)
+            }
+        }
+    }
+
     func send(messages: [AIChatMessage], configuration: AIConfiguration) async throws -> String {
         guard configuration.apiKey.isEmpty == false else {
             throw AIExecutionError.missingAPIKey
@@ -200,6 +223,115 @@ final class AIExecutionService {
         }
 
         let text = parts.compactMap { $0["text"] as? String }.joined(separator: "\n")
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.isEmpty == false else { throw AIExecutionError.emptyResponse }
+        return trimmed
+    }
+
+    private func sendOpenAIVision(prompt: String, mediaType: String, base64: String, configuration: AIConfiguration) async throws -> String {
+        let endpoint = configuration.endpoint.isEmpty ? configuration.providerType.defaultEndpoint : configuration.endpoint
+        guard let url = URL(string: endpoint) else { throw AIExecutionError.invalidEndpoint }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 90
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("Bearer \(configuration.apiKey)", forHTTPHeaderField: "Authorization")
+
+        let dataURL = "data:\(mediaType);base64,\(base64)"
+        let content: [[String: Any]] = [
+            ["type": "text", "text": prompt],
+            ["type": "image_url", "image_url": ["url": dataURL]]
+        ]
+        let body: [String: Any] = [
+            "model": configuration.model,
+            "messages": [["role": "user", "content": content]],
+            "temperature": 0.0,
+            "max_tokens": 4096,
+            "stream": false
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let data = try await perform(request)
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let choices = json["choices"] as? [[String: Any]],
+              let firstChoice = choices.first,
+              let message = firstChoice["message"] as? [String: Any],
+              let messageContent = message["content"] as? String else {
+            throw AIExecutionError.invalidResponse
+        }
+
+        let trimmed = messageContent.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.isEmpty == false else { throw AIExecutionError.emptyResponse }
+        return trimmed
+    }
+
+    private func sendClaudeVision(prompt: String, mediaType: String, base64: String, configuration: AIConfiguration) async throws -> String {
+        let endpoint = configuration.endpoint.isEmpty ? configuration.providerType.defaultEndpoint : configuration.endpoint
+        guard let url = URL(string: endpoint) else { throw AIExecutionError.invalidEndpoint }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 90
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue(configuration.apiKey, forHTTPHeaderField: "x-api-key")
+        request.addValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
+
+        let content: [[String: Any]] = [
+            ["type": "image", "source": ["type": "base64", "media_type": mediaType, "data": base64]],
+            ["type": "text", "text": prompt]
+        ]
+        let body: [String: Any] = [
+            "model": configuration.model,
+            "max_tokens": 4096,
+            "messages": [["role": "user", "content": content]]
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let data = try await perform(request)
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let contentBlocks = json["content"] as? [[String: Any]] else {
+            throw AIExecutionError.invalidResponse
+        }
+
+        let text = contentBlocks.compactMap { $0["text"] as? String }.joined(separator: "\n")
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.isEmpty == false else { throw AIExecutionError.emptyResponse }
+        return trimmed
+    }
+
+    private func sendGeminiVision(prompt: String, mediaType: String, base64: String, configuration: AIConfiguration) async throws -> String {
+        var endpoint = configuration.endpoint.isEmpty ? configuration.providerType.defaultEndpoint : configuration.endpoint
+        if endpoint.hasSuffix("/") == false { endpoint += "/" }
+        endpoint += "\(configuration.model):generateContent?key=\(configuration.apiKey)"
+
+        guard let url = URL(string: endpoint) else { throw AIExecutionError.invalidEndpoint }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.timeoutInterval = 90
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let parts: [[String: Any]] = [
+            ["text": prompt],
+            ["inline_data": ["mime_type": mediaType, "data": base64]]
+        ]
+        let body: [String: Any] = [
+            "contents": [["role": "user", "parts": parts]],
+            "generationConfig": ["temperature": 0.0]
+        ]
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let data = try await perform(request)
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let candidates = json["candidates"] as? [[String: Any]],
+              let firstCandidate = candidates.first,
+              let content = firstCandidate["content"] as? [String: Any],
+              let responseParts = content["parts"] as? [[String: Any]] else {
+            throw AIExecutionError.invalidResponse
+        }
+
+        let text = responseParts.compactMap { $0["text"] as? String }.joined(separator: "\n")
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.isEmpty == false else { throw AIExecutionError.emptyResponse }
         return trimmed

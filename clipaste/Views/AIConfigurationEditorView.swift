@@ -38,8 +38,10 @@ struct AIConfigurationEditorView: View {
                         }
                     }
                     .onChange(of: viewModel.editingConfiguration.providerType) { _, newType in
+                        let newModel = newType.defaultModels.first ?? ""
                         viewModel.editingConfiguration.endpoint = newType.defaultEndpoint
-                        viewModel.editingConfiguration.model = newType.defaultModels.first ?? ""
+                        viewModel.editingConfiguration.model = newModel
+                        viewModel.editingConfiguration.supportsImage = AIConfiguration.defaultSupportsImage(provider: newType, model: newModel)
                         viewModel.testResult = nil
                     }
                 } header: {
@@ -72,10 +74,28 @@ struct AIConfigurationEditorView: View {
                                 Text(model).tag(model)
                             }
                         }
+                        .onChange(of: viewModel.editingConfiguration.model) { _, newModel in
+                            viewModel.editingConfiguration.supportsImage = AIConfiguration.defaultSupportsImage(
+                                provider: viewModel.editingConfiguration.providerType,
+                                model: newModel
+                            )
+                        }
                     }
                 } header: {
                     Text(LocalizedStringKey("Configuration"))
                         .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+
+                Section {
+                    Toggle(LocalizedStringKey("Model Supports Image Input"), isOn: $viewModel.editingConfiguration.supportsImage)
+                } header: {
+                    Text(LocalizedStringKey("Capabilities"))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                } footer: {
+                    Text(LocalizedStringKey("Model Supports Image Input Footer"))
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }

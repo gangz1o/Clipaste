@@ -221,6 +221,12 @@ extension View {
         // 3. Edit (context-aware: dispatch by type)
         if item.contentType == .image {
             Button {
+                viewModel.recognizeTextFromImage(item: item)
+            } label: {
+                Label("Recognize Text (OCR)", systemImage: "text.viewfinder")
+            }
+
+            Button {
                 viewModel.editImage(item: item)
             } label: {
                 Label("Edit Image", systemImage: "slider.horizontal.3")

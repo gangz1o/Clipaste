@@ -222,6 +222,24 @@ extension ClipboardViewModel {
         EditWindowManager.shared.openEditor(for: item, viewModel: self)
     }
 
+    func recognizeTextFromImage(item: ClipboardItem) {
+        guard item.contentType == .image else { return }
+
+        Task { @MainActor in
+            var imageData = await StorageManager.shared.loadImageData(id: item.id)
+            if imageData == nil {
+                imageData = await StorageManager.shared.loadPreviewImageData(id: item.id)
+            }
+            guard let imageData else {
+                print("❌ [recognizeTextFromImage] 找不到原图数据: \(item.id)")
+                return
+            }
+
+            let title = item.customTitle ?? item.appName
+            OCRResultWindowManager.shared.openResult(imageData: imageData, sourceTitle: title)
+        }
+    }
+
     func editImage(item: ClipboardItem) {
         guard item.contentType == .image else { return }
 

@@ -21,6 +21,20 @@ final class AISettingsViewModel {
     /// User-defined AI actions shown in the clipboard item context menu.
     var skills: [AISkill] = []
 
+    /// When `true`, the image OCR right-click action prefers the active AI configuration
+    /// (multimodal request) and falls back to Vision OCR on failure.
+    /// Auto-disabled when no configuration is available.
+    var isAIOCREnabled: Bool = false {
+        didSet {
+            guard oldValue != isAIOCREnabled else { return }
+            UserDefaults.standard.set(isAIOCREnabled, forKey: aiOCREnabledKey)
+        }
+    }
+
+    var canEnableAIOCR: Bool {
+        configurations.isEmpty == false
+    }
+
     // MARK: - Sheet / Editor State
 
     var isEditorPresented: Bool = false
@@ -30,6 +44,9 @@ final class AISettingsViewModel {
     var isSkillEditorPresented: Bool = false
     var editingSkill: AISkill = AISkill()
     var isEditingExistingSkill: Bool = false
+    /// Inline validation error shown in the skill editor (e.g. duplicate name).
+    /// Stored as a localized string so the view can render it directly.
+    var skillEditorError: String? = nil
 
     // MARK: - Connection Test State
 
@@ -79,6 +96,9 @@ final class AISettingsViewModel {
         if activeConfigurationID == config.id {
             activeConfigurationID = configurations.first?.id
         }
+        if configurations.isEmpty {
+            isAIOCREnabled = false
+        }
         save()
     }
 
@@ -94,17 +114,37 @@ final class AISettingsViewModel {
     func addNewSkill() {
         editingSkill = AISkill(sortOrder: skills.count)
         isEditingExistingSkill = false
+        skillEditorError = nil
         isSkillEditorPresented = true
     }
 
     func edit(_ skill: AISkill) {
         editingSkill = skill
         isEditingExistingSkill = true
+        skillEditorError = nil
         isSkillEditorPresented = true
+    }
+
+    /// Returns true when another skill (excluding the one currently being edited)
+    /// already has the same trimmed, case-insensitive name.
+    func isDuplicateSkillName(_ name: String, excluding id: UUID) -> Bool {
+        let normalized = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard normalized.isEmpty == false else { return false }
+        return skills.contains { skill in
+            skill.id != id &&
+                skill.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() == normalized
+        }
     }
 
     func saveEditingSkill() {
         editingSkill.name = editingSkill.name.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if isDuplicateSkillName(editingSkill.name, excluding: editingSkill.id) {
+            skillEditorError = String(localized: "Skill Name Already Exists")
+            return
+        }
+
+        skillEditorError = nil
 
         if isEditingExistingSkill {
             if let index = skills.firstIndex(where: { $0.id == editingSkill.id }) {
@@ -163,6 +203,7 @@ final class AISettingsViewModel {
     private let configurationsKey = "ai_configurations"
     private let activeIDKey = "ai_active_configuration_id"
     private let skillsKey = "ai_skills"
+    private let aiOCREnabledKey = "ai_ocr_enabled"
 
     private func save() {
         if let data = try? JSONEncoder().encode(configurations) {
@@ -191,6 +232,13 @@ final class AISettingsViewModel {
         if let idString = UserDefaults.standard.string(forKey: activeIDKey),
            let uuid = UUID(uuidString: idString) {
             activeConfigurationID = uuid
+        }
+
+        if UserDefaults.standard.object(forKey: aiOCREnabledKey) != nil {
+            isAIOCREnabled = UserDefaults.standard.bool(forKey: aiOCREnabledKey)
+        }
+        if configurations.isEmpty {
+            isAIOCREnabled = false
         }
 
         if shouldPersistDefaultSkills {
