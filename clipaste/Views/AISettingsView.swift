@@ -67,10 +67,6 @@ struct AISettingsView: View {
                 .controlSize(.small)
                 .help(LocalizedStringKey("Add Skill"))
             }
-        } footer: {
-            SettingsSectionFooter {
-                Text(LocalizedStringKey("AI Skills Footer"))
-            }
         }
     }
 
@@ -132,10 +128,6 @@ struct AISettingsView: View {
             .disabled(viewModel.canEnableAIOCR == false)
         } header: {
             SettingsSectionHeader(title: LocalizedStringKey("Image OCR"))
-        } footer: {
-            SettingsSectionFooter {
-                Text(LocalizedStringKey("Image OCR Footer"))
-            }
         }
     }
 
@@ -281,14 +273,15 @@ private struct AISkillRow: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Toggle(isOn: Binding(
-                get: { skill.isEnabled },
-                set: onToggle
-            )) {
-                EmptyView()
+            Button {
+                onToggle(!skill.isEnabled)
+            } label: {
+                Image(systemName: skill.isEnabled ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(skill.isEnabled ? appAccentColor.color : Color.secondary)
+                    .font(.system(size: 16))
+                    .animation(.easeInOut(duration: 0.15), value: skill.isEnabled)
             }
-            .toggleStyle(.checkbox)
-            .labelsHidden()
+            .buttonStyle(.plain)
             .help(LocalizedStringKey("Enable Skill"))
 
             Image(systemName: skill.outputMode.systemImage)

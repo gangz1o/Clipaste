@@ -215,7 +215,7 @@ struct ClipboardCardView: View {
                     Text("AI")
                         .font(.system(size: 10, weight: .semibold))
                 }
-                .foregroundStyle(.secondary.opacity(0.62))
+                .foregroundStyle(Color(nsColor: .systemGray))
                 .padding(.horizontal, 4)
                 .frame(height: 22)
                 .background(.regularMaterial, in: Capsule())

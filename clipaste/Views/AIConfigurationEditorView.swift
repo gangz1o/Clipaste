@@ -52,22 +52,38 @@ struct AIConfigurationEditorView: View {
 
                 // Credentials
                 Section {
-                    SecureField(LocalizedStringKey("API Key"), text: $viewModel.editingConfiguration.apiKey)
-                        .textFieldStyle(.roundedBorder)
-
-                    if viewModel.editingConfiguration.providerType == .custom {
-                        TextField(LocalizedStringKey("API Endpoint"), text: $viewModel.editingConfiguration.endpoint)
-                            .textFieldStyle(.roundedBorder)
-                    } else {
-                        TextField(LocalizedStringKey("API Endpoint"), text: $viewModel.editingConfiguration.endpoint)
-                            .textFieldStyle(.roundedBorder)
-                            .foregroundStyle(.secondary)
-                            .disabled(true)
+                    LabeledContent {
+                        SecureField("", text: $viewModel.editingConfiguration.apiKey)
+                            .configurationTextFieldStyle()
+                    } label: {
+                        Text(LocalizedStringKey("API Key"))
                     }
 
                     if viewModel.editingConfiguration.providerType == .custom {
-                        TextField(LocalizedStringKey("Model ID"), text: $viewModel.editingConfiguration.model)
-                            .textFieldStyle(.roundedBorder)
+                        LabeledContent {
+                            TextField("", text: $viewModel.editingConfiguration.endpoint)
+                                .configurationTextFieldStyle()
+                        } label: {
+                            Text(LocalizedStringKey("API Endpoint"))
+                        }
+                    } else {
+                        LabeledContent {
+                            TextField("", text: $viewModel.editingConfiguration.endpoint)
+                                .configurationTextFieldStyle()
+                                .foregroundStyle(.secondary)
+                                .disabled(true)
+                        } label: {
+                            Text(LocalizedStringKey("API Endpoint"))
+                        }
+                    }
+
+                    if viewModel.editingConfiguration.providerType == .custom {
+                        LabeledContent {
+                            TextField("", text: $viewModel.editingConfiguration.model)
+                                .configurationTextFieldStyle()
+                        } label: {
+                            Text(LocalizedStringKey("Model ID"))
+                        }
                     } else {
                         Picker(LocalizedStringKey("Model"), selection: $viewModel.editingConfiguration.model) {
                             ForEach(viewModel.editingConfiguration.providerType.defaultModels, id: \.self) { model in
@@ -147,5 +163,15 @@ struct AIConfigurationEditorView: View {
             .padding(.vertical, 16)
         }
         .frame(minWidth: 480, idealWidth: 520, minHeight: 440)
+    }
+}
+
+private extension View {
+    func configurationTextFieldStyle() -> some View {
+        self
+            .textFieldStyle(.roundedBorder)
+            .lineLimit(1)
+            .frame(width: 240)
+            .clipped()
     }
 }
