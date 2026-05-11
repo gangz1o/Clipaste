@@ -21,6 +21,10 @@ private struct ClipboardRecordSnapshot: Sendable {
     let linkIconData: Data?
     let isPinned: Bool
     let hasRTF: Bool
+    let sourcePlatformRawValue: String
+    let sourceDeviceName: String?
+    let captureMethodRawValue: String
+    let captureSessionID: UUID?
 }
 
 struct ClipboardPasteRecord: Sendable {
@@ -120,7 +124,11 @@ actor ClipboardSearcher {
                 linkTitle: record.linkTitle,
                 linkIconData: record.linkIconData,
                 isPinned: record.isPinned,
-                hasRTF: record.rtfData != nil
+                hasRTF: record.rtfData != nil,
+                sourcePlatformRawValue: record.sourcePlatformRawValue,
+                sourceDeviceName: record.sourceDeviceName,
+                captureMethodRawValue: record.captureMethodRawValue,
+                captureSessionID: record.captureSessionID
             )
         }
 
@@ -224,7 +232,11 @@ final class StorageManager {
         richTextArchiveData: Data? = nil,
         previewImageData: Data? = nil,
         imageData: Data? = nil,
-        imageMetadata: ClipboardImageMetadata? = nil
+        imageMetadata: ClipboardImageMetadata? = nil,
+        sourcePlatformRawValue: String = ClipboardSourceMetadata.currentPlatform,
+        sourceDeviceName: String? = ClipboardSourceMetadata.currentDeviceName,
+        captureMethodRawValue: String = ClipboardSourceMetadata.macOSMonitorMethod,
+        captureSessionID: UUID? = nil
     ) {
         let actor = self.storeActor
 
@@ -240,7 +252,11 @@ final class StorageManager {
                 richTextArchiveData: richTextArchiveData,
                 previewImageData: previewImageData,
                 imageData: imageData,
-                imageMetadata: imageMetadata
+                imageMetadata: imageMetadata,
+                sourcePlatformRawValue: sourcePlatformRawValue,
+                sourceDeviceName: sourceDeviceName,
+                captureMethodRawValue: captureMethodRawValue,
+                captureSessionID: captureSessionID
             )
         }
     }
@@ -602,7 +618,11 @@ final class StorageManager {
             linkTitle: record.linkTitle,
             linkIconData: record.linkIconData,
             isPinned: record.isPinned,
-            hasRTF: record.hasRTF
+            hasRTF: record.hasRTF,
+            sourcePlatformRawValue: record.sourcePlatformRawValue,
+            sourceDeviceName: record.sourceDeviceName,
+            captureMethodRawValue: record.captureMethodRawValue,
+            captureSessionID: record.captureSessionID
         )
     }
 
@@ -765,7 +785,11 @@ actor ClipboardStoreActor {
             linkTitle: record.linkTitle,
             linkIconData: record.linkIconData,
             isPinned: record.isPinned,
-            hasRTF: record.rtfData != nil
+            hasRTF: record.rtfData != nil,
+            sourcePlatformRawValue: record.sourcePlatformRawValue,
+            sourceDeviceName: record.sourceDeviceName,
+            captureMethodRawValue: record.captureMethodRawValue,
+            captureSessionID: record.captureSessionID
         )
     }
 
@@ -796,7 +820,11 @@ actor ClipboardStoreActor {
         richTextArchiveData: Data?,
         previewImageData: Data?,
         imageData: Data?,
-        imageMetadata: ClipboardImageMetadata?
+        imageMetadata: ClipboardImageMetadata?,
+        sourcePlatformRawValue: String,
+        sourceDeviceName: String?,
+        captureMethodRawValue: String,
+        captureSessionID: UUID?
     ) {
         let descriptor = FetchDescriptor<ClipboardRecord>(
             predicate: #Predicate<ClipboardRecord> { record in
@@ -813,6 +841,10 @@ actor ClipboardStoreActor {
                 existingRecord.appBundleID = appID
                 existingRecord.appLocalizedName = appName
                 existingRecord.appIconDominantColorHex = appIconDominantColorHex
+                existingRecord.sourcePlatformRawValue = sourcePlatformRawValue
+                existingRecord.sourceDeviceName = sourceDeviceName
+                existingRecord.captureMethodRawValue = captureMethodRawValue
+                existingRecord.captureSessionID = captureSessionID
 
                 if let text {
                     existingRecord.plainText = text
@@ -854,7 +886,11 @@ actor ClipboardStoreActor {
                     appLocalizedName: appName,
                     appIconDominantColorHex: appIconDominantColorHex,
                     rtfData: rtfData,
-                    richTextArchiveData: richTextArchiveData
+                    richTextArchiveData: richTextArchiveData,
+                    sourcePlatformRawValue: sourcePlatformRawValue,
+                    sourceDeviceName: sourceDeviceName,
+                    captureMethodRawValue: captureMethodRawValue,
+                    captureSessionID: captureSessionID
                 )
                 modelContext.insert(newRecord)
             }
@@ -1309,7 +1345,11 @@ actor ClipboardStoreActor {
                 linkIconData: $0.linkIconData,
                 isPinned: $0.isPinned,
                 rtfData: $0.rtfData,
-                richTextArchiveData: $0.richTextArchiveData
+                richTextArchiveData: $0.richTextArchiveData,
+                sourcePlatformRawValue: $0.sourcePlatformRawValue,
+                sourceDeviceName: $0.sourceDeviceName,
+                captureMethodRawValue: $0.captureMethodRawValue,
+                captureSessionID: $0.captureSessionID
             )
         }
 
@@ -1370,6 +1410,10 @@ actor ClipboardStoreActor {
                 existingRecord.rtfData = incomingRecord.rtfData ?? existingRecord.rtfData
                 existingRecord.richTextArchiveData = incomingRecord.richTextArchiveData ?? existingRecord.richTextArchiveData
                 existingRecord.isPinned = existingRecord.isPinned || incomingRecord.isPinned
+                existingRecord.sourcePlatformRawValue = incomingRecord.sourcePlatformRawValue
+                existingRecord.sourceDeviceName = incomingRecord.sourceDeviceName ?? existingRecord.sourceDeviceName
+                existingRecord.captureMethodRawValue = incomingRecord.captureMethodRawValue
+                existingRecord.captureSessionID = incomingRecord.captureSessionID ?? existingRecord.captureSessionID
 
                 var mergedGroupIDs = normalizedGroupIDs(
                     primaryGroupID: existingRecord.groupId,
@@ -1422,7 +1466,11 @@ actor ClipboardStoreActor {
                     linkIconData: incomingRecord.linkIconData,
                     isPinned: incomingRecord.isPinned,
                     rtfData: incomingRecord.rtfData,
-                    richTextArchiveData: incomingRecord.richTextArchiveData
+                    richTextArchiveData: incomingRecord.richTextArchiveData,
+                    sourcePlatformRawValue: incomingRecord.sourcePlatformRawValue,
+                    sourceDeviceName: incomingRecord.sourceDeviceName,
+                    captureMethodRawValue: incomingRecord.captureMethodRawValue,
+                    captureSessionID: incomingRecord.captureSessionID
                 )
                 modelContext.insert(record)
                 recordsByHash[incomingRecord.contentHash] = record

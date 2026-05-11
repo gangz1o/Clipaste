@@ -283,7 +283,11 @@ extension ClipboardViewModel {
                     type: ClipboardContentType.image.rawValue,
                     previewImageData: previewData,
                     imageData: editedData,
-                    imageMetadata: imageMetadata
+                    imageMetadata: imageMetadata,
+                    sourcePlatformRawValue: originalItem.sourcePlatformRawValue,
+                    sourceDeviceName: originalItem.sourceDeviceName,
+                    captureMethodRawValue: ClipboardSourceMetadata.manualMethod,
+                    captureSessionID: originalItem.captureSessionID
                 )
 
                 StorageManager.shared.processOCRForImage(hash: newHash, imageData: editedData)
@@ -327,7 +331,11 @@ extension ClipboardViewModel {
                 linkTitle: item.linkTitle,
                 linkIconData: item.linkIconData,
                 isPinned: item.isPinned,
-                hasRTF: item.hasRTF
+                hasRTF: item.hasRTF,
+                sourcePlatformRawValue: item.sourcePlatformRawValue,
+                sourceDeviceName: item.sourceDeviceName,
+                captureMethodRawValue: item.captureMethodRawValue,
+                captureSessionID: item.captureSessionID
             )
             refreshDisplayedItemsFromCurrentScope()
         }
@@ -476,7 +484,8 @@ private extension ClipboardViewModel {
             text: result,
             appID: Bundle.main.bundleIdentifier,
             appName: "Clipaste AI",
-            type: ClipboardContentType.text.rawValue
+            type: ClipboardContentType.text.rawValue,
+            captureMethodRawValue: ClipboardSourceMetadata.generatedMethod
         )
     }
 

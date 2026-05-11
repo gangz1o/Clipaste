@@ -24,6 +24,10 @@ struct ClipboardRecordExport: Sendable {
     let isPinned: Bool
     let rtfData: Data?
     let richTextArchiveData: Data?
+    let sourcePlatformRawValue: String
+    let sourceDeviceName: String?
+    let captureMethodRawValue: String
+    let captureSessionID: UUID?
 }
 
 struct ClipboardGroupExport: Sendable {
@@ -221,7 +225,11 @@ final class ClipboardStoreBootstrapper: @unchecked Sendable {
             linkIconData: record.linkIconData,
             isPinned: record.isPinned,
             rtfData: record.rtfData,
-            richTextArchiveData: nil
+            richTextArchiveData: nil,
+            sourcePlatformRawValue: ClipboardSourceMetadata.currentPlatform,
+            sourceDeviceName: nil,
+            captureMethodRawValue: ClipboardSourceMetadata.importedMethod,
+            captureSessionID: nil
         )
     }
 

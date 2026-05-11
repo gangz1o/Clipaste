@@ -25,6 +25,10 @@ final class ClipboardRecord {
     var isPinned: Bool = false // 固定状态
     @Attribute(.externalStorage) var rtfData: Data? // 预览/编辑使用的 RTF（原始 RTF 或后台回退生成）
     @Attribute(.externalStorage) var richTextArchiveData: Data? // 原始富格式集合（HTML/RTF/RTFD/Tabular Text）
+    var sourcePlatformRawValue: String = ClipboardSourceMetadata.currentPlatform
+    var sourceDeviceName: String?
+    var captureMethodRawValue: String = ClipboardSourceMetadata.macOSMonitorMethod
+    var captureSessionID: UUID?
 
     init(
         id: UUID = UUID(),
@@ -45,7 +49,11 @@ final class ClipboardRecord {
         linkIconData: Data? = nil,
         isPinned: Bool = false,
         rtfData: Data? = nil,
-        richTextArchiveData: Data? = nil
+        richTextArchiveData: Data? = nil,
+        sourcePlatformRawValue: String = ClipboardSourceMetadata.currentPlatform,
+        sourceDeviceName: String? = nil,
+        captureMethodRawValue: String = ClipboardSourceMetadata.macOSMonitorMethod,
+        captureSessionID: UUID? = nil
     ) {
         self.id = id
         self.timestamp = timestamp
@@ -69,5 +77,9 @@ final class ClipboardRecord {
         self.isPinned = isPinned
         self.rtfData = rtfData
         self.richTextArchiveData = richTextArchiveData
+        self.sourcePlatformRawValue = sourcePlatformRawValue
+        self.sourceDeviceName = sourceDeviceName
+        self.captureMethodRawValue = captureMethodRawValue
+        self.captureSessionID = captureSessionID
     }
 }

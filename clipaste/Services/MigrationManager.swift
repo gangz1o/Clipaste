@@ -201,7 +201,10 @@ final class MigrationManager {
                 appBundleID: source.migratedBundleIdentifier,
                 appLocalizedName: resolvedAppName(for: row, source: source),
                 groupId: targetGroup.id,
-                groupIdsRaw: Self.encodedGroupIDs([targetGroup.id])
+                groupIdsRaw: Self.encodedGroupIDs([targetGroup.id]),
+                sourcePlatformRawValue: ClipboardSourceMetadata.currentPlatform,
+                sourceDeviceName: nil,
+                captureMethodRawValue: ClipboardSourceMetadata.importedMethod
             )
             context.insert(record)
             recordsByHash[contentHash] = record

@@ -101,6 +101,10 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
     var linkIconData: Data?    // 链接预览：网站图标数据
     var isPinned: Bool         // 固定状态
     let hasRTF: Bool           // ⚠️ 架构红线：仅轻量标记，不持有 RTF 二进制
+    let sourcePlatformRawValue: String
+    let sourceDeviceName: String?
+    let captureMethodRawValue: String
+    let captureSessionID: UUID?
 
     // ⚠️ 性能核心：全部为 let 常量，初始化时一次性计算完毕，SwiftUI 重绘读取耗时 = 0
     let previewText: String?
@@ -131,7 +135,11 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         linkTitle: String? = nil,
         linkIconData: Data? = nil,
         isPinned: Bool = false,
-        hasRTF: Bool = false
+        hasRTF: Bool = false,
+        sourcePlatformRawValue: String = ClipboardSourceMetadata.currentPlatform,
+        sourceDeviceName: String? = nil,
+        captureMethodRawValue: String = ClipboardSourceMetadata.macOSMonitorMethod,
+        captureSessionID: UUID? = nil
     ) {
         let normalizedGroupIDs = ClipboardItem.normalizedGroupIDs(primaryGroupID: groupId, groupIDs: groupIDs)
 
@@ -169,6 +177,10 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         self.linkIconData = linkIconData
         self.isPinned = isPinned
         self.hasRTF = hasRTF
+        self.sourcePlatformRawValue = sourcePlatformRawValue
+        self.sourceDeviceName = sourceDeviceName
+        self.captureMethodRawValue = captureMethodRawValue
+        self.captureSessionID = captureSessionID
 
         // --- 性能隔离区：只在初始化时执行一次，使用 utf8.count 极速字节级判断 ---
         let sourceText = rawText ?? (textPreview.isEmpty ? nil : textPreview)
@@ -220,7 +232,11 @@ extension ClipboardItem {
         lhs.linkTitle == rhs.linkTitle &&
         lhs.linkIconData == rhs.linkIconData &&
         lhs.isPinned == rhs.isPinned &&
-        lhs.hasRTF == rhs.hasRTF
+        lhs.hasRTF == rhs.hasRTF &&
+        lhs.sourcePlatformRawValue == rhs.sourcePlatformRawValue &&
+        lhs.sourceDeviceName == rhs.sourceDeviceName &&
+        lhs.captureMethodRawValue == rhs.captureMethodRawValue &&
+        lhs.captureSessionID == rhs.captureSessionID
     }
 
     func hash(into hasher: inout Hasher) {
@@ -250,6 +266,10 @@ extension ClipboardItem {
         hasher.combine(linkIconData)
         hasher.combine(isPinned)
         hasher.combine(hasRTF)
+        hasher.combine(sourcePlatformRawValue)
+        hasher.combine(sourceDeviceName)
+        hasher.combine(captureMethodRawValue)
+        hasher.combine(captureSessionID)
     }
 }
 

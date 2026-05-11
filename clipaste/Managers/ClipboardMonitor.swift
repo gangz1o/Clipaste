@@ -16,6 +16,7 @@ final class ClipboardMonitor {
     private var isMonitoringPaused = false
     private var pollingInterval: TimeInterval
     private var ignoredBundleIdentifiers: Set<String>
+    private let captureSessionID = UUID()
     var isIgnoredNextChange: Bool = false
 
     private init(defaults: UserDefaults = .standard) {
@@ -155,13 +156,27 @@ final class ClipboardMonitor {
                 if let textPayload, shouldPreferTextPayload(textPayload, overImageFrom: pasteboardItem) {
                     recordPayloads.append(textPayload)
                 } else {
-                    imagePayloads.append(ClipboardImagePayload(data: imageData, appID: appID, appName: appName))
+                    imagePayloads.append(
+                        ClipboardImagePayload(
+                            data: imageData,
+                            appID: appID,
+                            appName: appName,
+                            captureSessionID: captureSessionID
+                        )
+                    )
                 }
                 continue
             }
 
             if let imageData = imageDataFromFileURL(from: pasteboardItem) {
-                imagePayloads.append(ClipboardImagePayload(data: imageData, appID: appID, appName: appName))
+                imagePayloads.append(
+                    ClipboardImagePayload(
+                        data: imageData,
+                        appID: appID,
+                        appName: appName,
+                        captureSessionID: captureSessionID
+                    )
+                )
                 continue
             }
 
@@ -205,7 +220,8 @@ final class ClipboardMonitor {
             appName: appName,
             type: ClipboardContentType.fileURL.rawValue,
             rtfData: nil,
-            richTextArchive: nil
+            richTextArchive: nil,
+            captureSessionID: captureSessionID
         )
     }
 
@@ -240,7 +256,8 @@ final class ClipboardMonitor {
             appName: appName,
             type: sniffedType.rawValue,
             rtfData: rtfData,
-            richTextArchive: richTextArchive
+            richTextArchive: richTextArchive,
+            captureSessionID: captureSessionID
         )
     }
 
@@ -345,7 +362,8 @@ final class ClipboardMonitor {
             type: ClipboardContentType.image.rawValue,
             previewImageData: previewData,
             imageData: payload.data,
-            imageMetadata: imageMetadata
+            imageMetadata: imageMetadata,
+            captureSessionID: payload.captureSessionID
         )
 
         guard recordExists == false else {
@@ -367,7 +385,8 @@ final class ClipboardMonitor {
             appIconDominantColorHex: appIconDominantColorHex,
             type: payload.type,
             rtfData: payload.rtfData,
-            richTextArchiveData: payload.richTextArchive?.encodedData()
+            richTextArchiveData: payload.richTextArchive?.encodedData(),
+            captureSessionID: payload.captureSessionID
         )
 
         // 链接类型 → 触发 LinkPresentation 抓取，让链接变成漂亮的书签卡片
@@ -428,17 +447,20 @@ private struct ClipboardRecordPayload: Sendable {
     let type: String
     let rtfData: Data?
     let richTextArchive: ClipboardRichTextArchive?
+    let captureSessionID: UUID?
 }
 
 private struct ClipboardImagePayload: Sendable {
     let data: Data
     let appID: String?
     let appName: String?
+    let captureSessionID: UUID?
 
-    init(data: Data, appID: String? = nil, appName: String? = nil) {
+    init(data: Data, appID: String? = nil, appName: String? = nil, captureSessionID: UUID? = nil) {
         self.data = data
         self.appID = appID
         self.appName = appName
+        self.captureSessionID = captureSessionID
     }
 }
 
