@@ -139,7 +139,10 @@ final class ClipboardMonitor {
         let sourceApplication = NSWorkspace.shared.frontmostApplication
         let appID = sourceApplication?.bundleIdentifier
         let appName = sourceApplication?.localizedName
-        let sourceAppIconData = sourceApplication?.icon?.tiffRepresentation
+        let sourceAppIconData = sourceApplication?.icon.flatMap { AppIconManager.pngData(from: $0) }
+        let sourcePlatformRawValue = ClipboardSourceMetadata.currentPlatform
+        let sourceDeviceName = ClipboardSourceMetadata.currentDeviceName
+        let captureMethodRawValue = ClipboardSourceMetadata.macOSMonitorMethod
 
         if let appID, ignoredBundleIdentifiers.contains(appID) {
             return
@@ -150,7 +153,14 @@ final class ClipboardMonitor {
         var imagePayloads: [ClipboardImagePayload] = []
 
         for pasteboardItem in pasteboardItems {
-            let textPayload = makeTextPayload(from: pasteboardItem, appID: appID, appName: appName)
+            let textPayload = makeTextPayload(
+                from: pasteboardItem,
+                appID: appID,
+                appName: appName,
+                sourcePlatformRawValue: sourcePlatformRawValue,
+                sourceDeviceName: sourceDeviceName,
+                captureMethodRawValue: captureMethodRawValue
+            )
 
             if let imageData = imageData(from: pasteboardItem) {
                 if let textPayload, shouldPreferTextPayload(textPayload, overImageFrom: pasteboardItem) {
@@ -161,6 +171,9 @@ final class ClipboardMonitor {
                             data: imageData,
                             appID: appID,
                             appName: appName,
+                            sourcePlatformRawValue: sourcePlatformRawValue,
+                            sourceDeviceName: sourceDeviceName,
+                            captureMethodRawValue: captureMethodRawValue,
                             captureSessionID: captureSessionID
                         )
                     )
@@ -174,13 +187,23 @@ final class ClipboardMonitor {
                         data: imageData,
                         appID: appID,
                         appName: appName,
+                        sourcePlatformRawValue: sourcePlatformRawValue,
+                        sourceDeviceName: sourceDeviceName,
+                        captureMethodRawValue: captureMethodRawValue,
                         captureSessionID: captureSessionID
                     )
                 )
                 continue
             }
 
-            if let payload = makeFileURLPayload(from: pasteboardItem, appID: appID, appName: appName) {
+            if let payload = makeFileURLPayload(
+                from: pasteboardItem,
+                appID: appID,
+                appName: appName,
+                sourcePlatformRawValue: sourcePlatformRawValue,
+                sourceDeviceName: sourceDeviceName,
+                captureMethodRawValue: captureMethodRawValue
+            ) {
                 recordPayloads.append(payload)
                 continue
             }
@@ -194,7 +217,7 @@ final class ClipboardMonitor {
             return
         }
 
-        Task.detached(priority: .userInitiated) {
+        Task.detached(priority: .utility) {
             await Self.persistCapturedPayloads(
                 recordPayloads: recordPayloads,
                 imagePayloads: imagePayloads,
@@ -206,7 +229,10 @@ final class ClipboardMonitor {
     private func makeFileURLPayload(
         from pasteboardItem: NSPasteboardItem,
         appID: String?,
-        appName: String?
+        appName: String?,
+        sourcePlatformRawValue: String,
+        sourceDeviceName: String?,
+        captureMethodRawValue: String
     ) -> ClipboardRecordPayload? {
         guard let fileURLString = pasteboardItem.string(forType: fileURLType) else { return nil }
 
@@ -221,6 +247,9 @@ final class ClipboardMonitor {
             type: ClipboardContentType.fileURL.rawValue,
             rtfData: nil,
             richTextArchive: nil,
+            sourcePlatformRawValue: sourcePlatformRawValue,
+            sourceDeviceName: sourceDeviceName,
+            captureMethodRawValue: captureMethodRawValue,
             captureSessionID: captureSessionID
         )
     }
@@ -228,7 +257,10 @@ final class ClipboardMonitor {
     private func makeTextPayload(
         from pasteboardItem: NSPasteboardItem,
         appID: String?,
-        appName: String?
+        appName: String?,
+        sourcePlatformRawValue: String,
+        sourceDeviceName: String?,
+        captureMethodRawValue: String
     ) -> ClipboardRecordPayload? {
         guard let text = pasteboardItem.string(forType: utf8PlainTextType) ?? pasteboardItem.string(forType: .string) else {
             return nil
@@ -257,6 +289,9 @@ final class ClipboardMonitor {
             type: sniffedType.rawValue,
             rtfData: rtfData,
             richTextArchive: richTextArchive,
+            sourcePlatformRawValue: sourcePlatformRawValue,
+            sourceDeviceName: sourceDeviceName,
+            captureMethodRawValue: captureMethodRawValue,
             captureSessionID: captureSessionID
         )
     }
@@ -329,21 +364,24 @@ final class ClipboardMonitor {
         for imagePayload in imagePayloads {
             await persistImagePayload(
                 imagePayload,
-                appIconDominantColorHex: appIconDominantColorHex
+                appIconDominantColorHex: appIconDominantColorHex,
+                appIconData: sourceAppIconData
             )
         }
 
         for recordPayload in recordPayloads {
             persistRecordPayload(
                 recordPayload,
-                appIconDominantColorHex: appIconDominantColorHex
+                appIconDominantColorHex: appIconDominantColorHex,
+                appIconData: sourceAppIconData
             )
         }
     }
 
     private nonisolated static func persistImagePayload(
         _ payload: ClipboardImagePayload,
-        appIconDominantColorHex: String?
+        appIconDominantColorHex: String?,
+        appIconData: Data?
     ) async {
         let contentHash = CryptoHelper.sha256(data: payload.data)
         let previewData = ImageProcessor.generateThumbnail(
@@ -359,10 +397,14 @@ final class ClipboardMonitor {
             appID: payload.appID,
             appName: payload.appName,
             appIconDominantColorHex: appIconDominantColorHex,
+            appIconData: appIconData,
             type: ClipboardContentType.image.rawValue,
             previewImageData: previewData,
             imageData: payload.data,
             imageMetadata: imageMetadata,
+            sourcePlatformRawValue: payload.sourcePlatformRawValue,
+            sourceDeviceName: payload.sourceDeviceName,
+            captureMethodRawValue: payload.captureMethodRawValue,
             captureSessionID: payload.captureSessionID
         )
 
@@ -375,7 +417,8 @@ final class ClipboardMonitor {
 
     private nonisolated static func persistRecordPayload(
         _ payload: ClipboardRecordPayload,
-        appIconDominantColorHex: String?
+        appIconDominantColorHex: String?,
+        appIconData: Data?
     ) {
         StorageManager.shared.upsertRecord(
             hash: payload.hash,
@@ -383,9 +426,13 @@ final class ClipboardMonitor {
             appID: payload.appID,
             appName: payload.appName,
             appIconDominantColorHex: appIconDominantColorHex,
+            appIconData: appIconData,
             type: payload.type,
             rtfData: payload.rtfData,
             richTextArchiveData: payload.richTextArchive?.encodedData(),
+            sourcePlatformRawValue: payload.sourcePlatformRawValue,
+            sourceDeviceName: payload.sourceDeviceName,
+            captureMethodRawValue: payload.captureMethodRawValue,
             captureSessionID: payload.captureSessionID
         )
 
@@ -447,6 +494,9 @@ private struct ClipboardRecordPayload: Sendable {
     let type: String
     let rtfData: Data?
     let richTextArchive: ClipboardRichTextArchive?
+    let sourcePlatformRawValue: String
+    let sourceDeviceName: String?
+    let captureMethodRawValue: String
     let captureSessionID: UUID?
 }
 
@@ -454,14 +504,10 @@ private struct ClipboardImagePayload: Sendable {
     let data: Data
     let appID: String?
     let appName: String?
+    let sourcePlatformRawValue: String
+    let sourceDeviceName: String?
+    let captureMethodRawValue: String
     let captureSessionID: UUID?
-
-    init(data: Data, appID: String? = nil, appName: String? = nil, captureSessionID: UUID? = nil) {
-        self.data = data
-        self.appID = appID
-        self.appName = appName
-        self.captureSessionID = captureSessionID
-    }
 }
 
 extension Notification.Name {

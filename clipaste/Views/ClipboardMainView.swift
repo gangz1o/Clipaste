@@ -35,13 +35,11 @@ struct ClipboardMainView: View {
                     mainContent
                 }
             } else {
-                mainContent
-                    .safeAreaInset(edge: .top, spacing: 0) {
-                        ClipboardHeaderView(viewModel: viewModel, focusedField: _focusedField)
-                    }
-                    .safeAreaInset(edge: .bottom, spacing: 0) {
-                        historyPreviewFooter
-                    }
+                VStack(spacing: 0) {
+                    ClipboardHeaderView(viewModel: viewModel, focusedField: _focusedField)
+                    mainContent
+                    historyPreviewFooter
+                }
             }
         }
     }

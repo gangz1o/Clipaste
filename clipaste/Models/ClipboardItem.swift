@@ -136,9 +136,9 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         linkIconData: Data? = nil,
         isPinned: Bool = false,
         hasRTF: Bool = false,
-        sourcePlatformRawValue: String = ClipboardSourceMetadata.currentPlatform,
+        sourcePlatformRawValue: String = "macOS",
         sourceDeviceName: String? = nil,
-        captureMethodRawValue: String = ClipboardSourceMetadata.macOSMonitorMethod,
+        captureMethodRawValue: String = "monitor",
         captureSessionID: UUID? = nil
     ) {
         let normalizedGroupIDs = ClipboardItem.normalizedGroupIDs(primaryGroupID: groupId, groupIDs: groupIDs)

@@ -265,7 +265,9 @@ extension ClipboardViewModel {
     }
 
     func saveEditedImage(tempURL: URL, originalItem: ClipboardItem) {
-        Task.detached(priority: .userInitiated) {
+        let manualMethod = ClipboardSourceMetadata.manualMethod
+
+        Task.detached(priority: .utility) {
             do {
                 let editedData = try Data(contentsOf: tempURL)
                 let newHash = CryptoHelper.sha256(data: editedData)
@@ -274,19 +276,23 @@ extension ClipboardViewModel {
                     maxPixelSize: ClipboardImagePreviewPolicy.storedPreviewMaxPixelSize
                 )
                 let imageMetadata = ImageProcessor.metadata(for: editedData)
+                let appIconDominantColorHex = await StorageManager.shared.loadAppIconDominantColorHex(id: originalItem.id)
+                let appIconData = await StorageManager.shared.loadAppIconData(id: originalItem.id)
 
                 StorageManager.shared.upsertRecord(
                     hash: newHash,
                     text: nil,
                     appID: originalItem.sourceBundleIdentifier,
                     appName: originalItem.appName,
+                    appIconDominantColorHex: appIconDominantColorHex,
+                    appIconData: appIconData,
                     type: ClipboardContentType.image.rawValue,
                     previewImageData: previewData,
                     imageData: editedData,
                     imageMetadata: imageMetadata,
                     sourcePlatformRawValue: originalItem.sourcePlatformRawValue,
                     sourceDeviceName: originalItem.sourceDeviceName,
-                    captureMethodRawValue: ClipboardSourceMetadata.manualMethod,
+                    captureMethodRawValue: manualMethod,
                     captureSessionID: originalItem.captureSessionID
                 )
 
@@ -478,14 +484,24 @@ private extension ClipboardViewModel {
     func createClipboardItemFromAIResult(_ result: String) {
         let data = Data(result.utf8)
         let hash = CryptoHelper.sha256(data: data)
+        let bundleIdentifier = Bundle.main.bundleIdentifier
+        let appIconData = bundleIdentifier.flatMap { AppIconManager.shared.iconPNGData(for: $0) }
+        let appIconDominantColorHex = appIconData.flatMap { NSImage(data: $0)?.dominantColorHex() }
+        let sourcePlatformRawValue = ClipboardSourceMetadata.currentPlatform
+        let sourceDeviceName = ClipboardSourceMetadata.currentDeviceName
+        let generatedMethod = ClipboardSourceMetadata.generatedMethod
 
         StorageManager.shared.upsertRecord(
             hash: hash,
             text: result,
-            appID: Bundle.main.bundleIdentifier,
+            appID: bundleIdentifier,
             appName: "Clipaste AI",
+            appIconDominantColorHex: appIconDominantColorHex,
+            appIconData: appIconData,
             type: ClipboardContentType.text.rawValue,
-            captureMethodRawValue: ClipboardSourceMetadata.generatedMethod
+            sourcePlatformRawValue: sourcePlatformRawValue,
+            sourceDeviceName: sourceDeviceName,
+            captureMethodRawValue: generatedMethod
         )
     }
 

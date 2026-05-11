@@ -17,6 +17,7 @@ final class ClipboardRecord {
     var appBundleID: String?
     var appLocalizedName: String?
     var appIconDominantColorHex: String?
+    @Attribute(.externalStorage) var appIconData: Data?
     var groupId: String? // 所属分组 ID
     var groupIdsRaw: String? // 多分组兼容存储(JSON)
     var customTitle: String? // 用户手动添加的标题
@@ -25,9 +26,9 @@ final class ClipboardRecord {
     var isPinned: Bool = false // 固定状态
     @Attribute(.externalStorage) var rtfData: Data? // 预览/编辑使用的 RTF（原始 RTF 或后台回退生成）
     @Attribute(.externalStorage) var richTextArchiveData: Data? // 原始富格式集合（HTML/RTF/RTFD/Tabular Text）
-    var sourcePlatformRawValue: String = ClipboardSourceMetadata.currentPlatform
+    var sourcePlatformRawValue: String = "macOS"
     var sourceDeviceName: String?
-    var captureMethodRawValue: String = ClipboardSourceMetadata.macOSMonitorMethod
+    var captureMethodRawValue: String = "monitor"
     var captureSessionID: UUID?
 
     init(
@@ -42,6 +43,7 @@ final class ClipboardRecord {
         appBundleID: String? = nil,
         appLocalizedName: String? = nil,
         appIconDominantColorHex: String? = nil,
+        appIconData: Data? = nil,
         groupId: String? = nil,
         groupIdsRaw: String? = nil,
         customTitle: String? = nil,
@@ -50,9 +52,9 @@ final class ClipboardRecord {
         isPinned: Bool = false,
         rtfData: Data? = nil,
         richTextArchiveData: Data? = nil,
-        sourcePlatformRawValue: String = ClipboardSourceMetadata.currentPlatform,
+        sourcePlatformRawValue: String = "macOS",
         sourceDeviceName: String? = nil,
-        captureMethodRawValue: String = ClipboardSourceMetadata.macOSMonitorMethod,
+        captureMethodRawValue: String = "monitor",
         captureSessionID: UUID? = nil
     ) {
         self.id = id
@@ -69,6 +71,7 @@ final class ClipboardRecord {
         self.appBundleID = appBundleID
         self.appLocalizedName = appLocalizedName
         self.appIconDominantColorHex = appIconDominantColorHex
+        self.appIconData = appIconData
         self.groupId = groupId
         self.groupIdsRaw = groupIdsRaw
         self.customTitle = customTitle

@@ -330,6 +330,7 @@ final class ClipboardRuntimeStore {
             let repairedCount = await currentRuntime.storage.repairImportedMigrationTimestampsIfNeeded()
             let repairedClassificationCount = await repairTextClassificationsIfNeeded(using: currentRuntime.storage)
             let repairedAppIconColorCount = await repairAppIconColorsIfNeeded(using: currentRuntime.storage)
+            let repairedAppIconDataCount = await repairAppIconDataIfNeeded(using: currentRuntime.storage)
             await MainActor.run {
                 NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
             }
@@ -357,6 +358,15 @@ final class ClipboardRuntimeStore {
                     message: ClipboardSyncDiagnosticMessage(
                         "Repaired %@ app icon dominant color record(s)",
                         arguments: [.count(repairedAppIconColorCount)]
+                    )
+                )
+            }
+            if repairedAppIconDataCount > 0 {
+                appendDiagnostic(
+                    level: .info,
+                    message: ClipboardSyncDiagnosticMessage(
+                        "Repaired %@ app icon image record(s)",
+                        arguments: [.count(repairedAppIconDataCount)]
                     )
                 )
             }
@@ -720,6 +730,36 @@ final class ClipboardRuntimeStore {
         return repairedCount
     }
 
+    private func repairAppIconDataIfNeeded(using storage: StorageManager) async -> Int {
+        let currentVersion = 1
+        let storedVersion = defaults.integer(forKey: Keys.appIconDataRepairVersion)
+
+        guard storedVersion < currentVersion else {
+            return 0
+        }
+
+        let bundleIDs = await storage.fetchDistinctAppBundleIDsMissingIconData()
+        guard bundleIDs.isEmpty == false else {
+            defaults.set(currentVersion, forKey: Keys.appIconDataRepairVersion)
+            return 0
+        }
+
+        var iconDataByBundleID: [String: Data] = [:]
+        iconDataByBundleID.reserveCapacity(bundleIDs.count)
+
+        for bundleID in bundleIDs {
+            guard let iconData = AppIconManager.shared.iconPNGData(for: bundleID) else {
+                continue
+            }
+
+            iconDataByBundleID[bundleID] = iconData
+        }
+
+        let repairedCount = await storage.repairAppIconData(using: iconDataByBundleID)
+        defaults.set(currentVersion, forKey: Keys.appIconDataRepairVersion)
+        return repairedCount
+    }
+
     private func appendDiagnostic(level: ClipboardSyncDiagnosticLevel, message: ClipboardSyncDiagnosticMessage) {
         diagnosticsEntries.insert(
             ClipboardSyncDiagnosticEntry(level: level, message: message),
@@ -892,5 +932,6 @@ private extension ClipboardRuntimeStore {
         static let lastSyncDate = "last_sync_date"
         static let textClassificationRepairVersion = "clipboard_text_classification_repair_version"
         static let appIconColorRepairVersion = "clipboard_app_icon_color_repair_version"
+        static let appIconDataRepairVersion = "clipboard_app_icon_data_repair_version"
     }
 }

@@ -227,15 +227,16 @@ final class StorageManager {
         appID: String?,
         appName: String?,
         appIconDominantColorHex: String? = nil,
+        appIconData: Data? = nil,
         type: String,
         rtfData: Data? = nil,
         richTextArchiveData: Data? = nil,
         previewImageData: Data? = nil,
         imageData: Data? = nil,
         imageMetadata: ClipboardImageMetadata? = nil,
-        sourcePlatformRawValue: String = ClipboardSourceMetadata.currentPlatform,
-        sourceDeviceName: String? = ClipboardSourceMetadata.currentDeviceName,
-        captureMethodRawValue: String = ClipboardSourceMetadata.macOSMonitorMethod,
+        sourcePlatformRawValue: String,
+        sourceDeviceName: String?,
+        captureMethodRawValue: String,
         captureSessionID: UUID? = nil
     ) {
         let actor = self.storeActor
@@ -247,6 +248,7 @@ final class StorageManager {
                 appID: appID,
                 appName: appName,
                 appIconDominantColorHex: appIconDominantColorHex,
+                appIconData: appIconData,
                 type: type,
                 rtfData: rtfData,
                 richTextArchiveData: richTextArchiveData,
@@ -512,6 +514,14 @@ final class StorageManager {
         await storeActor.repairAppIconDominantColors(using: colorsByBundleID)
     }
 
+    func fetchDistinctAppBundleIDsMissingIconData() async -> [String] {
+        await storeActor.fetchDistinctAppBundleIDsMissingIconData()
+    }
+
+    func repairAppIconData(using iconDataByBundleID: [String: Data]) async -> Int {
+        await storeActor.repairAppIconData(using: iconDataByBundleID)
+    }
+
     func exportStore() async -> ClipboardStoreExport {
         let actor = storeActor
         return await detachedRead {
@@ -544,6 +554,14 @@ final class StorageManager {
         return await detachedRead {
             let actor = ClipboardStoreActor(modelContainer: container)
             return await actor.loadAppIconDominantColorHex(id: id)
+        }
+    }
+
+    func loadAppIconData(id: UUID) async -> Data? {
+        let container = self.container
+        return await detachedRead {
+            let actor = ClipboardStoreActor(modelContainer: container)
+            return await actor.loadAppIconData(id: id)
         }
     }
 
@@ -815,6 +833,7 @@ actor ClipboardStoreActor {
         appID: String?,
         appName: String?,
         appIconDominantColorHex: String?,
+        appIconData: Data?,
         type: String,
         rtfData: Data?,
         richTextArchiveData: Data?,
@@ -841,6 +860,9 @@ actor ClipboardStoreActor {
                 existingRecord.appBundleID = appID
                 existingRecord.appLocalizedName = appName
                 existingRecord.appIconDominantColorHex = appIconDominantColorHex
+                if let appIconData {
+                    existingRecord.appIconData = appIconData
+                }
                 existingRecord.sourcePlatformRawValue = sourcePlatformRawValue
                 existingRecord.sourceDeviceName = sourceDeviceName
                 existingRecord.captureMethodRawValue = captureMethodRawValue
@@ -885,6 +907,7 @@ actor ClipboardStoreActor {
                     appBundleID: appID,
                     appLocalizedName: appName,
                     appIconDominantColorHex: appIconDominantColorHex,
+                    appIconData: appIconData,
                     rtfData: rtfData,
                     richTextArchiveData: richTextArchiveData,
                     sourcePlatformRawValue: sourcePlatformRawValue,
@@ -1321,6 +1344,63 @@ actor ClipboardStoreActor {
         }
     }
 
+    func fetchDistinctAppBundleIDsMissingIconData() -> [String] {
+        let descriptor = FetchDescriptor<ClipboardRecord>()
+
+        do {
+            let records = try modelContext.fetch(descriptor)
+            var orderedBundleIDs: [String] = []
+            var seenBundleIDs: Set<String> = []
+
+            for record in records {
+                guard record.appIconData == nil,
+                      let bundleID = record.appBundleID?.trimmingCharacters(in: .whitespacesAndNewlines),
+                      bundleID.isEmpty == false,
+                      seenBundleIDs.insert(bundleID).inserted else {
+                    continue
+                }
+
+                orderedBundleIDs.append(bundleID)
+            }
+
+            return orderedBundleIDs
+        } catch {
+            print("❌ [ClipboardStoreActor] 读取待修复 App 图标数据失败: \(error)")
+            return []
+        }
+    }
+
+    func repairAppIconData(using iconDataByBundleID: [String: Data]) -> Int {
+        guard iconDataByBundleID.isEmpty == false else { return 0 }
+
+        let descriptor = FetchDescriptor<ClipboardRecord>()
+
+        do {
+            let records = try modelContext.fetch(descriptor)
+            var repairedCount = 0
+
+            for record in records {
+                guard let bundleID = record.appBundleID,
+                      let repairedIconData = iconDataByBundleID[bundleID],
+                      record.appIconData != repairedIconData else {
+                    continue
+                }
+
+                record.appIconData = repairedIconData
+                repairedCount += 1
+            }
+
+            if repairedCount > 0 {
+                try modelContext.save()
+            }
+
+            return repairedCount
+        } catch {
+            print("❌ [ClipboardStoreActor] 修复 App 图标数据失败: \(error)")
+            return 0
+        }
+    }
+
     func exportStore() -> ClipboardStoreExport {
         let records = ((try? modelContext.fetch(FetchDescriptor<ClipboardRecord>())) ?? []).map {
             ClipboardRecordExport(
@@ -1338,6 +1418,7 @@ actor ClipboardStoreActor {
                 appBundleID: $0.appBundleID,
                 appLocalizedName: $0.appLocalizedName,
                 appIconDominantColorHex: $0.appIconDominantColorHex,
+                appIconData: $0.appIconData,
                 groupId: $0.groupId,
                 groupIdsRaw: $0.groupIdsRaw,
                 customTitle: $0.customTitle,
@@ -1397,6 +1478,7 @@ actor ClipboardStoreActor {
                 existingRecord.appBundleID = incomingRecord.appBundleID ?? existingRecord.appBundleID
                 existingRecord.appLocalizedName = incomingRecord.appLocalizedName ?? existingRecord.appLocalizedName
                 existingRecord.appIconDominantColorHex = incomingRecord.appIconDominantColorHex ?? existingRecord.appIconDominantColorHex
+                existingRecord.appIconData = incomingRecord.appIconData ?? existingRecord.appIconData
                 existingRecord.plainText = incomingRecord.plainText ?? existingRecord.plainText
                 existingRecord.previewImageData = incomingRecord.previewImageData ?? existingRecord.previewImageData
                 existingRecord.imageData = incomingRecord.imageData ?? existingRecord.imageData
@@ -1459,6 +1541,7 @@ actor ClipboardStoreActor {
                     appBundleID: incomingRecord.appBundleID,
                     appLocalizedName: incomingRecord.appLocalizedName,
                     appIconDominantColorHex: incomingRecord.appIconDominantColorHex,
+                    appIconData: incomingRecord.appIconData,
                     groupId: incomingRecord.groupId,
                     groupIdsRaw: incomingRecord.groupIdsRaw,
                     customTitle: incomingRecord.customTitle,
@@ -1490,6 +1573,10 @@ actor ClipboardStoreActor {
 
     func loadAppIconDominantColorHex(id: UUID) -> String? {
         fetchStoredRecord(id: id)?.appIconDominantColorHex
+    }
+
+    func loadAppIconData(id: UUID) -> Data? {
+        fetchStoredRecord(id: id)?.appIconData
     }
 
     func loadPasteRecord(id: UUID) -> ClipboardPasteRecord? {

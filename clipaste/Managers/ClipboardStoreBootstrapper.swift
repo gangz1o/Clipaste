@@ -16,6 +16,7 @@ struct ClipboardRecordExport: Sendable {
     let appBundleID: String?
     let appLocalizedName: String?
     let appIconDominantColorHex: String?
+    let appIconData: Data?
     let groupId: String?
     let groupIdsRaw: String?
     let customTitle: String?
@@ -218,6 +219,7 @@ final class ClipboardStoreBootstrapper: @unchecked Sendable {
             appBundleID: record.appBundleID,
             appLocalizedName: record.appLocalizedName,
             appIconDominantColorHex: nil,
+            appIconData: nil,
             groupId: record.groupId,
             groupIdsRaw: record.groupIdsRaw,
             customTitle: nil,
