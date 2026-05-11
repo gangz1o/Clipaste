@@ -177,11 +177,13 @@ extension View {
 
         Divider()
 
-        ClipboardAIActionMenu(item: item, viewModel: viewModel) {
-            Label("AI", systemImage: "sparkles")
-        }
+        if viewModel.aiSettingsViewModel.isAIEnabled {
+            ClipboardAIActionMenu(item: item, viewModel: viewModel) {
+                Label("AI", systemImage: "sparkles")
+            }
 
-        Divider()
+            Divider()
+        }
 
         // 2. Organize & manage
         Menu {

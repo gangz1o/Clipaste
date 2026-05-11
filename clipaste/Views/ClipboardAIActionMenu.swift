@@ -17,7 +17,9 @@ struct ClipboardAIActionMenu<MenuLabel: View>: View {
     private var menuContent: some View {
         let aiSettings = viewModel.aiSettingsViewModel
 
-        if aiSettings.configurations.isEmpty {
+        if aiSettings.isAIEnabled == false {
+            EmptyView()
+        } else if aiSettings.configurations.isEmpty {
             Text("No AI Configurations")
                 .foregroundStyle(.secondary)
 

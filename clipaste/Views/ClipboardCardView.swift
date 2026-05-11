@@ -356,7 +356,9 @@ struct ClipboardCardView: View {
     }
 
     private var showsAIShortcut: Bool {
-        (isHovered || isSelected) && viewModel.isQuickPasteModifierHeld == false
+        viewModel.aiSettingsViewModel.isAIEnabled
+            && (isHovered || isSelected)
+            && viewModel.isQuickPasteModifierHeld == false
     }
 
     @ViewBuilder

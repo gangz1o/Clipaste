@@ -459,10 +459,12 @@ struct ClipboardHeaderView: View {
                 }
             }
 
-            Divider()
-                .padding(.vertical, 3)
+            if aiSettingsViewModel.isAIEnabled {
+                Divider()
+                    .padding(.vertical, 3)
 
-            aiModelSubmenu
+                aiModelSubmenu
+            }
 
             Divider()
                 .padding(.vertical, 3)

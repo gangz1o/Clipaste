@@ -360,7 +360,9 @@ struct ClipboardVerticalItemView: View {
     }
 
     private var showsAIShortcut: Bool {
-        (isHovering || isSelected) && viewModel.isQuickPasteModifierHeld == false
+        viewModel.aiSettingsViewModel.isAIEnabled
+            && (isHovering || isSelected)
+            && viewModel.isQuickPasteModifierHeld == false
     }
 
     @ViewBuilder

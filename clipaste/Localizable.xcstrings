@@ -5215,7 +5215,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Son de copie"
+            "value" : "Émettre un son lors de la copie"
           }
         },
         "ja" : {
@@ -7081,6 +7081,52 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "編輯標題"
+          }
+        }
+      }
+    },
+    "Enable AI" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "KI aktivieren"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enable AI"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activer l’IA"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI を有効化"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 활성화"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用 AI"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用 AI"
           }
         }
       }
@@ -19315,7 +19361,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Basculer le favori pour la sélection"
+            "value" : "Ajouter/Retirer comme Favori"
           }
         },
         "ja" : {
@@ -19407,7 +19453,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Basculer le presse-papiers vertical"
+            "value" : "Permuter entre modes d'affichage [Vertical : Colonne | Liste | Horizontal : Clips]"
           }
         },
         "ja" : {

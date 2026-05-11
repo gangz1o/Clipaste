@@ -40,7 +40,7 @@ enum ImageOCRService {
         let resolvedEngine: Engine = {
             switch engine {
             case .auto:
-                return settings.isAIOCREnabled ? .ai : .vision
+                return settings.isAIEnabled && settings.isAIOCREnabled ? .ai : .vision
             default:
                 return engine
             }

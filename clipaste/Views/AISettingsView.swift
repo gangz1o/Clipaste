@@ -6,6 +6,7 @@ struct AISettingsView: View {
 
     var body: some View {
         Form {
+            enableAISection
             configurationsSection
             imageOCRSection
             skillsSection
@@ -22,6 +23,20 @@ struct AISettingsView: View {
             AISkillEditorView(viewModel: viewModel)
                 .id("ai-skill-editor-\(appLanguage.rawValue)")
                 .environment(\.locale, appLanguage.resolvedLocale)
+        }
+    }
+
+    // MARK: - Enable AI Section
+
+    private var enableAISection: some View {
+        Section {
+            AISettingsToggleRow(
+                title: LocalizedStringKey("Enable AI"),
+                isOn: Binding(
+                    get: { viewModel.isAIEnabled },
+                    set: { viewModel.isAIEnabled = $0 }
+                )
+            )
         }
     }
 
@@ -112,19 +127,14 @@ struct AISettingsView: View {
 
     private var imageOCRSection: some View {
         Section {
-            Toggle(isOn: Binding(
-                get: { viewModel.isAIOCREnabled },
-                set: { viewModel.isAIOCREnabled = $0 }
-            )) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(LocalizedStringKey("Use AI for Image OCR"))
-                    if viewModel.canEnableAIOCR == false {
-                        Text(LocalizedStringKey("AI OCR Requires Configuration"))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
+            AISettingsToggleRow(
+                title: LocalizedStringKey("Use AI for Image OCR"),
+                message: viewModel.canEnableAIOCR ? nil : LocalizedStringKey("AI OCR Requires Configuration"),
+                isOn: Binding(
+                    get: { viewModel.isAIOCREnabled },
+                    set: { viewModel.isAIOCREnabled = $0 }
+                )
+            )
             .disabled(viewModel.canEnableAIOCR == false)
         } header: {
             SettingsSectionHeader(title: LocalizedStringKey("Image OCR"))
@@ -176,6 +186,27 @@ struct AISettingsView: View {
 
         return viewModel.configurations.first { $0.id == configurationID }?.displayTitle
             ?? String(localized: "Missing AI Configuration")
+    }
+}
+
+// MARK: - Toggle Row
+
+private struct AISettingsToggleRow: View {
+    let title: LocalizedStringKey
+    var message: LocalizedStringKey? = nil
+    @Binding var isOn: Bool
+
+    var body: some View {
+        Toggle(isOn: $isOn) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                if let message {
+                    Text(message)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
     }
 }
 

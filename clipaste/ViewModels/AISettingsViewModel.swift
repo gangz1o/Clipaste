@@ -24,6 +24,14 @@ final class AISettingsViewModel {
     /// Last AI skill executed from the clipboard panel, used to make repeated actions faster.
     var lastUsedSkillID: UUID? = nil
 
+    /// Master switch for surfacing AI features in the clipboard panel.
+    var isAIEnabled: Bool = true {
+        didSet {
+            guard oldValue != isAIEnabled else { return }
+            UserDefaults.standard.set(isAIEnabled, forKey: aiEnabledKey)
+        }
+    }
+
     /// When `true`, the image OCR right-click action prefers the active AI configuration
     /// (multimodal request) and falls back to Vision OCR on failure.
     /// Auto-disabled when no configuration is available.
@@ -111,7 +119,8 @@ final class AISettingsViewModel {
     }
 
     var activeConfiguration: AIConfiguration? {
-        configurations.first { $0.id == activeConfigurationID }
+        guard isAIEnabled else { return nil }
+        return configurations.first { $0.id == activeConfigurationID }
     }
 
     func addNewSkill() {
@@ -196,7 +205,8 @@ final class AISettingsViewModel {
     }
 
     func availableSkills(for item: ClipboardItem) -> [AISkill] {
-        skills
+        guard isAIEnabled else { return [] }
+        return skills
             .sorted { $0.sortOrder < $1.sortOrder }
             .filter { $0.supports(item) && $0.displayTitle.isEmpty == false }
     }
@@ -216,6 +226,7 @@ final class AISettingsViewModel {
     private let configurationsKey = "ai_configurations"
     private let activeIDKey = "ai_active_configuration_id"
     private let skillsKey = "ai_skills"
+    private let aiEnabledKey = "ai_enabled"
     private let aiOCREnabledKey = "ai_ocr_enabled"
     private let lastUsedSkillIDKey = "ai_last_used_skill_id"
 
@@ -252,6 +263,9 @@ final class AISettingsViewModel {
             lastUsedSkillID = uuid
         }
 
+        if UserDefaults.standard.object(forKey: aiEnabledKey) != nil {
+            isAIEnabled = UserDefaults.standard.bool(forKey: aiEnabledKey)
+        }
         if UserDefaults.standard.object(forKey: aiOCREnabledKey) != nil {
             isAIOCREnabled = UserDefaults.standard.bool(forKey: aiOCREnabledKey)
         }
