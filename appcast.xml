@@ -3,6 +3,27 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.0.3</title>
+            <pubDate>Tue, 12 May 2026 01:57:39 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.0.3</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20003</sparkle:version>
+            <sparkle:shortVersionString>2.0.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
+
+#### 🐛 修复与优化
+- 剪切面板：修复垂直剪切面板搜索框焦点被抢占问题。
+
+### ✨ What's New
+
+#### 🐛 Bug Fixes & Improvements
+- Clipping Panel: Fixed the issue where the focus of the search box in the vertical clipping panel was preempted.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.0.3/Clipaste-v2.0.3.zip" length="6452576" type="application/octet-stream" sparkle:edSignature="6YTY/Abgt1OMDV6iNxFpe3CckhzZLYMfiXl+yaGD67VzPQ4Di4C/4wtWOxCCccWXsY0Cin/XjHMxIQkc1zwZCg=="/>
+        </item>
+        <item>
             <title>2.0.2</title>
             <pubDate>Mon, 11 May 2026 06:00:01 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -58,40 +79,6 @@
 * **Expanded Multilingual Support**: Completed internationalization (i18n) supplements for specific modules and edge-case scenarios. This ensures consistent, accurate, and localized text rendering across all supported languages, preventing UI clipping or translation gaps.
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.0.1/Clipaste-v2.0.1.zip" length="6396837" type="application/octet-stream" sparkle:edSignature="yyNg65qWRPzihvPMUFmW5p6zsZNOR1AC7qWanPxV8Peydbc1CyOFsNVjqVqROM0E5xRxJVElE9VMO2t4+IJ8AA=="/>
-        </item>
-        <item>
-            <title>2.0.0</title>
-            <pubDate>Tue, 05 May 2026 07:43:28 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.0.0</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20000</sparkle:version>
-            <sparkle:shortVersionString>2.0.0</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
-
-🤖 AI 能力重磅上线
-
-- **引入强大 AI 引擎**：剪贴板全面进化！现已原生支持图片文字识别 (AI OCR)，并无缝接入 Claude、DeepSeek、ChatGPT、Gemini 及所有兼容 OpenAI 接口的大模型。
-- **自定义 AI 技能菜单**：你的提示词就是快捷菜单！支持完全自定义 AI 操作指令，打造专属工作流。同时系统内置多款实用预设，助你开箱即用。
-
-🐛 修复与优化
-
-- **链接解析优化**：修复了链接为纯文本格式时，仍会错误触发元数据 (metadata) 网络请求的 Bug，提升后台运行效率。
-
----
-
-### ✨ What's New
-
-🤖 AI Powers Up Your Clipboard
-
-- **Powerful AI Integration**: Supercharge your clipboard with new AI capabilities, including built-in Image AI OCR. Seamlessly supports Claude, DeepSeek, ChatGPT, Gemini, and all OpenAI-compatible models.
-- **Custom AI Skills**: Your prompts become your menu items! Fully customize your AI actions to build your own workflow, or get started instantly with our built-in system prompt presets.
-
-🐛 Bug Fixes & Improvements
-
-- **Text-Only URL Fix**: Fixed a bug where metadata network requests were incorrectly triggered for URLs formatted as plain text, improving overall efficiency.
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.0.0/Clipaste-v2.0.0.zip" length="6352038" type="application/octet-stream" sparkle:edSignature="2VXkT4rNj4jHHQDUrJN6KDbpgwiRrOWVThdX1tdbL47mpNpybSsf9I6zXoQU4hg+SI3apXeLMmHWLoJQIETpAA=="/>
         </item>
     </channel>
 </rss>
