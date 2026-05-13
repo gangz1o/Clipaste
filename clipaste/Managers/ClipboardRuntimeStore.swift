@@ -714,7 +714,7 @@ final class ClipboardRuntimeStore {
             for delay in [500_000_000, 3_000_000_000, 10_000_000_000] {
                 try? await Task.sleep(nanoseconds: UInt64(delay))
                 guard Task.isCancelled == false else { return }
-                await self.repairDuplicatesAfterImport()
+                await self.refreshAfterRemoteImport()
             }
         }
     }
@@ -737,11 +737,14 @@ final class ClipboardRuntimeStore {
         }
     }
 
-    private func repairDuplicatesAfterImport() async {
+    private func refreshAfterRemoteImport() async {
         let repairedCount = await currentRuntime.storage.repairDuplicateRecords()
-        guard repairedCount > 0 else { return }
 
         NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+        scheduleWarmCacheRefresh(using: currentRuntime.storage, routeKey: rootIdentity)
+
+        guard repairedCount > 0 else { return }
+
         appendDiagnostic(
             level: .info,
             message: ClipboardSyncDiagnosticMessage(
