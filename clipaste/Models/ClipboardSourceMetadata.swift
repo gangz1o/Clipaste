@@ -15,13 +15,13 @@ enum ClipboardCaptureMethod: String, Sendable {
 }
 
 enum ClipboardSourceMetadata {
-    static let currentPlatform = ClipboardSourcePlatform.macOS.rawValue
-    static let macOSMonitorMethod = ClipboardCaptureMethod.monitor.rawValue
-    static let manualMethod = ClipboardCaptureMethod.manual.rawValue
-    static let importedMethod = ClipboardCaptureMethod.imported.rawValue
-    static let generatedMethod = ClipboardCaptureMethod.generated.rawValue
+    nonisolated static let currentPlatform = ClipboardSourcePlatform.macOS.rawValue
+    nonisolated static let macOSMonitorMethod = ClipboardCaptureMethod.monitor.rawValue
+    nonisolated static let manualMethod = ClipboardCaptureMethod.manual.rawValue
+    nonisolated static let importedMethod = ClipboardCaptureMethod.imported.rawValue
+    nonisolated static let generatedMethod = ClipboardCaptureMethod.generated.rawValue
 
-    static var currentDeviceName: String? {
+    nonisolated static var currentDeviceName: String? {
         #if os(macOS)
         Host.current().localizedName
         #else

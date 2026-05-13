@@ -61,7 +61,7 @@ final class ClipboardModelContainerFactory: @unchecked Sendable {
             syncEnabled ? "ClipboardCloudStore" : "ClipboardLocalStore",
             schema: schema,
             url: syncEnabled ? Self.cloudStoreURL : Self.localStoreURL,
-            cloudKitDatabase: syncEnabled ? .automatic : .none
+            cloudKitDatabase: syncEnabled ? .private(Self.cloudKitContainerIdentifier) : .none
         )
 
         return try ModelContainer(for: schema, configurations: [configuration])
