@@ -89,6 +89,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidBecomeActive(_ notification: Notification) {
         Task { @MainActor in
             AppPreferencesStore.shared.refreshLaunchAtLoginStatus()
+            ClipboardRuntimeStore.shared.handleAppBecameActive()
         }
     }
 

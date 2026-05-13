@@ -506,6 +506,14 @@ final class StorageManager {
         await storeActor.repairTextClassificationsIfNeeded()
     }
 
+    func touchSyncAnchor() async throws {
+        try await storeActor.touchSyncAnchor()
+    }
+
+    func repairDuplicateRecords() async -> Int {
+        await storeActor.repairDuplicateRecords()
+    }
+
     func fetchDistinctAppBundleIDsForColorRepair() async -> [String] {
         await storeActor.fetchDistinctAppBundleIDsForColorRepair()
     }
@@ -714,6 +722,7 @@ actor ClipboardStoreActor {
                 return
             }
             record.rtfData = rtfData
+            try? markSyncAnchorUpdated()
             try? modelContext.save()
         }
     }
@@ -725,6 +734,7 @@ actor ClipboardStoreActor {
         descriptor.fetchLimit = 1
         if let record = try? modelContext.fetch(descriptor).first {
             record.plainText = text
+            try? markSyncAnchorUpdated()
             try? modelContext.save()
         }
     }
@@ -737,6 +747,7 @@ actor ClipboardStoreActor {
         if let record = try? modelContext.fetch(descriptor).first {
             if let title { record.linkTitle = title }
             if let iconData { record.linkIconData = iconData }
+            try? markSyncAnchorUpdated()
             try? modelContext.save()
         }
     }
@@ -752,6 +763,7 @@ actor ClipboardStoreActor {
                 let normalizedTitle = customTitle?
                     .trimmingCharacters(in: .whitespacesAndNewlines)
                 record.customTitle = normalizedTitle?.isEmpty == false ? normalizedTitle : nil
+                try markSyncAnchorUpdated()
                 try modelContext.save()
                 NotificationCenter.default.post(
                     name: .clipboardRecordDidChange,
@@ -918,6 +930,7 @@ actor ClipboardStoreActor {
                 modelContext.insert(newRecord)
             }
 
+            try markSyncAnchorUpdated()
             try modelContext.save()
             NotificationCenter.default.post(
                 name: .clipboardRecordDidChange,
@@ -945,6 +958,7 @@ actor ClipboardStoreActor {
                 modelContext.delete(record)
             }
 
+            try markSyncAnchorUpdated()
             try modelContext.save()
         } catch {
             print("❌ [清理任务] 清理过期记录失败: \(error)")
@@ -960,6 +974,7 @@ actor ClipboardStoreActor {
         do {
             if let recordToDelete = try modelContext.fetch(descriptor).first {
                 modelContext.delete(recordToDelete)
+                try markSyncAnchorUpdated()
                 try modelContext.save()
                 NotificationCenter.default.post(
                     name: .clipboardRecordDidChange,
@@ -987,6 +1002,7 @@ actor ClipboardStoreActor {
                 modelContext.delete(record)
             }
 
+            try markSyncAnchorUpdated()
             try modelContext.save()
             NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
         } catch {
@@ -1001,6 +1017,7 @@ actor ClipboardStoreActor {
         let newGroup = ClipboardGroupModel(name: name, systemIconName: systemIconName, sortOrder: minOrder - 1)
         modelContext.insert(newGroup)
         do {
+            try markSyncAnchorUpdated()
             try modelContext.save()
         } catch {
             print("❌ [ClipboardStoreActor] 创建分组失败: \(error)")
@@ -1019,6 +1036,7 @@ actor ClipboardStoreActor {
                 }
                 record.groupId = groupIDs.first
                 record.groupIdsRaw = encodedGroupIDs(groupIDs)
+                try markSyncAnchorUpdated()
                 try modelContext.save()
             }
         } catch {
@@ -1036,6 +1054,7 @@ actor ClipboardStoreActor {
                 groupIDs.removeAll { $0 == groupId }
                 record.groupId = groupIDs.first
                 record.groupIdsRaw = encodedGroupIDs(groupIDs)
+                try markSyncAnchorUpdated()
                 try modelContext.save()
             }
         } catch {
@@ -1051,6 +1070,7 @@ actor ClipboardStoreActor {
             if let record = try modelContext.fetch(descriptor).first {
                 record.groupId = nil
                 record.groupIdsRaw = nil
+                try markSyncAnchorUpdated()
                 try modelContext.save()
             }
         } catch {
@@ -1080,6 +1100,7 @@ actor ClipboardStoreActor {
         )
         if let group = try? modelContext.fetch(descriptor).first {
             group.name = newName
+            try? markSyncAnchorUpdated()
             try? modelContext.save()
         }
     }
@@ -1090,6 +1111,7 @@ actor ClipboardStoreActor {
         )
         if let group = try? modelContext.fetch(descriptor).first {
             group.systemIconName = ClipboardGroupIconName.storageValue(from: newIcon)
+            try? markSyncAnchorUpdated()
             try? modelContext.save()
         }
     }
@@ -1111,6 +1133,7 @@ actor ClipboardStoreActor {
         if let group = try? modelContext.fetch(groupDescriptor).first {
             modelContext.delete(group)
         }
+        try? markSyncAnchorUpdated()
         try? modelContext.save()
     }
 
@@ -1135,6 +1158,7 @@ actor ClipboardStoreActor {
                 group.sortOrder = groupIDs.count + offset
             }
 
+            try markSyncAnchorUpdated()
             try modelContext.save()
         } catch {
             print("❌ [ClipboardStoreActor] Group reorder failed: \(error)")
@@ -1150,6 +1174,7 @@ actor ClipboardStoreActor {
         do {
             if let record = try modelContext.fetch(descriptor).first {
                 record.timestamp = Date()
+                try markSyncAnchorUpdated()
                 try modelContext.save()
                 NotificationCenter.default.post(
                     name: .clipboardRecordDidChange,
@@ -1173,6 +1198,7 @@ actor ClipboardStoreActor {
         do {
             if let record = try modelContext.fetch(descriptor).first {
                 record.isPinned = isPinned
+                try markSyncAnchorUpdated()
                 try modelContext.save()
             }
         } catch {
@@ -1198,6 +1224,7 @@ actor ClipboardStoreActor {
                     record.richTextArchiveData = newRichTextArchiveData
                         ?? newRTFData.flatMap { ClipboardRichTextArchive.fromRTFData($0)?.encodedData() }
                 }
+                try markSyncAnchorUpdated()
                 try modelContext.save()
                 NotificationCenter.default.post(
                     name: .clipboardRecordDidChange,
@@ -1210,6 +1237,51 @@ actor ClipboardStoreActor {
             }
         } catch {
             print("❌ [ClipboardStoreActor] 编辑保存失败: \(error)")
+        }
+    }
+
+    func touchSyncAnchor() throws {
+        try markSyncAnchorUpdated()
+        try modelContext.save()
+    }
+
+    func repairDuplicateRecords() -> Int {
+        let descriptor = FetchDescriptor<ClipboardRecord>()
+
+        do {
+            let records = try modelContext.fetch(descriptor)
+            var recordsByHash: [String: [ClipboardRecord]] = [:]
+
+            for record in records {
+                let contentHash = record.contentHash.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard contentHash.isEmpty == false else { continue }
+                recordsByHash[contentHash, default: []].append(record)
+            }
+
+            var repairedCount = 0
+
+            for duplicates in recordsByHash.values where duplicates.count > 1 {
+                let orderedRecords = duplicates.sorted {
+                    $0.id.uuidString.localizedStandardCompare($1.id.uuidString) == .orderedAscending
+                }
+                guard let survivor = orderedRecords.first else { continue }
+
+                for duplicate in orderedRecords.dropFirst() {
+                    merge(duplicate, into: survivor)
+                    modelContext.delete(duplicate)
+                    repairedCount += 1
+                }
+            }
+
+            if repairedCount > 0 {
+                try markSyncAnchorUpdated()
+                try modelContext.save()
+            }
+
+            return repairedCount
+        } catch {
+            print("❌ [ClipboardStoreActor] 修复重复记录失败: \(error)")
+            return 0
         }
     }
 
@@ -1614,6 +1686,7 @@ actor ClipboardStoreActor {
 }
 
 private extension ClipboardStoreActor {
+    nonisolated static let syncAnchorID = "global"
     nonisolated static let textBasedTypes: Set<String> = [
         ClipboardContentType.text.rawValue,
         ClipboardContentType.code.rawValue,
@@ -1622,6 +1695,77 @@ private extension ClipboardStoreActor {
 
     var textBasedTypes: Set<String> {
         Self.textBasedTypes
+    }
+
+    func markSyncAnchorUpdated() throws {
+        let anchorID = Self.syncAnchorID
+        var descriptor = FetchDescriptor<SyncAnchor>(
+            predicate: #Predicate<SyncAnchor> { anchor in
+                anchor.id == anchorID
+            }
+        )
+        descriptor.fetchLimit = 1
+
+        let anchor: SyncAnchor
+        if let existingAnchor = try modelContext.fetch(descriptor).first {
+            anchor = existingAnchor
+        } else {
+            anchor = SyncAnchor(id: Self.syncAnchorID)
+            modelContext.insert(anchor)
+        }
+
+        anchor.updatedAt = Date()
+        anchor.platform = ClipboardSourceMetadata.currentPlatform
+        anchor.deviceName = ClipboardSourceMetadata.currentDeviceName ?? ""
+        anchor.generation = UUID()
+    }
+
+    func merge(_ source: ClipboardRecord, into target: ClipboardRecord) {
+        let sourceIsNewer = source.timestamp > target.timestamp
+
+        target.timestamp = max(target.timestamp, source.timestamp)
+        target.isPinned = target.isPinned || source.isPinned
+
+        if sourceIsNewer {
+            target.typeRawValue = source.typeRawValue
+            target.sourcePlatformRawValue = source.sourcePlatformRawValue
+            target.sourceDeviceName = source.sourceDeviceName ?? target.sourceDeviceName
+            target.captureMethodRawValue = source.captureMethodRawValue
+            target.captureSessionID = source.captureSessionID ?? target.captureSessionID
+        }
+
+        target.plainText = target.plainText ?? source.plainText
+        target.previewImageData = target.previewImageData ?? source.previewImageData
+        target.imageData = target.imageData ?? source.imageData
+        target.imageUTType = target.imageUTType ?? source.imageUTType
+        target.imageByteCount = target.imageByteCount ?? source.imageByteCount
+        target.imagePixelWidth = target.imagePixelWidth ?? source.imagePixelWidth
+        target.imagePixelHeight = target.imagePixelHeight ?? source.imagePixelHeight
+        target.appBundleID = target.appBundleID ?? source.appBundleID
+        target.appLocalizedName = target.appLocalizedName ?? source.appLocalizedName
+        target.appIconDominantColorHex = target.appIconDominantColorHex ?? source.appIconDominantColorHex
+        target.appIconData = target.appIconData ?? source.appIconData
+        target.customTitle = target.customTitle ?? source.customTitle
+        target.linkTitle = target.linkTitle ?? source.linkTitle
+        target.linkIconData = target.linkIconData ?? source.linkIconData
+        target.rtfData = target.rtfData ?? source.rtfData
+        target.richTextArchiveData = target.richTextArchiveData ?? source.richTextArchiveData
+
+        var mergedGroupIDs = normalizedGroupIDs(
+            primaryGroupID: target.groupId,
+            groupIdsRaw: target.groupIdsRaw
+        )
+        let sourceGroupIDs = normalizedGroupIDs(
+            primaryGroupID: source.groupId,
+            groupIdsRaw: source.groupIdsRaw
+        )
+
+        for groupID in sourceGroupIDs where mergedGroupIDs.contains(groupID) == false {
+            mergedGroupIDs.append(groupID)
+        }
+
+        target.groupId = mergedGroupIDs.first
+        target.groupIdsRaw = encodedGroupIDs(mergedGroupIDs)
     }
 
     func refreshStoredTextRepresentations(

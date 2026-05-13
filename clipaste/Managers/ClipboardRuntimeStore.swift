@@ -1,4 +1,5 @@
 import CloudKit
+import CoreData
 import Foundation
 import os
 import SwiftData
@@ -122,6 +123,8 @@ final class ClipboardRuntimeStore {
     private var currentRuntime: ClipboardRuntime
     private var pendingSyncEnabled: Bool?
     private var maintenanceTask: Task<Void, Never>?
+    private var remoteStoreObserver: NSObjectProtocol?
+    private var remoteRepairTask: Task<Void, Never>?
 
     private init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -213,6 +216,16 @@ final class ClipboardRuntimeStore {
         Task {
             await performInitialBootstrap()
         }
+
+        remoteStoreObserver = NotificationCenter.default.addObserver(
+            forName: .NSPersistentStoreRemoteChange,
+            object: nil,
+            queue: nil
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.scheduleRemoteImportRepair()
+            }
+        }
     }
 
     var storage: StorageManager {
@@ -290,6 +303,17 @@ final class ClipboardRuntimeStore {
         }
     }
 
+    func handleAppBecameActive() {
+        appendDiagnostic(
+            level: .info,
+            message: ClipboardSyncDiagnosticMessage("App became active; nudging current iCloud route")
+        )
+
+        Task {
+            await nudgeCurrentRoute()
+        }
+    }
+
     func diagnosticsReport(locale: Locale = .current) -> String {
         let snapshot = diagnosticsSnapshot
         let reportDate = Date().formatted(date: .numeric, time: .standard)
@@ -331,6 +355,10 @@ final class ClipboardRuntimeStore {
             let repairedClassificationCount = await repairTextClassificationsIfNeeded(using: currentRuntime.storage)
             let repairedAppIconColorCount = await repairAppIconColorsIfNeeded(using: currentRuntime.storage)
             let repairedAppIconDataCount = await repairAppIconDataIfNeeded(using: currentRuntime.storage)
+            let repairedDuplicateCount = await currentRuntime.storage.repairDuplicateRecords()
+            if currentRuntime.syncEnabled {
+                try await currentRuntime.storage.touchSyncAnchor()
+            }
             await MainActor.run {
                 NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
             }
@@ -367,6 +395,15 @@ final class ClipboardRuntimeStore {
                     message: ClipboardSyncDiagnosticMessage(
                         "Repaired %@ app icon image record(s)",
                         arguments: [.count(repairedAppIconDataCount)]
+                    )
+                )
+            }
+            if repairedDuplicateCount > 0 {
+                appendDiagnostic(
+                    level: .info,
+                    message: ClipboardSyncDiagnosticMessage(
+                        "Repaired %@ duplicate synced record(s)",
+                        arguments: [.count(repairedDuplicateCount)]
                     )
                 )
             }
@@ -524,6 +561,7 @@ final class ClipboardRuntimeStore {
                 containerIdentifier: ClipboardModelContainerFactory.cloudKitContainerIdentifier
             )
             try await bootstrapper.importLegacyStoreIfNeeded(into: currentRuntime.storage)
+            try await currentRuntime.storage.touchSyncAnchor()
             lastSyncDate = Date()
             defaults.set(lastSyncDate, forKey: Keys.lastSyncDate)
             NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
@@ -666,6 +704,51 @@ final class ClipboardRuntimeStore {
 
             StorageManager.shared.performAutoCleanup(before: expirationDate)
         }
+    }
+
+    private func scheduleRemoteImportRepair() {
+        remoteRepairTask?.cancel()
+        remoteRepairTask = Task { [weak self] in
+            guard let self else { return }
+
+            for delay in [500_000_000, 3_000_000_000, 10_000_000_000] {
+                try? await Task.sleep(nanoseconds: UInt64(delay))
+                guard Task.isCancelled == false else { return }
+                await self.repairDuplicatesAfterImport()
+            }
+        }
+    }
+
+    private func nudgeCurrentRoute() async {
+        guard currentRuntime.syncEnabled else { return }
+
+        do {
+            try await currentRuntime.storage.touchSyncAnchor()
+            scheduleRemoteImportRepair()
+        } catch {
+            syncError = CloudSyncErrorFormatter.message(for: error)
+            appendDiagnostic(
+                level: .error,
+                message: ClipboardSyncDiagnosticMessage(
+                    "Sync anchor update failed: %@",
+                    arguments: [.string(syncError ?? error.localizedDescription)]
+                )
+            )
+        }
+    }
+
+    private func repairDuplicatesAfterImport() async {
+        let repairedCount = await currentRuntime.storage.repairDuplicateRecords()
+        guard repairedCount > 0 else { return }
+
+        NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+        appendDiagnostic(
+            level: .info,
+            message: ClipboardSyncDiagnosticMessage(
+                "Repaired %@ duplicate synced record(s)",
+                arguments: [.count(repairedCount)]
+            )
+        )
     }
 
     private func scheduleWarmCacheRefresh(using storage: StorageManager, routeKey: String) {

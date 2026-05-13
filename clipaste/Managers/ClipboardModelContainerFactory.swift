@@ -56,7 +56,7 @@ final class ClipboardModelContainerFactory: @unchecked Sendable {
     }
 
     func makeContainer(syncEnabled: Bool) throws -> ModelContainer {
-        let schema = Schema([ClipboardRecord.self, ClipboardGroupModel.self])
+        let schema = Schema([ClipboardRecord.self, ClipboardGroupModel.self, SyncAnchor.self])
         let configuration = ModelConfiguration(
             syncEnabled ? "ClipboardCloudStore" : "ClipboardLocalStore",
             schema: schema,
