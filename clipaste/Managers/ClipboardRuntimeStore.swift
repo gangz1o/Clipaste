@@ -124,6 +124,7 @@ final class ClipboardRuntimeStore {
     private var pendingSyncEnabled: Bool?
     private var maintenanceTask: Task<Void, Never>?
     private var remoteStoreObserver: NSObjectProtocol?
+    private var cloudKitEventObserver: NSObjectProtocol?
     private var remoteRepairTask: Task<Void, Never>?
 
     private init(defaults: UserDefaults = .standard) {
@@ -222,6 +223,18 @@ final class ClipboardRuntimeStore {
             object: nil,
             queue: nil
         ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.scheduleRemoteImportRepair()
+            }
+        }
+
+        cloudKitEventObserver = NotificationCenter.default.addObserver(
+            forName: NSPersistentCloudKitContainer.eventChangedNotification,
+            object: nil,
+            queue: nil
+        ) { [weak self] notification in
+            guard Self.shouldRefreshAfterCloudKitEvent(notification) else { return }
+
             Task { @MainActor [weak self] in
                 self?.scheduleRemoteImportRepair()
             }
@@ -717,6 +730,15 @@ final class ClipboardRuntimeStore {
                 await self.refreshAfterRemoteImport()
             }
         }
+    }
+
+    nonisolated private static func shouldRefreshAfterCloudKitEvent(_ notification: Notification) -> Bool {
+        guard let event = notification.userInfo?[NSPersistentCloudKitContainer.eventNotificationUserInfoKey]
+            as? NSPersistentCloudKitContainer.Event else {
+            return true
+        }
+
+        return event.type == .import && event.endDate != nil
     }
 
     private func nudgeCurrentRoute() async {
