@@ -552,6 +552,7 @@ final class ClipboardRuntimeStore {
 
             if let exportPayload {
                 try await targetRuntime.storage.importStoreExport(exportPayload)
+                let repairedDuplicateCount = await targetRuntime.storage.repairDuplicateRecords()
                 appendDiagnostic(
                     level: .info,
                     message: ClipboardSyncDiagnosticMessage(
@@ -559,9 +560,28 @@ final class ClipboardRuntimeStore {
                         arguments: [.count(exportPayload.records.count), .count(exportPayload.groups.count)]
                     )
                 )
+                if repairedDuplicateCount > 0 {
+                    appendDiagnostic(
+                        level: .info,
+                        message: ClipboardSyncDiagnosticMessage(
+                            "Repaired %@ duplicate synced record(s)",
+                            arguments: [.count(repairedDuplicateCount)]
+                        )
+                    )
+                }
             }
 
             try await bootstrapper.importLegacyStoreIfNeeded(into: targetRuntime.storage)
+            let repairedDuplicateCount = await targetRuntime.storage.repairDuplicateRecords()
+            if repairedDuplicateCount > 0 {
+                appendDiagnostic(
+                    level: .info,
+                    message: ClipboardSyncDiagnosticMessage(
+                        "Repaired %@ duplicate synced record(s)",
+                        arguments: [.count(repairedDuplicateCount)]
+                    )
+                )
+            }
             if syncEnabled {
                 await refreshCloudStoreDiagnostics(using: targetRuntime.storage)
             }
@@ -911,6 +931,8 @@ final class ClipboardRuntimeStore {
         remoteRepairTask?.cancel()
         remoteRepairTask = Task { [weak self] in
             guard let self else { return }
+
+            await self.refreshAfterRemoteImport()
 
             for delay in [500_000_000, 3_000_000_000, 10_000_000_000] {
                 try? await Task.sleep(nanoseconds: UInt64(delay))

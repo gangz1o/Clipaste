@@ -903,7 +903,9 @@ actor ClipboardStoreActor {
         do {
             let now = Date()
 
-            if let existingRecord = try modelContext.fetch(descriptor).first {
+            let existingRecords = try modelContext.fetch(descriptor)
+
+            if let existingRecord = existingRecords.sorted(by: shouldPreferSurvivor).first {
                 existingRecord.timestamp = now
                 existingRecord.typeRawValue = type
                 existingRecord.appBundleID = appID
@@ -943,6 +945,11 @@ actor ClipboardStoreActor {
                     existingRecord.imageByteCount = imageMetadata.byteCount
                     existingRecord.imagePixelWidth = imageMetadata.pixelWidth
                     existingRecord.imagePixelHeight = imageMetadata.pixelHeight
+                }
+
+                for duplicate in existingRecords where duplicate.id != existingRecord.id {
+                    merge(duplicate, into: existingRecord)
+                    modelContext.delete(duplicate)
                 }
             } else {
                 let newRecord = ClipboardRecord(
@@ -1298,9 +1305,7 @@ actor ClipboardStoreActor {
             var repairedCount = 0
 
             for duplicates in recordsByHash.values where duplicates.count > 1 {
-                let orderedRecords = duplicates.sorted {
-                    $0.id.uuidString.localizedStandardCompare($1.id.uuidString) == .orderedAscending
-                }
+                let orderedRecords = duplicates.sorted(by: shouldPreferSurvivor)
                 guard let survivor = orderedRecords.first else { continue }
 
                 for duplicate in orderedRecords.dropFirst() {
@@ -1803,6 +1808,14 @@ private extension ClipboardStoreActor {
 
         target.groupId = mergedGroupIDs.first
         target.groupIdsRaw = encodedGroupIDs(mergedGroupIDs)
+    }
+
+    func shouldPreferSurvivor(_ lhs: ClipboardRecord, over rhs: ClipboardRecord) -> Bool {
+        if lhs.timestamp != rhs.timestamp {
+            return lhs.timestamp > rhs.timestamp
+        }
+
+        return lhs.id.uuidString.localizedStandardCompare(rhs.id.uuidString) == .orderedAscending
     }
 
     func refreshStoredTextRepresentations(
