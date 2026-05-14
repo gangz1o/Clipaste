@@ -3,6 +3,37 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.0.6</title>
+            <pubDate>Thu, 14 May 2026 08:14:09 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.0.6</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20006</sparkle:version>
+            <sparkle:shortVersionString>2.0.6</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
+
+#### 🍏 核心功能与优化
+- iCloud 同步机制重构：深度优化同步底层逻辑，数据同步体验更丝滑、无感。
+- 新增后台轮询机制：支持后台自动静默刷新，确保多端数据时刻保持最新。
+
+#### 🔮 精彩预告
+- iOS/iPadOS 版本终测启动：iOS/iPad 开发已进入最后冲刺测试！即将实现与 Mac 端的丝滑联动、无缝衔接，敬请期待！
+
+---
+
+### ✨ What's New
+
+#### 🍏 Core Improvements
+- iCloud Sync Overhaul: Deeply optimized the underlying logic to deliver a smoother, seamless synchronization experience.
+- Added Background Polling: Supports automatic silent background updates to keep data instantly synced across devices.
+
+#### 🔮 Coming Soon
+- iOS/iPad Version Final Testing: The iOS/iPad application has entered its final testing phase! Smooth integration and seamless multi-device linkage with Mac are just around the corner. Stay tuned!
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.0.6/Clipaste-v2.0.6.zip" length="6476488" type="application/octet-stream" sparkle:edSignature="E77oNHSQ011+LdyCBHShjvpLBfpeqMK+76EJYxZzivM3lLFrxu021SqkoxWtYOo9CA4A8MR9DwxEqeL5HFbqCg=="/>
+        </item>
+        <item>
             <title>2.0.5</title>
             <pubDate>Thu, 14 May 2026 05:07:28 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -52,27 +83,6 @@
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.0.4/Clipaste-v2.0.4.zip" length="6488953" type="application/octet-stream" sparkle:edSignature="qBYdsaqgaApSprKtPfXFNKjPQ31clZsrT0GOYi6Fyx7SwB2SGi1LEF0q+0T95Zjypeu35zVkXc/xwSvx8iyoAQ=="/>
-        </item>
-        <item>
-            <title>2.0.3</title>
-            <pubDate>Tue, 12 May 2026 01:57:39 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.0.3</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20003</sparkle:version>
-            <sparkle:shortVersionString>2.0.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
-
-#### 🐛 修复与优化
-- 剪切面板：修复垂直剪切面板搜索框焦点被抢占问题。
-
-### ✨ What's New
-
-#### 🐛 Bug Fixes & Improvements
-- Clipping Panel: Fixed the issue where the focus of the search box in the vertical clipping panel was preempted.
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.0.3/Clipaste-v2.0.3.zip" length="6452576" type="application/octet-stream" sparkle:edSignature="6YTY/Abgt1OMDV6iNxFpe3CckhzZLYMfiXl+yaGD67VzPQ4Di4C/4wtWOxCCccWXsY0Cin/XjHMxIQkc1zwZCg=="/>
         </item>
     </channel>
 </rss>
