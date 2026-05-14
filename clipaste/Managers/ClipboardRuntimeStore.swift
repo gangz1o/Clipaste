@@ -92,6 +92,8 @@ struct ClipboardSyncDiagnosticsSnapshot: Sendable {
     let currentSyncEnabled: Bool
     let pendingSyncEnabled: Bool?
     let isSyncing: Bool
+    let cloudKitContainerIdentifier: String
+    let cloudKitEnvironment: String
     let localRuntimeReady: Bool
     let cloudRuntimeReady: Bool
     let localStorePath: String
@@ -126,6 +128,7 @@ final class ClipboardRuntimeStore {
     private var remoteStoreObserver: NSObjectProtocol?
     private var cloudKitEventObserver: NSObjectProtocol?
     private var remoteRepairTask: Task<Void, Never>?
+    private var foregroundSyncPollTask: Task<Void, Never>?
 
     private init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -239,6 +242,8 @@ final class ClipboardRuntimeStore {
                 self?.scheduleRemoteImportRepair()
             }
         }
+
+        updateForegroundSyncPolling()
     }
 
     var storage: StorageManager {
@@ -256,6 +261,8 @@ final class ClipboardRuntimeStore {
             currentSyncEnabled: isSyncEnabled,
             pendingSyncEnabled: pendingSyncEnabled,
             isSyncing: isSyncing,
+            cloudKitContainerIdentifier: ClipboardModelContainerFactory.cloudKitContainerIdentifier,
+            cloudKitEnvironment: ClipboardModelContainerFactory.cloudKitEnvironmentName,
             localRuntimeReady: localRuntime != nil,
             cloudRuntimeReady: cloudRuntime != nil,
             localStorePath: ClipboardModelContainerFactory.localStoreURL.path,
@@ -342,6 +349,8 @@ final class ClipboardRuntimeStore {
         Current Sync Enabled: \(snapshot.currentSyncEnabled)
         Pending Sync Request: \(snapshot.pendingSyncEnabled.map(String.init(describing:)) ?? "none")
         Is Syncing: \(snapshot.isSyncing)
+        CloudKit Container: \(snapshot.cloudKitContainerIdentifier)
+        CloudKit Environment: \(snapshot.cloudKitEnvironment)
         Local Runtime Ready: \(snapshot.localRuntimeReady)
         Cloud Runtime Ready: \(snapshot.cloudRuntimeReady)
         Runtime Generation: \(snapshot.runtimeGeneration)
@@ -619,6 +628,7 @@ final class ClipboardRuntimeStore {
         ClipboardImagePipeline.shared.invalidateAll()
         NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
         scheduleWarmCacheRefresh(using: runtime.storage, routeKey: rootIdentity)
+        updateForegroundSyncPolling()
         appendDiagnostic(
             level: .info,
             message: ClipboardSyncDiagnosticMessage(
@@ -753,6 +763,60 @@ final class ClipboardRuntimeStore {
                 level: .error,
                 message: ClipboardSyncDiagnosticMessage(
                     "Sync anchor update failed: %@",
+                    arguments: [.string(syncError ?? error.localizedDescription)]
+                )
+            )
+        }
+    }
+
+    private func updateForegroundSyncPolling() {
+        guard currentRuntime.syncEnabled else {
+            foregroundSyncPollTask?.cancel()
+            foregroundSyncPollTask = nil
+            return
+        }
+
+        guard foregroundSyncPollTask == nil else { return }
+
+        foregroundSyncPollTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 5_000_000_000)
+
+            while Task.isCancelled == false {
+                await self?.performForegroundSyncPoll()
+                try? await Task.sleep(nanoseconds: 15_000_000_000)
+            }
+        }
+
+        appendDiagnostic(
+            level: .info,
+            message: ClipboardSyncDiagnosticMessage("Started foreground iCloud sync polling")
+        )
+    }
+
+    private func performForegroundSyncPoll() async {
+        guard currentRuntime.syncEnabled, isSyncing == false else { return }
+
+        let storage = currentRuntime.storage
+        let routeKey = rootIdentity
+
+        do {
+            try await Task.detached(priority: .utility) {
+                try await storage.touchSyncAnchor()
+            }.value
+
+            lastSyncDate = Date()
+            defaults.set(lastSyncDate, forKey: Keys.lastSyncDate)
+
+            try? await Task.sleep(nanoseconds: 1_000_000_000)
+            guard currentRuntime.syncEnabled, rootIdentity == routeKey else { return }
+
+            await refreshAfterRemoteImport()
+        } catch {
+            syncError = CloudSyncErrorFormatter.message(for: error)
+            appendDiagnostic(
+                level: .error,
+                message: ClipboardSyncDiagnosticMessage(
+                    "Foreground sync polling failed: %@",
                     arguments: [.string(syncError ?? error.localizedDescription)]
                 )
             )

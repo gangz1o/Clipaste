@@ -4548,6 +4548,12 @@
         }
       }
     },
+    "CloudKit Container" : {
+
+    },
+    "CloudKit Environment" : {
+
+    },
     "CloudKit Private Sync" : {
       "extractionState" : "stale",
       "localizations" : {

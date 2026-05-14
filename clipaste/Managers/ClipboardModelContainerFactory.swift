@@ -24,6 +24,11 @@ enum ClipboardContainerFactoryError: LocalizedError {
 final class ClipboardModelContainerFactory: @unchecked Sendable {
     static let shared = ClipboardModelContainerFactory()
     static let cloudKitContainerIdentifier = "iCloud.com.gangz1o.clipaste"
+    #if DEBUG
+    static let cloudKitEnvironmentName = "Development"
+    #else
+    static let cloudKitEnvironmentName = "Production"
+    #endif
 
     private init() {}
 

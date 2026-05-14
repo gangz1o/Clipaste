@@ -217,6 +217,24 @@ private extension AdvancedSettingsView {
                 }
 
                 HStack {
+                    Text("CloudKit Container")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(runtimeStore.diagnosticsSnapshot.cloudKitContainerIdentifier)
+                        .font(.caption.monospaced())
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .textSelection(.enabled)
+                }
+
+                HStack {
+                    Text("CloudKit Environment")
+                        .foregroundStyle(.secondary)
+                    Spacer()
+                    Text(runtimeStore.diagnosticsSnapshot.cloudKitEnvironment)
+                }
+
+                HStack {
                     Text("Local Runtime")
                         .foregroundStyle(.secondary)
                     Spacer()
