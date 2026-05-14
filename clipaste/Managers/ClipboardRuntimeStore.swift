@@ -94,6 +94,13 @@ struct ClipboardSyncDiagnosticsSnapshot: Sendable {
     let isSyncing: Bool
     let cloudKitContainerIdentifier: String
     let cloudKitEnvironment: String
+    let cloudKitAccountRecordName: String?
+    let cloudStoreRecordCount: Int?
+    let cloudStoreGroupCount: Int?
+    let cloudServerRecordCount: Int?
+    let cloudServerGroupCount: Int?
+    let cloudServerError: String?
+    let latestRecordFingerprints: [String]
     let localRuntimeReady: Bool
     let cloudRuntimeReady: Bool
     let localStorePath: String
@@ -115,6 +122,10 @@ final class ClipboardRuntimeStore {
     private(set) var lastSyncDate: Date?
     private(set) var runtimeGeneration: UUID
     private(set) var diagnosticsEntries: [ClipboardSyncDiagnosticEntry]
+    private(set) var cloudKitAccountRecordName: String?
+    private(set) var cloudStoreDiagnostics: ClipboardStoreDiagnosticsSnapshot?
+    private(set) var cloudServerDiagnostics: CloudKitServerDiagnosticsSnapshot?
+    private(set) var cloudServerDiagnosticsError: String?
 
     private let defaults: UserDefaults
     private let containerFactory: ClipboardModelContainerFactory
@@ -129,6 +140,7 @@ final class ClipboardRuntimeStore {
     private var cloudKitEventObserver: NSObjectProtocol?
     private var remoteRepairTask: Task<Void, Never>?
     private var foregroundSyncPollTask: Task<Void, Never>?
+    private var clipboardSnapshotSignature: String?
 
     private init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -139,6 +151,10 @@ final class ClipboardRuntimeStore {
         self.lastSyncDate = defaults.object(forKey: Keys.lastSyncDate) as? Date
         self.runtimeGeneration = UUID()
         self.diagnosticsEntries = []
+        self.cloudKitAccountRecordName = nil
+        self.cloudStoreDiagnostics = nil
+        self.cloudServerDiagnostics = nil
+        self.cloudServerDiagnosticsError = nil
         self.localRuntime = nil
         self.cloudRuntime = nil
         self.pendingSyncEnabled = nil
@@ -263,6 +279,13 @@ final class ClipboardRuntimeStore {
             isSyncing: isSyncing,
             cloudKitContainerIdentifier: ClipboardModelContainerFactory.cloudKitContainerIdentifier,
             cloudKitEnvironment: ClipboardModelContainerFactory.cloudKitEnvironmentName,
+            cloudKitAccountRecordName: cloudKitAccountRecordName,
+            cloudStoreRecordCount: cloudStoreDiagnostics?.recordCount,
+            cloudStoreGroupCount: cloudStoreDiagnostics?.groupCount,
+            cloudServerRecordCount: cloudServerDiagnostics?.recordCount,
+            cloudServerGroupCount: cloudServerDiagnostics?.groupCount,
+            cloudServerError: cloudServerDiagnosticsError,
+            latestRecordFingerprints: cloudStoreDiagnostics?.latestRecordFingerprints ?? [],
             localRuntimeReady: localRuntime != nil,
             cloudRuntimeReady: cloudRuntime != nil,
             localStorePath: ClipboardModelContainerFactory.localStoreURL.path,
@@ -323,6 +346,19 @@ final class ClipboardRuntimeStore {
         }
     }
 
+    func resetCloudLocalCache() {
+        guard isSyncing == false else { return }
+
+        appendDiagnostic(
+            level: .warning,
+            message: ClipboardSyncDiagnosticMessage("Received local iCloud cache reset request")
+        )
+
+        Task {
+            await resetCloudLocalCacheRuntime()
+        }
+    }
+
     func handleAppBecameActive() {
         appendDiagnostic(
             level: .info,
@@ -351,6 +387,13 @@ final class ClipboardRuntimeStore {
         Is Syncing: \(snapshot.isSyncing)
         CloudKit Container: \(snapshot.cloudKitContainerIdentifier)
         CloudKit Environment: \(snapshot.cloudKitEnvironment)
+        CloudKit Account Record: \(snapshot.cloudKitAccountRecordName ?? "unknown")
+        Cloud Store Record Count: \(snapshot.cloudStoreRecordCount.map(String.init) ?? "unknown")
+        Cloud Store Group Count: \(snapshot.cloudStoreGroupCount.map(String.init) ?? "unknown")
+        Cloud Server Record Count: \(snapshot.cloudServerRecordCount.map(String.init) ?? "unknown")
+        Cloud Server Group Count: \(snapshot.cloudServerGroupCount.map(String.init) ?? "unknown")
+        Cloud Server Error: \(snapshot.cloudServerError ?? "none")
+        Latest Record Fingerprints: \(snapshot.latestRecordFingerprints.isEmpty ? "unknown" : snapshot.latestRecordFingerprints.joined(separator: ", "))
         Local Runtime Ready: \(snapshot.localRuntimeReady)
         Cloud Runtime Ready: \(snapshot.cloudRuntimeReady)
         Runtime Generation: \(snapshot.runtimeGeneration)
@@ -379,7 +422,12 @@ final class ClipboardRuntimeStore {
             let repairedAppIconDataCount = await repairAppIconDataIfNeeded(using: currentRuntime.storage)
             let repairedDuplicateCount = await currentRuntime.storage.repairDuplicateRecords()
             if currentRuntime.syncEnabled {
+                cloudKitAccountRecordName = try await CloudSyncAvailabilityService.accountRecordName(
+                    containerIdentifier: ClipboardModelContainerFactory.cloudKitContainerIdentifier
+                )
                 try await currentRuntime.storage.touchSyncAnchor()
+                await refreshCloudStoreDiagnostics(using: currentRuntime.storage)
+                await refreshCloudServerDiagnostics()
             }
             await MainActor.run {
                 NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
@@ -482,9 +530,15 @@ final class ClipboardRuntimeStore {
                 try await CloudSyncAvailabilityService.preflight(
                     containerIdentifier: ClipboardModelContainerFactory.cloudKitContainerIdentifier
                 )
+                cloudKitAccountRecordName = try await CloudSyncAvailabilityService.accountRecordName(
+                    containerIdentifier: ClipboardModelContainerFactory.cloudKitContainerIdentifier
+                )
                 appendDiagnostic(
                     level: .info,
-                    message: ClipboardSyncDiagnosticMessage("iCloud account preflight passed")
+                    message: ClipboardSyncDiagnosticMessage(
+                        "iCloud account preflight passed. Account record: %@",
+                        arguments: [.string(cloudKitAccountRecordName ?? "unknown")]
+                    )
                 )
             }
 
@@ -509,6 +563,10 @@ final class ClipboardRuntimeStore {
             }
 
             try await bootstrapper.importLegacyStoreIfNeeded(into: targetRuntime.storage)
+            if syncEnabled {
+                await refreshCloudStoreDiagnostics(using: targetRuntime.storage)
+                await refreshCloudServerDiagnostics()
+            }
 
             activateRuntime(
                 targetRuntime,
@@ -550,6 +608,92 @@ final class ClipboardRuntimeStore {
         processPendingSyncRequestIfNeeded()
     }
 
+    private func resetCloudLocalCacheRuntime() async {
+        guard isSyncing == false else { return }
+
+        isSyncing = true
+        syncError = nil
+        ClipboardMonitor.shared.stopMonitoring()
+        remoteRepairTask?.cancel()
+        remoteRepairTask = nil
+        foregroundSyncPollTask?.cancel()
+        foregroundSyncPollTask = nil
+
+        appendDiagnostic(
+            level: .warning,
+            message: ClipboardSyncDiagnosticMessage("Resetting local iCloud cache. Cloud records will be kept")
+        )
+
+        do {
+            try await CloudSyncAvailabilityService.preflight(
+                containerIdentifier: ClipboardModelContainerFactory.cloudKitContainerIdentifier
+            )
+            cloudKitAccountRecordName = try await CloudSyncAvailabilityService.accountRecordName(
+                containerIdentifier: ClipboardModelContainerFactory.cloudKitContainerIdentifier
+            )
+
+            let localRuntime: ClipboardRuntime
+            if let cachedLocalRuntime = self.localRuntime {
+                localRuntime = cachedLocalRuntime
+            } else {
+                localRuntime = try await makeRuntimeOffMain(syncEnabled: false)
+                self.localRuntime = localRuntime
+            }
+
+            cloudRuntime = nil
+            activateRuntime(
+                localRuntime,
+                syncEnabled: false,
+                persistPreference: false,
+                updateLastSyncDate: false,
+                notifyObservers: false
+            )
+
+            try await Task.detached(priority: .utility) {
+                try ClipboardModelContainerFactory.resetCloudStoreArtifacts()
+            }.value
+
+            let cloudRuntime = try await makeRuntimeOffMain(syncEnabled: true)
+            self.cloudRuntime = cloudRuntime
+            activateRuntime(
+                cloudRuntime,
+                syncEnabled: true,
+                persistPreference: true,
+                updateLastSyncDate: true
+            )
+
+            try await cloudRuntime.storage.touchSyncAnchor()
+            await refreshCloudStoreDiagnostics(using: cloudRuntime.storage)
+            await refreshCloudServerDiagnostics()
+            scheduleRemoteImportRepair()
+
+            appendDiagnostic(
+                level: .info,
+                message: ClipboardSyncDiagnosticMessage("Local iCloud cache reset completed")
+            )
+        } catch {
+            let message = CloudSyncErrorFormatter.message(for: error)
+            syncError = message
+            appendDiagnostic(
+                level: .error,
+                message: ClipboardSyncDiagnosticMessage(
+                    "Local iCloud cache reset failed: %@",
+                    arguments: [.string(message)]
+                )
+            )
+
+            if currentRuntime.syncEnabled == false {
+                defaults.set(false, forKey: Keys.syncEnabled)
+                isSyncEnabled = false
+            }
+        }
+
+        ClipboardMonitor.shared.startMonitoring()
+        updateForegroundSyncPolling()
+        isSyncing = false
+        processPendingSyncRequestIfNeeded()
+    }
+
     private func refreshSyncStatus() async {
         guard isSyncing == false else { return }
 
@@ -582,8 +726,13 @@ final class ClipboardRuntimeStore {
             try await CloudSyncAvailabilityService.preflight(
                 containerIdentifier: ClipboardModelContainerFactory.cloudKitContainerIdentifier
             )
+            cloudKitAccountRecordName = try await CloudSyncAvailabilityService.accountRecordName(
+                containerIdentifier: ClipboardModelContainerFactory.cloudKitContainerIdentifier
+            )
             try await bootstrapper.importLegacyStoreIfNeeded(into: currentRuntime.storage)
             try await currentRuntime.storage.touchSyncAnchor()
+            await refreshCloudStoreDiagnostics(using: currentRuntime.storage)
+            await refreshCloudServerDiagnostics()
             lastSyncDate = Date()
             defaults.set(lastSyncDate, forKey: Keys.lastSyncDate)
             NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
@@ -608,12 +757,14 @@ final class ClipboardRuntimeStore {
         _ runtime: ClipboardRuntime,
         syncEnabled: Bool,
         persistPreference: Bool,
-        updateLastSyncDate: Bool
+        updateLastSyncDate: Bool,
+        notifyObservers: Bool = true
     ) {
         currentRuntime = runtime
         container = runtime.container
         isSyncEnabled = syncEnabled
         runtimeGeneration = UUID()
+        clipboardSnapshotSignature = nil
 
         if updateLastSyncDate {
             lastSyncDate = Date()
@@ -626,8 +777,10 @@ final class ClipboardRuntimeStore {
 
         ClipboardStorageRegistry.update(storage: runtime.storage)
         ClipboardImagePipeline.shared.invalidateAll()
-        NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
-        scheduleWarmCacheRefresh(using: runtime.storage, routeKey: rootIdentity)
+        if notifyObservers {
+            NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
+            scheduleWarmCacheRefresh(using: runtime.storage, routeKey: rootIdentity)
+        }
         updateForegroundSyncPolling()
         appendDiagnostic(
             level: .info,
@@ -684,6 +837,35 @@ final class ClipboardRuntimeStore {
             )
         )
         return runtime
+    }
+
+    private func makeRuntimeOffMain(syncEnabled: Bool) async throws -> ClipboardRuntime {
+        let containerFactory = containerFactory
+        return try await Task.detached(priority: .utility) {
+            try containerFactory.makeRuntime(syncEnabled: syncEnabled)
+        }.value
+    }
+
+    private func refreshCloudStoreDiagnostics(using storage: StorageManager) async {
+        cloudStoreDiagnostics = await storage.diagnosticsSnapshot()
+    }
+
+    private func refreshCloudServerDiagnostics() async {
+        do {
+            cloudServerDiagnostics = try await CloudKitServerDiagnosticsService.snapshot(
+                containerIdentifier: ClipboardModelContainerFactory.cloudKitContainerIdentifier
+            )
+            cloudServerDiagnosticsError = nil
+        } catch {
+            cloudServerDiagnosticsError = CloudSyncErrorFormatter.message(for: error)
+            appendDiagnostic(
+                level: .warning,
+                message: ClipboardSyncDiagnosticMessage(
+                    "CloudKit server diagnostics failed: %@",
+                    arguments: [.string(cloudServerDiagnosticsError ?? error.localizedDescription)]
+                )
+            )
+        }
     }
 
     private func processPendingSyncRequestIfNeeded() {
@@ -825,6 +1007,11 @@ final class ClipboardRuntimeStore {
 
     private func refreshAfterRemoteImport() async {
         let repairedCount = await currentRuntime.storage.repairDuplicateRecords()
+        await refreshCloudStoreDiagnostics(using: currentRuntime.storage)
+        let latestSignature = await makeClipboardSnapshotSignature(using: currentRuntime.storage)
+        let didChange = updateClipboardSnapshotSignature(latestSignature)
+
+        guard repairedCount > 0 || didChange else { return }
 
         NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
         scheduleWarmCacheRefresh(using: currentRuntime.storage, routeKey: rootIdentity)
@@ -838,6 +1025,29 @@ final class ClipboardRuntimeStore {
                 arguments: [.count(repairedCount)]
             )
         )
+    }
+
+    private func updateClipboardSnapshotSignature(_ latestSignature: String) -> Bool {
+        defer { clipboardSnapshotSignature = latestSignature }
+        guard let clipboardSnapshotSignature else { return false }
+        return clipboardSnapshotSignature != latestSignature
+    }
+
+    private func makeClipboardSnapshotSignature(using storage: StorageManager) async -> String {
+        let items = await storage.fetchItemsPage(
+            searchText: "",
+            fetchLimit: ClipboardHistoryWarmCache.defaultLimit,
+            offset: 0
+        )
+        return items.map { item in
+            [
+                item.id.uuidString,
+                item.contentHash,
+                String(item.timestamp.timeIntervalSinceReferenceDate),
+                item.isPinned ? "1" : "0",
+                item.groupIDs.joined(separator: ",")
+            ].joined(separator: "|")
+        }.joined(separator: "\n")
     }
 
     private func scheduleWarmCacheRefresh(using storage: StorageManager, routeKey: String) {
@@ -1034,6 +1244,11 @@ private enum CloudSyncAvailabilityService {
         }
     }
 
+    static func accountRecordName(containerIdentifier: String) async throws -> String {
+        let container = CKContainer(identifier: containerIdentifier)
+        return try await fetchUserRecordID(from: container).recordName
+    }
+
     private static func fetchAccountStatus(from container: CKContainer) async throws -> CKAccountStatus {
         // CKContainer.accountStatus's completion handler can fire more than once
         // on some macOS versions. withCheckedThrowingContinuation traps on
@@ -1055,6 +1270,149 @@ private enum CloudSyncAvailabilityService {
                 }
             }
         }
+    }
+
+    private static func fetchUserRecordID(from container: CKContainer) async throws -> CKRecord.ID {
+        try await withCheckedThrowingContinuation { continuation in
+            container.fetchUserRecordID { recordID, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if let recordID {
+                    continuation.resume(returning: recordID)
+                } else {
+                    continuation.resume(throwing: CloudSyncPreflightError.couldNotDetermine)
+                }
+            }
+        }
+    }
+}
+
+struct CloudKitServerDiagnosticsSnapshot: Sendable {
+    let recordCount: Int
+    let groupCount: Int
+}
+
+private enum CloudKitServerDiagnosticsService {
+    private static let clipboardRecordType = "CD_ClipboardRecord"
+    private static let clipboardGroupType = "CD_ClipboardGroupModel"
+
+    static func snapshot(containerIdentifier: String) async throws -> CloudKitServerDiagnosticsSnapshot {
+        let database = CKContainer(identifier: containerIdentifier).privateCloudDatabase
+        let counts = try await countRecords(database: database)
+
+        return CloudKitServerDiagnosticsSnapshot(
+            recordCount: counts.records,
+            groupCount: counts.groups
+        )
+    }
+
+    private static func countRecords(database: CKDatabase) async throws -> (records: Int, groups: Int) {
+        let zoneIDs = try await fetchRecordZoneIDs(database: database)
+        var recordCount = 0
+        var groupCount = 0
+
+        for zoneID in zoneIDs {
+            if zoneID.zoneName == CKRecordZone.default().zoneID.zoneName {
+                recordCount += try await countQueryRecords(ofType: clipboardRecordType, in: zoneID, database: database)
+                groupCount += try await countQueryRecords(ofType: clipboardGroupType, in: zoneID, database: database)
+            } else {
+                let zoneCounts = try await countChangedRecords(in: zoneID, database: database)
+                recordCount += zoneCounts.records
+                groupCount += zoneCounts.groups
+            }
+        }
+
+        return (recordCount, groupCount)
+    }
+
+    private static func countQueryRecords(
+        ofType recordType: String,
+        in zoneID: CKRecordZone.ID,
+        database: CKDatabase
+    ) async throws -> Int {
+        let query = CKQuery(recordType: recordType, predicate: NSPredicate(value: true))
+        let firstPage = try await database.records(
+            matching: query,
+            inZoneWith: zoneID,
+            desiredKeys: [],
+            resultsLimit: 200
+        )
+        var count = successfulRecordCount(firstPage.matchResults)
+        var cursor = firstPage.queryCursor
+
+        while let currentCursor = cursor {
+            let page = try await database.records(
+                continuingMatchFrom: currentCursor,
+                desiredKeys: [],
+                resultsLimit: 200
+            )
+            count += successfulRecordCount(page.matchResults)
+            cursor = page.queryCursor
+        }
+
+        return count
+    }
+
+    private static func countChangedRecords(
+        in zoneID: CKRecordZone.ID,
+        database: CKDatabase
+    ) async throws -> (records: Int, groups: Int) {
+        var recordCount = 0
+        var groupCount = 0
+        var changeToken: CKServerChangeToken?
+        var moreComing = true
+
+        while moreComing {
+            let changes = try await database.recordZoneChanges(
+                inZoneWith: zoneID,
+                since: changeToken,
+                desiredKeys: [],
+                resultsLimit: nil
+            )
+
+            for result in changes.modificationResultsByID.values {
+                guard case let .success(modification) = result else { continue }
+                switch modification.record.recordType {
+                case clipboardRecordType:
+                    recordCount += 1
+                case clipboardGroupType:
+                    groupCount += 1
+                default:
+                    break
+                }
+            }
+
+            changeToken = changes.changeToken
+            moreComing = changes.moreComing
+        }
+
+        return (recordCount, groupCount)
+    }
+
+    private static func successfulRecordCount(
+        _ results: [(CKRecord.ID, Result<CKRecord, Error>)]
+    ) -> Int {
+        results.reduce(0) { count, result in
+            guard case .success = result.1 else { return count }
+            return count + 1
+        }
+    }
+
+    private static func fetchRecordZoneIDs(database: CKDatabase) async throws -> [CKRecordZone.ID] {
+        var zoneIDs: Set<CKRecordZone.ID> = [CKRecordZone.default().zoneID]
+        var changeToken: CKServerChangeToken?
+        var moreComing = true
+
+        while moreComing {
+            let changes = try await database.databaseChanges(since: changeToken, resultsLimit: nil)
+            for modification in changes.modifications {
+                zoneIDs.insert(modification.zoneID)
+            }
+            changeToken = changes.changeToken
+            moreComing = changes.moreComing
+        }
+
+        return Array(zoneIDs)
     }
 }
 

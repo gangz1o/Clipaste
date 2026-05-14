@@ -15,6 +15,8 @@ extension ClipboardViewModel {
             resetSearchForPresentationIfNeeded()
         }
 
+        guard wasAlreadyActive == false else { return }
+
         if hasPreparedPanelData == false {
             hasPreparedPanelData = true
             hydrateFromWarmCacheIfAvailable()
@@ -41,11 +43,7 @@ extension ClipboardViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self, self.hasPreparedPanelData else { return }
-                guard self.isPanelPresentationActive else {
-                    self.needsReloadOnNextPresentation = true
-                    return
-                }
-                self.loadData()
+                self.needsReloadOnNextPresentation = true
             }
             .store(in: &cancellables)
 
@@ -57,7 +55,7 @@ extension ClipboardViewModel {
                     self.needsReloadOnNextPresentation = true
                     return
                 }
-                self.reloadPanelDataAfterMigration()
+                self.needsReloadOnNextPresentation = true
             }
             .store(in: &cancellables)
     }

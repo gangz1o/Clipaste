@@ -1,4 +1,3 @@
-import AppKit
 import SwiftUI
 
 struct AdvancedSettingsView: View {
@@ -7,8 +6,6 @@ struct AdvancedSettingsView: View {
     @Environment(\.locale) private var locale
     @AppStorage("appAccentColor") private var appAccentColor: AppAccentColor = .defaultValue
     @AppStorage("enable_smart_groups") private var isSmartGroupsEnabled: Bool = true
-    @State private var showsDiagnostics = false
-    @State private var copiedDiagnostics = false
 
     var body: some View {
         Form {
@@ -142,7 +139,6 @@ private extension AdvancedSettingsView {
                     .disabled(runtimeStore.isSyncing)
                 }
 
-                diagnosticsPanel
             }
         } header: {
             SettingsSectionHeader(title: "Data Sync")
@@ -189,181 +185,6 @@ private extension AdvancedSettingsView {
             Text(xcstringsLocalized("Waiting for First Sync…", locale: locale))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-        }
-    }
-
-    var diagnosticsPanel: some View {
-        DisclosureGroup(isExpanded: $showsDiagnostics) {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Text("Active Route")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(localizedRouteName(runtimeStore.diagnosticsSnapshot.activeRoute))
-                }
-
-                HStack {
-                    Text("Current Toggle State")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(localizedToggleState(runtimeStore.diagnosticsSnapshot.currentSyncEnabled))
-                }
-
-                HStack {
-                    Text("Pending Toggle")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(pendingSyncDescription)
-                }
-
-                HStack {
-                    Text("CloudKit Container")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(runtimeStore.diagnosticsSnapshot.cloudKitContainerIdentifier)
-                        .font(.caption.monospaced())
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .textSelection(.enabled)
-                }
-
-                HStack {
-                    Text("CloudKit Environment")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(runtimeStore.diagnosticsSnapshot.cloudKitEnvironment)
-                }
-
-                HStack {
-                    Text("Local Runtime")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(localizedRuntimeState(runtimeStore.diagnosticsSnapshot.localRuntimeReady))
-                }
-
-                HStack {
-                    Text("Cloud Runtime")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(localizedRuntimeState(runtimeStore.diagnosticsSnapshot.cloudRuntimeReady))
-                }
-
-                HStack {
-                    Text("Runtime Generation")
-                        .foregroundStyle(.secondary)
-                    Spacer()
-                    Text(runtimeStore.diagnosticsSnapshot.runtimeGeneration)
-                        .font(.caption.monospaced())
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Local Store")
-                        .foregroundStyle(.secondary)
-                    Text(runtimeStore.diagnosticsSnapshot.localStorePath)
-                        .font(.caption.monospaced())
-                        .textSelection(.enabled)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Cloud Store")
-                        .foregroundStyle(.secondary)
-                    Text(runtimeStore.diagnosticsSnapshot.cloudStorePath)
-                        .font(.caption.monospaced())
-                        .textSelection(.enabled)
-                }
-
-                if let error = runtimeStore.diagnosticsSnapshot.lastError {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("Recent Error")
-                            .foregroundStyle(.secondary)
-                        Text(error)
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                            .textSelection(.enabled)
-                    }
-                }
-
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack {
-                        Text("Recent Events")
-                            .foregroundStyle(.secondary)
-                        Spacer()
-                        Button(copiedDiagnostics ? xcstringsLocalized("Copied", locale: locale) : xcstringsLocalized("Copy Diagnostics", locale: locale)) {
-                            copyDiagnosticsToPasteboard()
-                        }
-                        .buttonStyle(.borderless)
-                        .disabled(runtimeStore.diagnosticsEntries.isEmpty)
-                    }
-
-                    if runtimeStore.diagnosticsEntries.isEmpty {
-                        Text("No Events Recorded")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    } else {
-                        ForEach(runtimeStore.diagnosticsEntries.prefix(8)) { entry in
-                            HStack(alignment: .top, spacing: 8) {
-                                Text(entry.timestamp, format: .dateTime.hour().minute().second())
-                                    .font(.caption.monospaced())
-                                    .foregroundStyle(.secondary)
-
-                                Text(entry.level.rawValue)
-                                    .font(.caption2.monospaced())
-                                    .bold()
-                                    .foregroundStyle(color(for: entry.level))
-
-                                Text(entry.localizedMessage(locale: locale))
-                                    .font(.caption)
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                        }
-                    }
-                }
-            }
-            .padding(.top, 8)
-        } label: {
-            Label("Sync Diagnostics", systemImage: "stethoscope")
-                .font(.subheadline)
-        }
-        .padding(.top, 2)
-    }
-
-    var pendingSyncDescription: String {
-        guard let pending = runtimeStore.diagnosticsSnapshot.pendingSyncEnabled else {
-            return xcstringsLocalized("None", locale: locale)
-        }
-        return pending ? xcstringsLocalized("Pending Enable", locale: locale) : xcstringsLocalized("Pending Disable", locale: locale)
-    }
-
-    func localizedRouteName(_ route: String) -> String {
-        route == "cloud" ? xcstringsLocalized("iCloud", locale: locale) : xcstringsLocalized("Local", locale: locale)
-    }
-
-    func localizedToggleState(_ isEnabled: Bool) -> String {
-        xcstringsLocalized(isEnabled ? "On" : "Off", locale: locale)
-    }
-
-    func localizedRuntimeState(_ isReady: Bool) -> String {
-        xcstringsLocalized(isReady ? "Initialized" : "Not Initialized", locale: locale)
-    }
-
-    func color(for level: ClipboardSyncDiagnosticLevel) -> Color {
-        switch level {
-        case .info: return .secondary
-        case .warning: return .orange
-        case .error: return .red
-        }
-    }
-
-    func copyDiagnosticsToPasteboard() {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(runtimeStore.diagnosticsReport(locale: locale), forType: .string)
-        copiedDiagnostics = true
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            copiedDiagnostics = false
         }
     }
 

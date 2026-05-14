@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-struct ClipboardRuntime {
+struct ClipboardRuntime: @unchecked Sendable {
     let syncEnabled: Bool
     let container: ModelContainer
     let storage: StorageManager
@@ -108,6 +108,10 @@ final class ClipboardModelContainerFactory: @unchecked Sendable {
 
     static var cloudStoreURL: URL {
         storesDirectory.appendingPathComponent("clipboard-cloud.store", isDirectory: false)
+    }
+
+    static func resetCloudStoreArtifacts() throws {
+        try resetStoreArtifacts(at: cloudStoreURL)
     }
 
     private static func resetStoreArtifacts(at storeURL: URL) throws {

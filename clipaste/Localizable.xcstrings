@@ -809,6 +809,7 @@
       }
     },
     "Active Route" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4469,6 +4470,7 @@
       }
     },
     "Cloud Runtime" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4509,6 +4511,7 @@
       }
     },
     "Cloud Store" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -4547,12 +4550,6 @@
           }
         }
       }
-    },
-    "CloudKit Container" : {
-
-    },
-    "CloudKit Environment" : {
-
     },
     "CloudKit Private Sync" : {
       "extractionState" : "stale",
@@ -5592,6 +5589,7 @@
       }
     },
     "Current Toggle State" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -10086,6 +10084,7 @@
       }
     },
     "Local Runtime" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -10126,6 +10125,7 @@
       }
     },
     "Local Store" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -11274,6 +11274,7 @@
       }
     },
     "No Events Recorded" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -12713,6 +12714,7 @@
       }
     },
     "Pending Toggle" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -14726,6 +14728,7 @@
       }
     },
     "Recent Error" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -14766,6 +14769,7 @@
       }
     },
     "Recent Events" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -16107,6 +16111,7 @@
       }
     },
     "Runtime Generation" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -18434,6 +18439,7 @@
       }
     },
     "Sync Diagnostics" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

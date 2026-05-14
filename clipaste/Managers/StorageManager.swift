@@ -27,6 +27,12 @@ private struct ClipboardRecordSnapshot: Sendable {
     let captureSessionID: UUID?
 }
 
+struct ClipboardStoreDiagnosticsSnapshot: Sendable {
+    let recordCount: Int
+    let groupCount: Int
+    let latestRecordFingerprints: [String]
+}
+
 struct ClipboardPasteRecord: Sendable {
     let id: UUID
     let typeRawValue: String
@@ -498,6 +504,14 @@ final class StorageManager {
         return StorageManager.makeClipboardItem(from: snapshot)
     }
 
+    func diagnosticsSnapshot() async -> ClipboardStoreDiagnosticsSnapshot {
+        let container = self.container
+        return await detachedRead {
+            let actor = ClipboardStoreActor(modelContainer: container)
+            return await actor.diagnosticsSnapshot()
+        }
+    }
+
     func repairImportedMigrationTimestampsIfNeeded() async -> Int {
         await storeActor.repairImportedMigrationTimestampsIfNeeded()
     }
@@ -712,6 +726,29 @@ final class StorageManager {
 
 @ModelActor
 actor ClipboardStoreActor {
+    func diagnosticsSnapshot() -> ClipboardStoreDiagnosticsSnapshot {
+        let recordCount = (try? modelContext.fetchCount(FetchDescriptor<ClipboardRecord>())) ?? 0
+        let groupCount = (try? modelContext.fetchCount(FetchDescriptor<ClipboardGroupModel>())) ?? 0
+        var descriptor = FetchDescriptor<ClipboardRecord>(
+            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+        )
+        descriptor.fetchLimit = 5
+        let latestRecords = (try? modelContext.fetch(descriptor)) ?? []
+        let latestRecordFingerprints = latestRecords.map { record in
+            [
+                String(record.contentHash.prefix(12)),
+                String(Int(record.timestamp.timeIntervalSince1970)),
+                record.typeRawValue
+            ].joined(separator: ":")
+        }
+
+        return ClipboardStoreDiagnosticsSnapshot(
+            recordCount: recordCount,
+            groupCount: groupCount,
+            latestRecordFingerprints: latestRecordFingerprints
+        )
+    }
+
     func updateRecordWithRTFData(hash: String, rtfData: Data) {
         var descriptor = FetchDescriptor<ClipboardRecord>(
             predicate: #Predicate { $0.contentHash == hash }
