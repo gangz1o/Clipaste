@@ -22,15 +22,15 @@ enum ClipboardContainerFactoryError: LocalizedError {
 }
 
 final class ClipboardModelContainerFactory: @unchecked Sendable {
-    static let shared = ClipboardModelContainerFactory()
-    static let cloudKitContainerIdentifier = "iCloud.com.gangz1o.clipaste"
+    nonisolated static let shared = ClipboardModelContainerFactory()
+    nonisolated static let cloudKitContainerIdentifier = "iCloud.com.gangz1o.clipaste"
     #if DEBUG
-    static let cloudKitEnvironmentName = "Development"
+    nonisolated static let cloudKitEnvironmentName = "Development"
     #else
-    static let cloudKitEnvironmentName = "Production"
+    nonisolated static let cloudKitEnvironmentName = "Production"
     #endif
 
-    private init() {}
+    private nonisolated init() {}
 
     nonisolated func makeRuntime(syncEnabled: Bool) throws -> ClipboardRuntime {
         do {

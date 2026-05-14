@@ -154,7 +154,7 @@ final class StorageManager {
     nonisolated(unsafe) private var activeTasks: [UUID: Task<Void, Never>] = [:]
     nonisolated(unsafe) private var isShuttingDown = false
 
-    init(modelContainer: ModelContainer) {
+    nonisolated init(modelContainer: ModelContainer) {
         self.container = modelContainer
         self.storeActor = ClipboardStoreActor(modelContainer: modelContainer)
         self.cleanupActor = ClipboardStoreActor(modelContainer: modelContainer)
