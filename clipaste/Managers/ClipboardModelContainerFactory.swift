@@ -32,7 +32,7 @@ final class ClipboardModelContainerFactory: @unchecked Sendable {
 
     private init() {}
 
-    func makeRuntime(syncEnabled: Bool) throws -> ClipboardRuntime {
+    nonisolated func makeRuntime(syncEnabled: Bool) throws -> ClipboardRuntime {
         do {
             return try buildRuntime(syncEnabled: syncEnabled)
         } catch {
@@ -60,7 +60,7 @@ final class ClipboardModelContainerFactory: @unchecked Sendable {
         }
     }
 
-    func makeContainer(syncEnabled: Bool) throws -> ModelContainer {
+    nonisolated func makeContainer(syncEnabled: Bool) throws -> ModelContainer {
         let schema = Schema([ClipboardRecord.self, ClipboardGroupModel.self, SyncAnchor.self])
         let configuration = ModelConfiguration(
             syncEnabled ? "ClipboardCloudStore" : "ClipboardLocalStore",
@@ -72,13 +72,13 @@ final class ClipboardModelContainerFactory: @unchecked Sendable {
         return try ModelContainer(for: schema, configurations: [configuration])
     }
 
-    private func buildRuntime(syncEnabled: Bool) throws -> ClipboardRuntime {
+    private nonisolated func buildRuntime(syncEnabled: Bool) throws -> ClipboardRuntime {
         let container = try makeContainer(syncEnabled: syncEnabled)
         let storage = StorageManager(modelContainer: container)
         return ClipboardRuntime(syncEnabled: syncEnabled, container: container, storage: storage)
     }
 
-    private static var applicationSupportDirectory: URL {
+    private nonisolated static var applicationSupportDirectory: URL {
         let fileManager = FileManager.default
         let baseDirectory = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? fileManager.temporaryDirectory
@@ -92,7 +92,7 @@ final class ClipboardModelContainerFactory: @unchecked Sendable {
         return directory
     }
 
-    private static var storesDirectory: URL {
+    private nonisolated static var storesDirectory: URL {
         let directory = applicationSupportDirectory.appendingPathComponent("Stores", isDirectory: true)
 
         if FileManager.default.fileExists(atPath: directory.path) == false {
@@ -102,19 +102,19 @@ final class ClipboardModelContainerFactory: @unchecked Sendable {
         return directory
     }
 
-    static var localStoreURL: URL {
+    nonisolated static var localStoreURL: URL {
         storesDirectory.appendingPathComponent("clipboard-local.store", isDirectory: false)
     }
 
-    static var cloudStoreURL: URL {
+    nonisolated static var cloudStoreURL: URL {
         storesDirectory.appendingPathComponent("clipboard-cloud.store", isDirectory: false)
     }
 
-    static func resetCloudStoreArtifacts() throws {
+    nonisolated static func resetCloudStoreArtifacts() throws {
         try resetStoreArtifacts(at: cloudStoreURL)
     }
 
-    private static func resetStoreArtifacts(at storeURL: URL) throws {
+    private nonisolated static func resetStoreArtifacts(at storeURL: URL) throws {
         let fileManager = FileManager.default
         let directoryURL = storeURL.deletingLastPathComponent()
         let storePrefix = storeURL.lastPathComponent
