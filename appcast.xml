@@ -3,6 +3,26 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.0.5</title>
+            <pubDate>Thu, 14 May 2026 05:07:28 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/2.0.5</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20005</sparkle:version>
+            <sparkle:shortVersionString>2.0.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
+#### 🍏 核心功能与优化
+- iCloud 同步机制重构：深度优化同步底层逻辑，数据同步体验更丝滑、无感。
+- 新增后台轮询机制：支持后台自动静默刷新，确保多端数据时刻保持最新。
+---
+### ✨ What's New
+#### 🍏 Core Improvements
+- iCloud Sync Overhaul: Deeply optimized the underlying logic to deliver a smoother, seamless synchronization experience.
+- Added Background Polling: Supports automatic silent background updates to keep data instantly synced across devices.
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/2.0.5/Clipaste-2.0.5.zip" length="6498490" type="application/octet-stream" sparkle:edSignature="beKfiqiDABFpAfTyD4FKohwWs0cAtiqxLdUFs533eKuIjvUPUUhawjOhnylUw5TvltIAwrltt1wKDzlvnY51Cg=="/>
+        </item>
+        <item>
             <title>2.0.4</title>
             <pubDate>Wed, 13 May 2026 06:59:13 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -53,37 +73,6 @@
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.0.3/Clipaste-v2.0.3.zip" length="6452576" type="application/octet-stream" sparkle:edSignature="6YTY/Abgt1OMDV6iNxFpe3CckhzZLYMfiXl+yaGD67VzPQ4Di4C/4wtWOxCCccWXsY0Cin/XjHMxIQkc1zwZCg=="/>
-        </item>
-        <item>
-            <title>2.0.2</title>
-            <pubDate>Mon, 11 May 2026 06:00:01 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.0.2</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20002</sparkle:version>
-            <sparkle:shortVersionString>2.0.2</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
-
-🤖 AI
-
-- **A新增AI开关**：考虑到部分用户可能不喜欢AI功能，新增AI开关，默认开启，如不需要，请前往AI导航栏关闭
-
-🐛 修复与优化
-
-- **国际化**：国际化持续优化。
-
----
-
-### ✨ What's New
-
-🤖 AI
-
-- **AI on customization**: Considering that some users may not like the AI function, a new AI switch is added, which is on by default, if you don't need it, please go to the AI navigation bar to turn it off.
-🐛 Bug Fixes & Improvements
-
-- **i18n**: Continuous optimization of i18n.
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.0.2/Clipaste-v2.0.2.zip" length="6406253" type="application/octet-stream" sparkle:edSignature="U72UAvR4PZKx95J4KkgRdY2v8rfuvY7CTGj4PJ+etaM/tUN3Z4VQ8yEwwqJ4aW9A/HAgIGq/UmjBheBL5tGzAA=="/>
         </item>
     </channel>
 </rss>
