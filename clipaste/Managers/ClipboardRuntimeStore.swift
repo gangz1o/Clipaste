@@ -427,7 +427,6 @@ final class ClipboardRuntimeStore {
                 )
                 try await currentRuntime.storage.touchSyncAnchor()
                 await refreshCloudStoreDiagnostics(using: currentRuntime.storage)
-                await refreshCloudServerDiagnostics()
             }
             await MainActor.run {
                 NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
@@ -565,7 +564,6 @@ final class ClipboardRuntimeStore {
             try await bootstrapper.importLegacyStoreIfNeeded(into: targetRuntime.storage)
             if syncEnabled {
                 await refreshCloudStoreDiagnostics(using: targetRuntime.storage)
-                await refreshCloudServerDiagnostics()
             }
 
             activateRuntime(
@@ -664,7 +662,6 @@ final class ClipboardRuntimeStore {
 
             try await cloudRuntime.storage.touchSyncAnchor()
             await refreshCloudStoreDiagnostics(using: cloudRuntime.storage)
-            await refreshCloudServerDiagnostics()
             scheduleRemoteImportRepair()
 
             appendDiagnostic(
@@ -732,7 +729,6 @@ final class ClipboardRuntimeStore {
             try await bootstrapper.importLegacyStoreIfNeeded(into: currentRuntime.storage)
             try await currentRuntime.storage.touchSyncAnchor()
             await refreshCloudStoreDiagnostics(using: currentRuntime.storage)
-            await refreshCloudServerDiagnostics()
             lastSyncDate = Date()
             defaults.set(lastSyncDate, forKey: Keys.lastSyncDate)
             NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
