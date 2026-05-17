@@ -43,9 +43,20 @@ Clipaste for iOS is a keyboard, not just a clipboard viewer. Switch to it from t
 
 When iCloud sync is enabled, clips saved on your Mac can appear in the iOS keyboard. Text, links, and images can move with you without sending them to yourself or keeping another app open. Sync uses Apple's iCloud / CloudKit, so it runs through the Apple account and system services you already trust.
 
-The iOS app is available on the [App Store](https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055). This link currently points to the China storefront; Apple may redirect it depending on your region. If it does not open correctly, search for `Clipaste` or `Clipaste Clipboard Keyboard` in your local App Store.
+<p align="center">
+  <a href="https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055">
+    <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" height="48" alt="Download on the App Store" />
+  </a>
+</p>
 
-If Clipaste is useful to you, the App Store version is also a simple way to support the project and help cover the yearly Apple Developer Program cost.
+The App Store badge currently points to the China storefront; Apple may redirect it depending on your region. If it does not open correctly, search for `Clipaste` or `Clipaste Clipboard Keyboard` in your local App Store.
+
+<div align="center">
+  <img src="https://is2-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/18/ec/fc/18ecfc6f-93ad-3c44-3399-8b1b3bae2fef/Picsew_20260516140601__U00282_U0029.jpeg/0x0ss.png" width="22%" alt="Clipaste iOS keyboard preview 1" />
+  <img src="https://is2-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/3e/8b/f1/3e8bf19e-11e7-c412-c655-641b570fc10b/Picsew_20260516140907__U00281_U0029.jpeg/0x0ss.png" width="22%" alt="Clipaste iOS keyboard preview 2" />
+  <img src="https://is2-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/cd/43/7e/cd437e7d-2ded-6e13-1fca-65c9c697257f/Picsew_20260516141233__U00281_U0029.jpeg/0x0ss.png" width="22%" alt="Clipaste iOS keyboard preview 3" />
+  <img src="https://is2-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/bd/79/a6/bd79a6c2-e5c1-fd27-1ec2-ad2b2ab64fa4/Picsew_20260516141107__U00281_U0029.jpeg/0x0ss.png" width="22%" alt="Clipaste iOS keyboard preview 4" />
+</div>
 
 ## Preview
 
@@ -138,7 +149,11 @@ brew upgrade --cask gangz1o-clipaste
 
 ### iOS
 
-Install [Clipaste Clipboard Keyboard](https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055) from the App Store, or search for `Clipaste` / `Clipaste Clipboard Keyboard` in your App Store region.
+<a href="https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055">
+  <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/en-us?size=250x83" height="44" alt="Download on the App Store" />
+</a>
+
+You can also search for `Clipaste` / `Clipaste Clipboard Keyboard` in your App Store region.
 
 ## Build
 

@@ -43,9 +43,20 @@ Clipaste 的 iOS 版已经正式上架 App Store。它不是一个只能打开�
 
 如果你同时使用 Mac 客户端，开启 iCloud 同步后，Mac 上保存的剪贴板历史可以同步到 iOS 键盘里。常用文本、链接、图片都不需要再通过聊天软件或备忘录转一遍，用的时候直接切键盘就行。同步基于 Apple 的 iCloud / CloudKit，使用的是你已经信任的 Apple 账号和系统服务。
 
-iOS 版下载地址：[Clipaste 剪贴板键盘 - App Store](https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055)。这个链接目前是中国区 App Store 地址，其他地区是否自动跳转取决于 Apple 的处理。如果打开不对，也可以直接在你所在地区的 App Store 搜索 `Clipaste` 或 `Clipaste 剪贴板键盘`。
+<p align="center">
+  <a href="https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055">
+    <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/zh-cn?size=250x83" height="48" alt="在 App Store 下载" />
+  </a>
+</p>
 
-如果 Clipaste 对你有帮助，也欢迎通过 App Store 版支持一下作者，多少补贴一下每年的 Apple Developer 费用。
+这个 App Store badge 目前指向中国区地址，其他地区是否自动跳转取决于 Apple 的处理。如果打开不对，也可以直接在你所在地区的 App Store 搜索 `Clipaste` 或 `Clipaste 剪贴板键盘`。
+
+<div align="center">
+  <img src="https://is2-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/18/ec/fc/18ecfc6f-93ad-3c44-3399-8b1b3bae2fef/Picsew_20260516140601__U00282_U0029.jpeg/0x0ss.png" width="22%" alt="Clipaste iOS 键盘预览 1" />
+  <img src="https://is2-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/3e/8b/f1/3e8bf19e-11e7-c412-c655-641b570fc10b/Picsew_20260516140907__U00281_U0029.jpeg/0x0ss.png" width="22%" alt="Clipaste iOS 键盘预览 2" />
+  <img src="https://is2-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/cd/43/7e/cd437e7d-2ded-6e13-1fca-65c9c697257f/Picsew_20260516141233__U00281_U0029.jpeg/0x0ss.png" width="22%" alt="Clipaste iOS 键盘预览 3" />
+  <img src="https://is2-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/bd/79/a6/bd79a6c2-e5c1-fd27-1ec2-ad2b2ab64fa4/Picsew_20260516141107__U00281_U0029.jpeg/0x0ss.png" width="22%" alt="Clipaste iOS 键盘预览 4" />
+</div>
 
 ## 预览
 
@@ -138,7 +149,11 @@ brew upgrade --cask gangz1o-clipaste
 
 ### iOS
 
-可以在 App Store 安装 [Clipaste 剪贴板键盘](https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055)，也可以直接在你所在地区的 App Store 搜索 `Clipaste` / `Clipaste 剪贴板键盘`。
+<a href="https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055">
+  <img src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/black/zh-cn?size=250x83" height="44" alt="在 App Store 下载" />
+</a>
+
+也可以直接在你所在地区的 App Store 搜索 `Clipaste` / `Clipaste 剪贴板键盘`。
 
 ## 本地构建
 
