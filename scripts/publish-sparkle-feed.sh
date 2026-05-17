@@ -10,12 +10,14 @@ GITHUB_REPOSITORY="${GITHUB_REPOSITORY:-}"
 GH_TOKEN="${GH_TOKEN:-}"
 SPARKLE_PRIVATE_KEY="${SPARKLE_PRIVATE_KEY:-}"
 SPARKLE_VERSION="${SPARKLE_VERSION:-2.9.1}"
+SPARKLE_ARCHIVE_NAME="${SPARKLE_ARCHIVE_NAME:-Sparkle-${SPARKLE_VERSION}.tar.xz}"
+SPARKLE_ARCHIVE_URL="${SPARKLE_ARCHIVE_URL:-https://github.com/sparkle-project/Sparkle/releases/download/${SPARKLE_VERSION}/${SPARKLE_ARCHIVE_NAME}}"
 DIST_DIR="${DIST_DIR:-$PROJECT_ROOT/build/release}"
 BUILD_ROOT="${BUILD_ROOT:-$PROJECT_ROOT/build}"
 FEED_BRANCH="${FEED_BRANCH:-update-feed}"
 FEED_DIR="${FEED_DIR:-$BUILD_ROOT/update-feed}"
 SPARKLE_TOOLS_DIR="${SPARKLE_TOOLS_DIR:-$BUILD_ROOT/sparkle-tools}"
-SPARKLE_ARCHIVE_PATH="${SPARKLE_ARCHIVE_PATH:-$BUILD_ROOT/Sparkle-${SPARKLE_VERSION}.tar.xz}"
+SPARKLE_ARCHIVE_PATH="${SPARKLE_ARCHIVE_PATH:-$BUILD_ROOT/$SPARKLE_ARCHIVE_NAME}"
 RELEASE_NOTES_MARKDOWN="${RELEASE_NOTES_MARKDOWN:-}"
 
 if [[ -z "$RELEASE_TAG" ]]; then
@@ -84,11 +86,9 @@ ensure_sparkle_tools() {
   rm -rf "$SPARKLE_TOOLS_DIR"
   mkdir -p "$SPARKLE_TOOLS_DIR"
 
-  gh release download \
-    -R sparkle-project/Sparkle \
-    --pattern "Sparkle-${SPARKLE_VERSION}.tar.xz" \
-    --dir "$BUILD_ROOT" \
-    --clobber
+  curl --fail --location --retry 3 --retry-delay 2 \
+    --output "$SPARKLE_ARCHIVE_PATH" \
+    "$SPARKLE_ARCHIVE_URL"
 
   tar -xJf "$SPARKLE_ARCHIVE_PATH" -C "$SPARKLE_TOOLS_DIR" ./bin
   chmod +x "$SPARKLE_TOOLS_DIR/bin/generate_appcast"
