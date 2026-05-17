@@ -29,9 +29,9 @@
   <p>
     <a href="#macos-install">下载 macOS 版</a>
     ·
-    <a href="https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055">获取 iOS 键盘</a>
+    <a href="https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055" target="_blank">获取 iOS 键盘</a>
     ·
-    <a href="https://github.com/gangz1o/Clipaste/releases/latest">最新版本</a>
+    <a href="https://github.com/gangz1o/Clipaste/releases/latest" target="_blank">最新版本</a>
   </p>
 </div>
 
