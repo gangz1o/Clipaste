@@ -50,7 +50,7 @@
 - Improved iCloud sync stability and consistency across devices.
 - Refined the connection between Mac and iOS so clipboard history moves more smoothly between them.
 ]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.1.0/Clipaste-v2.1.0.zip" length="6500267" type="application/octet-stream" sparkle:edSignature="smmk+BqdoRrX++53ip+TCqrmsr8usDh1MqH/6qxYSjxAhyy9+GA+S+KRzeCoCzt1u0j+qjnZCEK6Fa2H5zNNDA=="/>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.1.0/Clipaste-v2.1.0.zip" length="6518216" type="application/octet-stream" sparkle:edSignature="e5m9lOe9Ki1X88JdqF/84h5XDY2jyQxu18ZRjFF7EuilQdU+FHSITuocnvBWW/q2IboJnITrBYzvVitFPrfMAQ=="/>
         </item>
         <item>
             <title>2.0.6</title>
