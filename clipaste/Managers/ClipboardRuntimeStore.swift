@@ -1330,17 +1330,29 @@ private enum CloudKitServerDiagnosticsService {
         var groupCount = 0
 
         for zoneID in zoneIDs {
-            if zoneID.zoneName == CKRecordZone.default().zoneID.zoneName {
-                recordCount += try await countQueryRecords(ofType: clipboardRecordType, in: zoneID, database: database)
-                groupCount += try await countQueryRecords(ofType: clipboardGroupType, in: zoneID, database: database)
-            } else {
-                let zoneCounts = try await countChangedRecords(in: zoneID, database: database)
-                recordCount += zoneCounts.records
-                groupCount += zoneCounts.groups
-            }
+            let zoneCounts = try await countRecords(in: zoneID, database: database)
+            recordCount += zoneCounts.records
+            groupCount += zoneCounts.groups
         }
 
         return (recordCount, groupCount)
+    }
+
+    private static func countRecords(
+        in zoneID: CKRecordZone.ID,
+        database: CKDatabase
+    ) async throws -> (records: Int, groups: Int) {
+        if zoneID.zoneName == CKRecordZone.default().zoneID.zoneName {
+            do {
+                let records = try await countQueryRecords(ofType: clipboardRecordType, in: zoneID, database: database)
+                let groups = try await countQueryRecords(ofType: clipboardGroupType, in: zoneID, database: database)
+                return (records, groups)
+            } catch {
+                return (0, 0)
+            }
+        }
+
+        return try await countChangedRecords(in: zoneID, database: database)
     }
 
     private static func countQueryRecords(

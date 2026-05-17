@@ -68,7 +68,7 @@ extension ClipboardViewModel {
 
         let reservedModifiers = modifiers.intersection(reservedSearchModifierFlags)
         if !reservedModifiers.isEmpty,
-           allowsShiftLetterTypeToSearch(
+           allowsShiftGeneratedTypeToSearch(
                 modifiers: modifiers,
                 reservedModifiers: reservedModifiers,
                 acceptedInput: acceptedInput
@@ -370,7 +370,7 @@ private extension ClipboardViewModel {
         return rawInput
     }
 
-    func allowsShiftLetterTypeToSearch(
+    func allowsShiftGeneratedTypeToSearch(
         modifiers: NSEvent.ModifierFlags,
         reservedModifiers: NSEvent.ModifierFlags,
         acceptedInput: String?
@@ -383,7 +383,7 @@ private extension ClipboardViewModel {
             return false
         }
 
-        return acceptedInput.unicodeScalars.allSatisfy(isLetterScalar)
+        return !acceptedInput.isEmpty
     }
 
     func isAllowedSearchScalar(_ scalar: UnicodeScalar) -> Bool {
@@ -423,16 +423,4 @@ private extension ClipboardViewModel {
         }
     }
 
-    func isLetterScalar(_ scalar: UnicodeScalar) -> Bool {
-        switch scalar.properties.generalCategory {
-        case .uppercaseLetter,
-             .lowercaseLetter,
-             .titlecaseLetter,
-             .modifierLetter,
-             .otherLetter:
-            return true
-        default:
-            return false
-        }
-    }
 }
