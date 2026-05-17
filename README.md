@@ -29,9 +29,9 @@
   <p>
     <a href="#macos-install">Download for macOS</a>
     ·
-    <a href="https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055">Get iOS Keyboard</a>
+    <a href="https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055" target="_blank">Get iOS Keyboard</a>
     ·
-    <a href="https://github.com/gangz1o/Clipaste/releases/latest">Latest Release</a>
+    <a href="https://github.com/gangz1o/Clipaste/releases/latest" target="_blank">Latest Release</a>
   </p>
 </div>
 
