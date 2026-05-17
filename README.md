@@ -10,9 +10,11 @@
 ![GitHub issues](https://img.shields.io/github/issues/gangz1o/Clipaste?style=for-the-badge)
 
 
-Clipaste is a macOS clipboard manager built with **SwiftUI** and **SwiftData**.
+Clipaste is a clipboard manager for Mac, with an iOS keyboard that keeps your clipboard close wherever you type.
 
-Its core goal is simple: **stay fast, smooth, and memory-efficient even when clipboard history becomes large and individual entries become heavy.**
+The Mac app is built with **SwiftUI** and **SwiftData**. The iOS app is a keyboard: switch to it from the system keyboard picker, pick a saved clip, and paste without jumping back and forth between apps.
+
+Its core goal is simple: **stay fast, smooth, and memory-efficient even when clipboard history becomes large and individual entries become heavy.** When iCloud sync is enabled, your Mac clipboard history and the iOS keyboard can stay connected through Apple's iCloud / CloudKit.
 
 ## ✨ Highlights
 
@@ -23,7 +25,8 @@ Its core goal is simple: **stay fast, smooth, and memory-efficient even when cli
 - 🐸 Automatically recognizes image content and supports searching
 - 🔄 Imports history from **Paste**, **PasteNow**, **Maccy** and **iCopy**
 - ↔️ Supports both horizontal and vertical layouts
-- ☁️ Optional iCloud / CloudKit sync
+- ⌨️ iOS keyboard companion for quick access while typing
+- ☁️ Optional iCloud / CloudKit sync between Mac and iOS
 - 🆓 Free and open source
 
 ## 🧩 Preview
@@ -37,6 +40,16 @@ Its core goal is simple: **stay fast, smooth, and memory-efficient even when cli
   <img src="https://cdn.nodeimage.com/i/jRQP3zlsLV94nuvaoc7Cz781a8u50zVL.webp" width="40%" />
 </div>
 <br />
+
+## ⌨️ iOS Keyboard
+
+Clipaste for iOS is not just a viewer for your clipboard history. It is a keyboard you can switch to at any time, just like switching between your normal keyboard and emoji keyboard.
+
+With iCloud sync enabled, clips saved on your Mac can appear in the iOS keyboard, so you can reuse text, links, and images without sending them to yourself or keeping another app open. Sync is handled through Apple's iCloud / CloudKit, so it uses the Apple account and system services you already trust.
+
+The iOS app is available on the [App Store](https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055). This link currently points to the China storefront; Apple may redirect it depending on your region. If it does not open correctly, search for `Clipaste` or `Clipaste Clipboard Keyboard` in your local App Store.
+
+If Clipaste is useful to you, the App Store version is also a simple way to support the project and help cover the yearly Apple Developer Program cost.
 
 ## 🏎️ Why Clipaste
 
@@ -84,6 +97,8 @@ The goal is simple: switch without losing your existing history.
 
 ## 📦 Install
 
+### macOS
+
 Recommended installation method:
 
 ```bash
@@ -100,6 +115,10 @@ To update Clipaste, you can either:
 brew update
 brew upgrade --cask gangz1o-clipaste
 ```
+
+### iOS / iPadOS
+
+Install [Clipaste Clipboard Keyboard](https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055) from the App Store, or search for `Clipaste` / `Clipaste Clipboard Keyboard` in your App Store region.
 
 ## 🛠️ Build
 

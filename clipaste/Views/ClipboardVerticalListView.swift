@@ -8,9 +8,11 @@ struct ClipboardVerticalListView: View {
     @AppStorage("previewPanelMode") private var previewPanelMode: PreviewPanelMode = .disabled
 
     @State private var previewPanelViewModel = ClipboardPreviewPanelViewModel()
+    @State private var quickPasteIndexesByItemID: [UUID: Int] = [:]
 
     // Layout constants
     private let previewAnimationDuration: Double = 0.3
+    private let quickPasteCoordinateSpaceName = "ClipboardVerticalQuickPasteSpace"
 
     private var isCompact: Bool {
         clipboardLayout == .compact
@@ -81,57 +83,85 @@ struct ClipboardVerticalListView: View {
     @ViewBuilder
     private var listContent: some View {
         ScrollViewReader { proxy in
-            ScrollView(.vertical, showsIndicators: false) {
-                LazyVStack(spacing: itemSpacing) {
-                    ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                        ClipboardVerticalItemView(
-                            item: item,
-                            viewModel: viewModel,
-                            quickPasteIndex: index < 9 ? index : nil,
-                            onHoverChange: { isHovering in
-                                previewPanelViewModel.handleHoverChange(
-                                    for: item,
-                                    isHovering: isHovering,
-                                    items: items,
-                                    selectedItemIDs: viewModel.selectedItemIDs,
-                                    isPreviewEnabled: isPreviewEnabled
+            GeometryReader { viewportProxy in
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVStack(spacing: itemSpacing) {
+                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                            ClipboardVerticalItemView(
+                                item: item,
+                                viewModel: viewModel,
+                                quickPasteIndex: quickPasteIndexesByItemID[item.id],
+                                onHoverChange: { isHovering in
+                                    previewPanelViewModel.handleHoverChange(
+                                        for: item,
+                                        isHovering: isHovering,
+                                        items: items,
+                                        selectedItemIDs: viewModel.selectedItemIDs,
+                                        isPreviewEnabled: isPreviewEnabled
+                                    )
+                                }
+                            )
+                                .id(item.id)
+                                .clipboardQuickPasteVisibleFrame(
+                                    id: item.id,
+                                    sourceIndex: index,
+                                    coordinateSpaceName: quickPasteCoordinateSpaceName
                                 )
-                            }
-                        )
-                            .id(item.id)
+                        }
                     }
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.vertical, verticalPadding)
                 }
-                .padding(.horizontal, horizontalPadding)
-                .padding(.vertical, verticalPadding)
+                .coordinateSpace(name: quickPasteCoordinateSpaceName)
+                .onPreferenceChange(ClipboardQuickPasteVisibleFramePreferenceKey.self) { frames in
+                    updateQuickPasteIndexes(
+                        frames: frames,
+                        viewportSize: viewportProxy.size
+                    )
+                }
+                .focusable()
+                .focusEffectDisabled()
+                .focused($focusedField, equals: .clipList)
+                .simultaneousGesture(TapGesture().onEnded {
+                    focusedField = .clipList
+                })
+                .onDeleteCommand {
+                    viewModel.deleteSelection(isCommandHeld: false)
+                }
+                .onAppear {
+                    scrollToPrimarySelection(with: proxy, animated: false)
+                    previewPanelViewModel.handlePreviewModeChange(
+                        items: items,
+                        selectedItemIDs: viewModel.selectedItemIDs,
+                        isPreviewEnabled: isPreviewEnabled
+                    )
+                }
+                .onChange(of: viewModel.listScrollRequest) { _, request in
+                    guard let request else { return }
+                    scrollToItem(
+                        with: proxy,
+                        itemID: request.id,
+                        animated: request.animated
+                    )
+                }
+                .frame(maxHeight: .infinity)
             }
-            .focusable()
-            .focusEffectDisabled()
-            .focused($focusedField, equals: .clipList)
-            .simultaneousGesture(TapGesture().onEnded {
-                focusedField = .clipList
-            })
-            .onDeleteCommand {
-                viewModel.deleteSelection(isCommandHeld: false)
-            }
-            .onAppear {
-                scrollToPrimarySelection(with: proxy, animated: false)
-                previewPanelViewModel.handlePreviewModeChange(
-                    items: items,
-                    selectedItemIDs: viewModel.selectedItemIDs,
-                    isPreviewEnabled: isPreviewEnabled
-                )
-            }
-            .onChange(of: viewModel.listScrollRequest) { _, request in
-                guard let request else { return }
-                scrollToItem(
-                    with: proxy,
-                    itemID: request.id,
-                    animated: request.animated
-                )
-            }
-            .frame(maxHeight: .infinity)
         }
         // 材质由 ClipboardMainView 最外层统一提供，此处不做局部 background
+    }
+
+    private func updateQuickPasteIndexes(
+        frames: [ClipboardQuickPasteVisibleFrame],
+        viewportSize: CGSize
+    ) {
+        let resolvedIndexes = ClipboardQuickPasteVisibleIndexResolver.resolve(
+            frames: frames,
+            viewportSize: viewportSize,
+            axis: .vertical
+        )
+
+        guard resolvedIndexes != quickPasteIndexesByItemID else { return }
+        quickPasteIndexesByItemID = resolvedIndexes
     }
 
     // MARK: - Scroll Management
