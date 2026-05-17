@@ -1,78 +1,96 @@
-# 📋 Clipaste  
-[![简体中文](https://img.shields.io/static/v1?label=🇨🇳&message=简体中文&color=red)](README.zh.md) [![English](https://img.shields.io/static/v1?label=🇺🇸&message=English&color=blue)](README.md)
-
-
-![GitHub Repo stars](https://img.shields.io/github/stars/gangz1o/Clipaste?style=for-the-badge)
-<a href="https://github.com/gangz1o/Clipaste/releases/latest"><img src="https://img.shields.io/github/v/release/gangz1o/Clipaste?style=for-the-badge" alt="Latest release"></a>
-![GitHub forks](https://img.shields.io/github/forks/gangz1o/Clipaste?style=for-the-badge)
-![GitHub contributors](https://img.shields.io/github/contributors/gangz1o/Clipaste?style=for-the-badge)
-![GitHub repo size](https://img.shields.io/github/repo-size/gangz1o/Clipaste?style=for-the-badge)
-![GitHub issues](https://img.shields.io/github/issues/gangz1o/Clipaste?style=for-the-badge)
-
-
-Clipaste is a clipboard manager for Mac, with an iOS keyboard that keeps your clipboard close wherever you type.
-
-The Mac app is built with **SwiftUI** and **SwiftData**. The iOS app is a keyboard: switch to it from the system keyboard picker, pick a saved clip, and paste without jumping back and forth between apps.
-
-Its core goal is simple: **stay fast, smooth, and memory-efficient even when clipboard history becomes large and individual entries become heavy.** When iCloud sync is enabled, your Mac clipboard history and the iOS keyboard can stay connected through Apple's iCloud / CloudKit.
-
-## ✨ Highlights
-
-- 🚀 Fast response across daily interactions
-- 🧠 Low memory footprint
-- 🗂️ Smooth even with very large clipboard histories
-- 📝 Large text entries remain fluid instead of dragging the UI down
-- 🐸 Automatically recognizes image content and supports searching
-- 🔄 Imports history from **Paste**, **PasteNow**, **Maccy** and **iCopy**
-- ↔️ Supports both horizontal and vertical layouts
-- ⌨️ iOS keyboard companion for quick access while typing
-- ☁️ Optional iCloud / CloudKit sync between Mac and iOS
-- 🆓 Free and open source
-
-## 🧩 Preview
 <div align="center">
-  <img src="https://cdn.nodeimage.com/i/RgZZ6F1hENt4VtEmYurxED7Dq5esGsNR.webp" width="40%" />
-  <img src="https://cdn.nodeimage.com/i/UGNN3td8XU8ruIBNn1I6MdkVDWEoVTs4.webp" width="40%" />
+  <img src="clipaste/Assets.xcassets/AppIcon.appiconset/app-icon-256.png" width="96" alt="Clipaste app icon" />
+
+  <h1>Clipaste</h1>
+
+  <p>
+    <strong>A fast clipboard manager for Mac, now with an iOS clipboard keyboard.</strong>
+  </p>
+
+  <p>
+    Keep your clipboard history on your Mac, and bring it to iOS when you type.
+  </p>
+
+  <p>
+    <a href="README.zh.md">简体中文</a>
+    ·
+    <a href="README.md">English</a>
+  </p>
+
+  <p>
+    <a href="https://github.com/gangz1o/Clipaste/releases/latest">
+      <img src="https://img.shields.io/github/v/release/gangz1o/Clipaste?style=for-the-badge" alt="Latest release" />
+    </a>
+    <img src="https://img.shields.io/github/stars/gangz1o/Clipaste?style=for-the-badge" alt="GitHub stars" />
+    <img src="https://img.shields.io/github/forks/gangz1o/Clipaste?style=for-the-badge" alt="GitHub forks" />
+    <img src="https://img.shields.io/github/issues/gangz1o/Clipaste?style=for-the-badge" alt="GitHub issues" />
+  </p>
+
+  <p>
+    <a href="#macos-install">Download for macOS</a>
+    ·
+    <a href="https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055">Get iOS Keyboard</a>
+    ·
+    <a href="https://github.com/gangz1o/Clipaste/releases/latest">Latest Release</a>
+  </p>
 </div>
-<br />
-<div align="center">
-  <img src="https://cdn.nodeimage.com/i/i4Jab3co3VW1kOKL2zEkzIQNsiINGp9p.webp" width="40%" />
-  <img src="https://cdn.nodeimage.com/i/jRQP3zlsLV94nuvaoc7Cz781a8u50zVL.webp" width="40%" />
-</div>
-<br />
 
-## ⌨️ iOS Keyboard
+---
 
-Clipaste for iOS is not just a viewer for your clipboard history. It is a keyboard you can switch to at any time, just like switching between your normal keyboard and emoji keyboard.
+## iOS Clipboard Keyboard
 
-With iCloud sync enabled, clips saved on your Mac can appear in the iOS keyboard, so you can reuse text, links, and images without sending them to yourself or keeping another app open. Sync is handled through Apple's iCloud / CloudKit, so it uses the Apple account and system services you already trust.
+Clipaste for iOS is a keyboard, not just a clipboard viewer. Switch to it from the system keyboard picker, choose a saved clip, and paste without leaving the app you are typing in.
+
+When iCloud sync is enabled, clips saved on your Mac can appear in the iOS keyboard. Text, links, and images can move with you without sending them to yourself or keeping another app open. Sync uses Apple's iCloud / CloudKit, so it runs through the Apple account and system services you already trust.
 
 The iOS app is available on the [App Store](https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055). This link currently points to the China storefront; Apple may redirect it depending on your region. If it does not open correctly, search for `Clipaste` or `Clipaste Clipboard Keyboard` in your local App Store.
 
 If Clipaste is useful to you, the App Store version is also a simple way to support the project and help cover the yearly Apple Developer Program cost.
 
-## 🏎️ Why Clipaste
+## Preview
 
-Clipaste is designed around the failure cases that many clipboard managers start to show under heavier workloads:
+<div align="center">
+  <img src="https://cdn.nodeimage.com/i/RgZZ6F1hENt4VtEmYurxED7Dq5esGsNR.webp" width="40%" alt="Clipaste horizontal layout preview" />
+  <img src="https://cdn.nodeimage.com/i/UGNN3td8XU8ruIBNn1I6MdkVDWEoVTs4.webp" width="40%" alt="Clipaste vertical layout preview" />
+</div>
+<br />
+<div align="center">
+  <img src="https://cdn.nodeimage.com/i/i4Jab3co3VW1kOKL2zEkzIQNsiINGp9p.webp" width="40%" alt="Clipaste clipboard item preview" />
+  <img src="https://cdn.nodeimage.com/i/jRQP3zlsLV94nuvaoc7Cz781a8u50zVL.webp" width="40%" alt="Clipaste settings preview" />
+</div>
 
-- large histories become sluggish
-- large text payloads make the UI slow down
-- scrolling and searching stop feeling immediate
+## What Clipaste Does
 
-Clipaste is optimized for the opposite:
+### iOS Keyboard
 
-- smooth browsing with large histories
-- responsive handling of heavy text content
-- fast search, review, and re-paste workflows
-- strong performance without paying for it with excessive memory usage
+- Switch to Clipaste from the iOS keyboard picker whenever you need a saved clip.
+- Reuse Mac clipboard history while typing on iOS.
+- Paste text, links, and images without opening a separate clipboard app.
 
-If you have used Paste or PasteNow before, the difference is straightforward:
+### Mac Clipboard Manager
 
-- Clipaste puts more emphasis on performance under larger histories
-- Clipaste stays more responsive with heavier text payloads
-- Clipaste also gives you layout flexibility and open-source extensibility they do not
+- Fast daily interactions, even with a large clipboard history.
+- Smooth horizontal and vertical layouts.
+- Responsive handling of large text entries.
+- Image text recognition with searchable image content.
+- Quick preview, search, copy, and paste workflows.
 
-## 🔄 Migration
+### Sync & Migration
+
+- Optional iCloud / CloudKit sync between Mac and iOS.
+- Migration from **Paste**, **PasteNow**, **Maccy**, and **iCopy**.
+- Native SwiftUI and SwiftData architecture.
+- Free and open source.
+
+## Why Clipaste
+
+Many clipboard managers start to feel heavy once the history grows, especially when the saved content includes large text payloads or lots of images.
+
+Clipaste is built around that problem. It focuses on staying quick under real use: browsing, searching, previewing, and pasting should still feel immediate when your clipboard history is no longer small.
+
+If you have used Paste or PasteNow before, the difference is straightforward: Clipaste puts more emphasis on large-history performance, keeps heavier text content responsive, and gives you layout flexibility plus open-source extensibility.
+
+## Migration
 
 Clipaste can migrate clipboard history from:
 
@@ -83,19 +101,21 @@ Clipaste can migrate clipboard history from:
 
 The goal is simple: switch without losing your existing history.
 
-## 🧱 Tech Stack
+## Tech Stack
 
 - **SwiftUI** for the interface
 - **SwiftData** for storage and migration
 - **CloudKit** for optional sync
 - Native macOS app architecture
 
-## 🖥️ Requirements
+## Requirements
 
 - macOS 14.0+
 - Xcode 16+
 
-## 📦 Install
+## Install
+
+<a id="macos-install"></a>
 
 ### macOS
 
@@ -116,15 +136,15 @@ brew update
 brew upgrade --cask gangz1o-clipaste
 ```
 
-### iOS / iPadOS
+### iOS
 
 Install [Clipaste Clipboard Keyboard](https://apps.apple.com/cn/app/clipaste-%E5%89%AA%E8%B4%B4%E6%9D%BF%E9%94%AE%E7%9B%98/id6768657055) from the App Store, or search for `Clipaste` / `Clipaste Clipboard Keyboard` in your App Store region.
 
-## 🛠️ Build
+## Build
 
-1. Open `clipaste.xcodeproj` in Xcode
-2. Select your own signing team if you want to run the app with iCloud / push entitlements
-3. Build and run
+1. Open `clipaste.xcodeproj` in Xcode.
+2. Select your own signing team if you want to run the app with iCloud / push entitlements.
+3. Build and run.
 
 If you fork this project and want to distribute your own build, you will also need your own:
 
@@ -132,11 +152,11 @@ If you fork this project and want to distribute your own build, you will also ne
 - iCloud container
 - Apple signing configuration
 
-## 🚢 Releases
+## Releases
 
 Maintainers can generate and upload a notarized DMG using the GitHub Actions workflow documented in [RELEASING.md](RELEASING.md).
 
-## 🌟 Star History
+## Star History
 
 <a href="https://www.star-history.com/?repos=gangz1o%2FClipaste&type=date&legend=top-left">
  <picture>
@@ -146,7 +166,7 @@ Maintainers can generate and upload a notarized DMG using the GitHub Actions wor
  </picture>
 </a>
 
-## 💌 Community
+## Community
 
 Have questions, ideas, or just want to chat with a community of developers?
 
