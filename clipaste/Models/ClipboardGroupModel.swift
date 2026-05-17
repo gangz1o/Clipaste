@@ -23,17 +23,38 @@ final class ClipboardGroupModel {
     var createdAt: Date = Date()
     var systemIconName: String = ""
     var sortOrder: Int = 0
+    var deletedAt: Date?
+    var deletedByDevice: String = ""
 
     var resolvedSystemIconName: String? {
         ClipboardGroupIconName.normalize(systemIconName)
     }
 
-    init(id: String = UUID().uuidString, name: String, systemIconName: String? = nil, sortOrder: Int = 0) {
+    var isDeleted: Bool {
+        deletedAt != nil
+    }
+
+    init(
+        id: String = UUID().uuidString,
+        name: String,
+        systemIconName: String? = nil,
+        sortOrder: Int = 0,
+        deletedAt: Date? = nil,
+        deletedByDevice: String = ""
+    ) {
         self.id = id
         self.name = name
         self.createdAt = Date()
         self.systemIconName = ClipboardGroupIconName.storageValue(from: systemIconName)
         self.sortOrder = sortOrder
+        self.deletedAt = deletedAt
+        self.deletedByDevice = deletedByDevice
+    }
+
+    func markDeleted(at date: Date = Date()) {
+        guard deletedAt == nil else { return }
+        deletedAt = date
+        deletedByDevice = ClipboardSourceMetadata.currentDeviceName ?? ""
     }
 }
 
@@ -59,4 +80,3 @@ struct ClipboardGroupItem: Identifiable, Hashable, Sendable {
         return IconPickerViewModel.customIconNames.contains(systemIconName) ? .custom : .system
     }
 }
-

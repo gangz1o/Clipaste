@@ -43,7 +43,13 @@ extension ClipboardViewModel {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self, self.hasPreparedPanelData else { return }
-                self.needsReloadOnNextPresentation = true
+                guard self.isPanelPresentationActive else {
+                    self.needsReloadOnNextPresentation = true
+                    return
+                }
+                self.loadData(mode: .fullRefresh)
+                self.loadCustomGroups()
+                self.needsReloadOnNextPresentation = false
             }
             .store(in: &cancellables)
 

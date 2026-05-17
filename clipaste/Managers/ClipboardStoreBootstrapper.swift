@@ -37,6 +37,8 @@ struct ClipboardGroupExport: Sendable {
     let createdAt: Date
     let systemIconName: String?
     let sortOrder: Int
+    let deletedAt: Date?
+    let deletedByDevice: String
 }
 
 struct ClipboardStoreExport: Sendable {
@@ -191,7 +193,9 @@ final class ClipboardStoreBootstrapper: @unchecked Sendable {
             name: group.name,
             createdAt: group.createdAt,
             systemIconName: ClipboardGroupIconName.normalize(group.systemIconName),
-            sortOrder: group.sortOrder
+            sortOrder: group.sortOrder,
+            deletedAt: nil,
+            deletedByDevice: ""
         )
     }
 

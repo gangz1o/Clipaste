@@ -427,6 +427,7 @@ final class ClipboardRuntimeStore {
                 )
                 try await currentRuntime.storage.touchSyncAnchor()
                 await refreshCloudStoreDiagnostics(using: currentRuntime.storage)
+                await resetClipboardSnapshotSignature(using: currentRuntime.storage)
             }
             await MainActor.run {
                 NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
@@ -592,6 +593,7 @@ final class ClipboardRuntimeStore {
                 persistPreference: true,
                 updateLastSyncDate: true
             )
+            await resetClipboardSnapshotSignature(using: targetRuntime.storage)
             appendDiagnostic(
                 level: .info,
                 message: ClipboardSyncDiagnosticMessage(
@@ -749,6 +751,9 @@ final class ClipboardRuntimeStore {
             try await bootstrapper.importLegacyStoreIfNeeded(into: currentRuntime.storage)
             try await currentRuntime.storage.touchSyncAnchor()
             await refreshCloudStoreDiagnostics(using: currentRuntime.storage)
+            await refreshAfterRemoteImport()
+            await refreshAfterRemoteImportPasses(delays: [500_000_000, 2_000_000_000])
+            scheduleRemoteImportRepair()
             lastSyncDate = Date()
             defaults.set(lastSyncDate, forKey: Keys.lastSyncDate)
             NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
@@ -933,12 +938,7 @@ final class ClipboardRuntimeStore {
             guard let self else { return }
 
             await self.refreshAfterRemoteImport()
-
-            for delay in [500_000_000, 3_000_000_000, 10_000_000_000] {
-                try? await Task.sleep(nanoseconds: UInt64(delay))
-                guard Task.isCancelled == false else { return }
-                await self.refreshAfterRemoteImport()
-            }
+            await self.refreshAfterRemoteImportPasses(delays: [500_000_000, 3_000_000_000, 10_000_000_000])
         }
     }
 
@@ -1045,19 +1045,41 @@ final class ClipboardRuntimeStore {
         )
     }
 
+    private func refreshAfterRemoteImportPasses(delays: [UInt64]) async {
+        for delay in delays {
+            try? await Task.sleep(nanoseconds: delay)
+            guard Task.isCancelled == false else { return }
+            await refreshAfterRemoteImport()
+        }
+    }
+
+    private func resetClipboardSnapshotSignature(using storage: StorageManager) async {
+        clipboardSnapshotSignature = await makeClipboardSnapshotSignature(using: storage)
+    }
+
     private func updateClipboardSnapshotSignature(_ latestSignature: String) -> Bool {
         defer { clipboardSnapshotSignature = latestSignature }
-        guard let clipboardSnapshotSignature else { return false }
+        guard let clipboardSnapshotSignature else { return true }
         return clipboardSnapshotSignature != latestSignature
     }
 
     private func makeClipboardSnapshotSignature(using storage: StorageManager) async -> String {
+        let groups = await storage.fetchGroups()
         let items = await storage.fetchItemsPage(
             searchText: "",
             fetchLimit: ClipboardHistoryWarmCache.defaultLimit,
             offset: 0
         )
-        return items.map { item in
+        let groupSignature = groups.map { group in
+            [
+                group.id,
+                group.name,
+                group.systemIconName ?? "",
+                String(group.sortOrder)
+            ].joined(separator: "|")
+        }.joined(separator: "\n")
+
+        let itemSignature = items.map { item in
             [
                 item.id.uuidString,
                 item.contentHash,
@@ -1066,6 +1088,8 @@ final class ClipboardRuntimeStore {
                 item.groupIDs.joined(separator: ",")
             ].joined(separator: "|")
         }.joined(separator: "\n")
+
+        return "groups:\n\(groupSignature)\nitems:\n\(itemSignature)"
     }
 
     private func scheduleWarmCacheRefresh(using storage: StorageManager, routeKey: String) {

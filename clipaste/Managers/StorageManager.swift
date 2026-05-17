@@ -481,6 +481,9 @@ final class StorageManager {
     func fetchAllGroupsOnMain() -> [ClipboardGroupItem] {
         let context = container.mainContext
         let descriptor = FetchDescriptor<ClipboardGroupModel>(
+            predicate: #Predicate<ClipboardGroupModel> { group in
+                group.deletedAt == nil
+            },
             sortBy: [SortDescriptor(\.sortOrder, order: .forward)]
         )
         let records = (try? context.fetch(descriptor)) ?? []
@@ -728,7 +731,12 @@ final class StorageManager {
 actor ClipboardStoreActor {
     func diagnosticsSnapshot() -> ClipboardStoreDiagnosticsSnapshot {
         let recordCount = (try? modelContext.fetchCount(FetchDescriptor<ClipboardRecord>())) ?? 0
-        let groupCount = (try? modelContext.fetchCount(FetchDescriptor<ClipboardGroupModel>())) ?? 0
+        let activeGroupDescriptor = FetchDescriptor<ClipboardGroupModel>(
+            predicate: #Predicate<ClipboardGroupModel> { group in
+                group.deletedAt == nil
+            }
+        )
+        let groupCount = (try? modelContext.fetchCount(activeGroupDescriptor)) ?? 0
         var descriptor = FetchDescriptor<ClipboardRecord>(
             sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
         )
@@ -1055,7 +1063,11 @@ actor ClipboardStoreActor {
     }
 
     func createGroup(name: String, systemIconName: String? = nil) {
-        let descriptor = FetchDescriptor<ClipboardGroupModel>()
+        let descriptor = FetchDescriptor<ClipboardGroupModel>(
+            predicate: #Predicate<ClipboardGroupModel> { group in
+                group.deletedAt == nil
+            }
+        )
         let groups = (try? modelContext.fetch(descriptor)) ?? []
         let minOrder = groups.map(\.sortOrder).min() ?? 0
         let newGroup = ClipboardGroupModel(name: name, systemIconName: systemIconName, sortOrder: minOrder - 1)
@@ -1124,6 +1136,9 @@ actor ClipboardStoreActor {
 
     func fetchAllGroups() -> [ClipboardGroupItem] {
         let descriptor = FetchDescriptor<ClipboardGroupModel>(
+            predicate: #Predicate<ClipboardGroupModel> { group in
+                group.deletedAt == nil
+            },
             sortBy: [SortDescriptor(\.sortOrder, order: .forward)]
         )
         let groups = (try? modelContext.fetch(descriptor)) ?? []
@@ -1140,7 +1155,9 @@ actor ClipboardStoreActor {
 
     func updateGroupName(id: String, newName: String) {
         let descriptor = FetchDescriptor<ClipboardGroupModel>(
-            predicate: #Predicate { $0.id == id }
+            predicate: #Predicate<ClipboardGroupModel> { group in
+                group.id == id && group.deletedAt == nil
+            }
         )
         if let group = try? modelContext.fetch(descriptor).first {
             group.name = newName
@@ -1151,7 +1168,9 @@ actor ClipboardStoreActor {
 
     func updateGroupIcon(id: String, newIcon: String?) {
         let descriptor = FetchDescriptor<ClipboardGroupModel>(
-            predicate: #Predicate { $0.id == id }
+            predicate: #Predicate<ClipboardGroupModel> { group in
+                group.id == id && group.deletedAt == nil
+            }
         )
         if let group = try? modelContext.fetch(descriptor).first {
             group.systemIconName = ClipboardGroupIconName.storageValue(from: newIcon)
@@ -1172,10 +1191,12 @@ actor ClipboardStoreActor {
             }
         }
         let groupDescriptor = FetchDescriptor<ClipboardGroupModel>(
-            predicate: #Predicate { $0.id == id }
+            predicate: #Predicate<ClipboardGroupModel> { group in
+                group.id == id && group.deletedAt == nil
+            }
         )
         if let group = try? modelContext.fetch(groupDescriptor).first {
-            modelContext.delete(group)
+            group.markDeleted()
         }
         try? markSyncAnchorUpdated()
         try? modelContext.save()
@@ -1184,7 +1205,11 @@ actor ClipboardStoreActor {
     func updateGroupOrder(groupIDs: [String]) {
         guard !groupIDs.isEmpty else { return }
 
-        let descriptor = FetchDescriptor<ClipboardGroupModel>()
+        let descriptor = FetchDescriptor<ClipboardGroupModel>(
+            predicate: #Predicate<ClipboardGroupModel> { group in
+                group.deletedAt == nil
+            }
+        )
 
         do {
             let groups = try modelContext.fetch(descriptor)
@@ -1285,7 +1310,7 @@ actor ClipboardStoreActor {
     }
 
     func touchSyncAnchor() throws {
-        try markSyncAnchorUpdated()
+        try markSyncAnchorUpdated(force: true)
         try modelContext.save()
     }
 
@@ -1554,7 +1579,9 @@ actor ClipboardStoreActor {
                 name: $0.name,
                 createdAt: $0.createdAt,
                 systemIconName: $0.resolvedSystemIconName,
-                sortOrder: $0.sortOrder
+                sortOrder: $0.sortOrder,
+                deletedAt: $0.deletedAt,
+                deletedByDevice: $0.deletedByDevice
             )
         }
 
@@ -1567,15 +1594,24 @@ actor ClipboardStoreActor {
 
         for incomingGroup in payload.groups {
             if let existingGroup = groupsByID[incomingGroup.id] {
-                existingGroup.name = incomingGroup.name
-                existingGroup.systemIconName = ClipboardGroupIconName.storageValue(from: incomingGroup.systemIconName)
-                existingGroup.sortOrder = incomingGroup.sortOrder
+                if let incomingDeletedAt = incomingGroup.deletedAt {
+                    if existingGroup.deletedAt == nil || incomingDeletedAt > (existingGroup.deletedAt ?? .distantPast) {
+                        existingGroup.deletedAt = incomingDeletedAt
+                        existingGroup.deletedByDevice = incomingGroup.deletedByDevice
+                    }
+                } else if existingGroup.deletedAt == nil {
+                    existingGroup.name = incomingGroup.name
+                    existingGroup.systemIconName = ClipboardGroupIconName.storageValue(from: incomingGroup.systemIconName)
+                    existingGroup.sortOrder = incomingGroup.sortOrder
+                }
             } else {
                 let group = ClipboardGroupModel(
                     id: incomingGroup.id,
                     name: incomingGroup.name,
                     systemIconName: incomingGroup.systemIconName,
-                    sortOrder: incomingGroup.sortOrder
+                    sortOrder: incomingGroup.sortOrder,
+                    deletedAt: incomingGroup.deletedAt,
+                    deletedByDevice: incomingGroup.deletedByDevice
                 )
                 group.createdAt = incomingGroup.createdAt
                 modelContext.insert(group)
@@ -1729,6 +1765,7 @@ actor ClipboardStoreActor {
 
 private extension ClipboardStoreActor {
     nonisolated static let syncAnchorID = "global"
+    nonisolated static let minimumSyncAnchorNudgeInterval: TimeInterval = 2
     nonisolated static let textBasedTypes: Set<String> = [
         ClipboardContentType.text.rawValue,
         ClipboardContentType.code.rawValue,
@@ -1739,7 +1776,7 @@ private extension ClipboardStoreActor {
         Self.textBasedTypes
     }
 
-    func markSyncAnchorUpdated() throws {
+    func markSyncAnchorUpdated(force: Bool = false) throws {
         let anchorID = Self.syncAnchorID
         var descriptor = FetchDescriptor<SyncAnchor>(
             predicate: #Predicate<SyncAnchor> { anchor in
@@ -1756,7 +1793,12 @@ private extension ClipboardStoreActor {
             modelContext.insert(anchor)
         }
 
-        anchor.updatedAt = Date()
+        let now = Date()
+        if force == false, now.timeIntervalSince(anchor.updatedAt) < Self.minimumSyncAnchorNudgeInterval {
+            return
+        }
+
+        anchor.updatedAt = now
         anchor.platform = ClipboardSourceMetadata.currentPlatform
         anchor.deviceName = ClipboardSourceMetadata.currentDeviceName ?? ""
         anchor.generation = UUID()
