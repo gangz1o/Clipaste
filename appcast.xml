@@ -3,6 +3,33 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.1.2</title>
+            <pubDate>Wed, 20 May 2026 01:34:54 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.1.2</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20102</sparkle:version>
+            <sparkle:shortVersionString>2.1.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
+
+### ☁️ iCloud 同步优化
+
+- 优化与 iOS 客户端的 iCloud 同步速度，大幅提升多端数据传输的效率。
+- 减少同步等待时间，让剪贴板历史在 Mac 与 iOS 设备间的流转更加即时高效。
+
+---
+
+## ✨ What's New
+
+### ☁️ iCloud Sync Improvements
+
+- Optimized iCloud sync speed with the iOS client, significantly boosting data transfer efficiency across devices.
+- Reduced sync latency to ensure your clipboard history moves more instantly between Mac and iOS.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.1.2/Clipaste-v2.1.2.zip" length="6523466" type="application/octet-stream" sparkle:edSignature="VVbIiR0JpbxqNg6n8YzxEp+K5CRy5x4I/J53kmUkEpIwgzOTGzW86FBF/9W5FsnRmcrgZpnnMRiDxod80P8uBg=="/>
+        </item>
+        <item>
             <title>2.1.1</title>
             <pubDate>Sun, 17 May 2026 23:34:49 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -101,37 +128,6 @@
 - Refined the connection between Mac and iOS so clipboard history moves more smoothly between them.
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.1.0/Clipaste-v2.1.0.zip" length="6518216" type="application/octet-stream" sparkle:edSignature="e5m9lOe9Ki1X88JdqF/84h5XDY2jyQxu18ZRjFF7EuilQdU+FHSITuocnvBWW/q2IboJnITrBYzvVitFPrfMAQ=="/>
-        </item>
-        <item>
-            <title>2.0.6</title>
-            <pubDate>Thu, 14 May 2026 08:14:09 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.0.6</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20006</sparkle:version>
-            <sparkle:shortVersionString>2.0.6</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[### ✨ 本次更新
-
-#### 🍏 核心功能与优化
-- iCloud 同步机制重构：深度优化同步底层逻辑，数据同步体验更丝滑、无感。
-- 新增后台轮询机制：支持后台自动静默刷新，确保多端数据时刻保持最新。
-
-#### 🔮 精彩预告
-- iOS/iPadOS 版本终测启动：iOS/iPad 开发已进入最后冲刺测试！即将实现与 Mac 端的丝滑联动、无缝衔接，敬请期待！
-
----
-
-### ✨ What's New
-
-#### 🍏 Core Improvements
-- iCloud Sync Overhaul: Deeply optimized the underlying logic to deliver a smoother, seamless synchronization experience.
-- Added Background Polling: Supports automatic silent background updates to keep data instantly synced across devices.
-
-#### 🔮 Coming Soon
-- iOS/iPad Version Final Testing: The iOS/iPad application has entered its final testing phase! Smooth integration and seamless multi-device linkage with Mac are just around the corner. Stay tuned!
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.0.6/Clipaste-v2.0.6.zip" length="6476488" type="application/octet-stream" sparkle:edSignature="E77oNHSQ011+LdyCBHShjvpLBfpeqMK+76EJYxZzivM3lLFrxu021SqkoxWtYOo9CA4A8MR9DwxEqeL5HFbqCg=="/>
         </item>
     </channel>
 </rss>
