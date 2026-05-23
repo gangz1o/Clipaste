@@ -100,7 +100,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
     var linkTitle: String?     // 链接预览：网页标题（后台 metadata 引擎抓取）
     var linkIconData: Data?    // 链接预览：网站图标数据
     var isPinned: Bool         // 固定状态
-    let hasRTF: Bool           // ⚠️ 架构红线：仅轻量标记，不持有 RTF 二进制
+    let hasRTF: Bool           // ⚠️ 架构红线：仅轻量标记，不持有富文本二进制
     let sourcePlatformRawValue: String
     let sourceDeviceName: String?
     let captureMethodRawValue: String

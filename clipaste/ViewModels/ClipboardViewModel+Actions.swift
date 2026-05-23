@@ -136,12 +136,11 @@ extension ClipboardViewModel {
             return
         }
 
-
         selectedItemIDs = [item.id]
         lastSelectedID = item.id
 
         Task { @MainActor in
-            guard let record = await StorageManager.shared.loadPasteRecord(id: item.id) else {
+            guard let record = await pasteRecord(for: item) else {
                 return
             }
 
@@ -161,10 +160,10 @@ extension ClipboardViewModel {
                     return
                 }
 
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                Task { @MainActor in
+                    try? await Task.sleep(for: PasteEngine.postHidePasteDelay)
                     PasteEngine.shared.simulateCommandV()
                 }
-            } else {
             }
 
             let moveToTop = UserDefaults.standard.bool(forKey: "moveToTopAfterPaste")
@@ -176,10 +175,11 @@ extension ClipboardViewModel {
 
     func pasteAsPlainText(item: ClipboardItem) {
         Task { @MainActor in
-            guard let text = await StorageManager.shared.loadPlainText(id: item.id) else { return }
+            guard let text = await plainText(for: item) else { return }
             PasteEngine.shared.writePlainTextToPasteboard(text: text)
             ClipboardPanelManager.shared.forceHidePanel()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            Task { @MainActor in
+                try? await Task.sleep(for: PasteEngine.postHidePasteDelay)
                 PasteEngine.shared.simulateCommandV()
             }
         }
@@ -475,7 +475,8 @@ private extension ClipboardViewModel {
         case .pasteToActiveApp:
             PasteEngine.shared.writePlainTextToPasteboard(text: result)
             ClipboardPanelManager.shared.forceHidePanel()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            Task { @MainActor in
+                try? await Task.sleep(for: PasteEngine.postHidePasteDelay)
                 PasteEngine.shared.simulateCommandV()
             }
         }
@@ -577,6 +578,60 @@ private extension ClipboardViewModel {
         }
 
         return pasteTextFormat == .plainText
+    }
+
+    func pasteRecord(for item: ClipboardItem) async -> ClipboardPasteRecord? {
+        if let record = visibleItemPasteRecord(for: item) {
+            return record
+        }
+
+        return await StorageManager.shared.loadPasteRecord(id: item.id)
+    }
+
+    func plainText(for item: ClipboardItem) async -> String? {
+        if let text = fullVisibleText(for: item) {
+            return text
+        }
+
+        return await StorageManager.shared.loadPlainText(id: item.id)
+    }
+
+    func visibleItemPasteRecord(for item: ClipboardItem) -> ClipboardPasteRecord? {
+        if shouldForcePlainTextOutput == false, item.hasRTF {
+            return nil
+        }
+
+        guard let text = fullVisibleText(for: item) else {
+            return nil
+        }
+
+        return ClipboardPasteRecord(
+            id: item.id,
+            typeRawValue: item.contentType.rawValue,
+            plainText: text,
+            rtfData: nil,
+            richTextArchiveData: nil
+        )
+    }
+
+    func fullVisibleText(for item: ClipboardItem) -> String? {
+        let text: String?
+        switch item.contentType {
+        case .text, .link, .code:
+            text = item.rawText
+        case .color:
+            text = item.textPreview.isEmpty ? nil : item.textPreview
+        case .fileURL:
+            text = item.fileURL
+        case .image:
+            return nil
+        }
+
+        guard let text, text.count < 500 else {
+            return nil
+        }
+
+        return text
     }
 
     func moveItemToTop(_ item: ClipboardItem) {

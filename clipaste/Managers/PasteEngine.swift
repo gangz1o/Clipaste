@@ -6,6 +6,7 @@ import UniformTypeIdentifiers
 @MainActor
 final class PasteEngine {
     static let shared = PasteEngine()
+    static let postHidePasteDelay: Duration = .milliseconds(60)
 
     private let pasteboard = NSPasteboard.general
     private let vKeyCode: CGKeyCode = 0x09
@@ -47,7 +48,7 @@ final class PasteEngine {
         guard checkAccessibilityPermissions() else { return }
         guard await writeToPasteboard(record: record) else { return }
         ClipboardPanelManager.shared.hidePanel()
-        try? await Task.sleep(nanoseconds: 150_000_000)
+        try? await Task.sleep(for: Self.postHidePasteDelay)
         simulateCommandV()
     }
 
