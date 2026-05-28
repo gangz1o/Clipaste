@@ -3,6 +3,46 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.1.4</title>
+            <pubDate>Thu, 28 May 2026 15:08:49 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.1.4</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20104</sparkle:version>
+            <sparkle:shortVersionString>2.1.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# ✨ 本次更新
+
+## 🧭 剪贴板浏览体验优化
+
+- 修复剪贴板历史记录较多时，横向滑动浏览过程中列表可能突然回到最开始位置的问题。
+- 优化后台加载历史记录时的滚动状态保持，浏览大量剪贴板内容更加稳定顺滑。
+
+## ⌨️ 快速粘贴优化
+
+- 修复搜索结果中快速粘贴编号显示不连续的问题。
+- 现在搜索后的可见剪贴板条目会正确显示为 1-9，快速粘贴更直观、更准确。
+
+赶快更新体验吧！✨
+
+---
+
+# ✨ What's New
+
+## 🧭 Clipboard Browsing Improvements
+
+- Fixed an issue where the clipboard history could unexpectedly jump back to the beginning while scrolling horizontally through a large history.
+- Improved scroll position stability while history items continue loading in the background.
+
+## ⌨️ Quick Paste Improvements
+
+- Fixed incorrect Quick Paste shortcut numbers in search results.
+- Visible search results now correctly show shortcuts from 1-9, making Quick Paste more predictable and accurate.
+
+Update now and enjoy a smoother experience! ✨
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.1.4/Clipaste-v2.1.4.zip" length="6530040" type="application/octet-stream" sparkle:edSignature="EgsZDqS+/0ak20pLSWc8BltGMfutg/OB7TnPrFDSO1X2kn/ao3HTqs7HhAbeLC1SkWyrvWJgJtLfAEIMmxXwAw=="/>
+        </item>
+        <item>
             <title>2.1.3</title>
             <pubDate>Sat, 23 May 2026 09:15:06 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -66,56 +106,6 @@ Thank you for using our product! If you have any feedback, feel free to reach ou
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.1.2/Clipaste-v2.1.2.zip" length="6523466" type="application/octet-stream" sparkle:edSignature="VVbIiR0JpbxqNg6n8YzxEp+K5CRy5x4I/J53kmUkEpIwgzOTGzW86FBF/9W5FsnRmcrgZpnnMRiDxod80P8uBg=="/>
-        </item>
-        <item>
-            <title>2.1.1</title>
-            <pubDate>Sun, 17 May 2026 23:34:49 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.1.1</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20101</sparkle:version>
-            <sparkle:shortVersionString>2.1.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
-
-### 🚀 iOS 版本正式来袭
-
-- Clipaste iOS 版已经上架 App Store。
-- 它不只是一个剪贴板 App，更是一款可以随时切换出来使用的输入法键盘。
-- 在任何可以输入文字的地方，都可以切到 Clipaste，直接取用常用文本、链接和图片。
-- 开启 iCloud 同步后，Mac 端的剪贴板历史可以同步到 iOS 键盘里，随时可用。
-
-### 🛠 修复与体验优化
-
-- 修复快捷粘贴只能使用前 9 项的问题。现在滚动到后面的内容时，也可以对当前可见内容使用快捷粘贴。
-- 修复盲打搜索无法输入符号的问题。现在 `Shift + 数字` 输入的符号也可以正常触发搜索。
-
-### ☁️ iCloud 同步优化
-
-- 优化 iCloud 同步体验，提升多端数据同步的稳定性与一致性。
-- 改进 Mac 与 iOS 之间的同步衔接，让剪贴板历史在多设备间更自然地流转。
-
----
-
-## ✨ What's New
-
-### 🚀 iOS Version Is Here
-
-- Clipaste for iOS is now available on the App Store.
-- It is not just a clipboard app. It is a keyboard you can switch to anytime.
-- Wherever you can type, you can switch to Clipaste and quickly reuse saved text, links, and images.
-- With iCloud sync enabled, your Mac clipboard history can appear in the iOS keyboard and stay available when you need it.
-
-### 🛠 Fixes & Improvements
-
-- Fixed quick paste only working with the first 9 items. After scrolling, quick paste now works with the currently visible items.
-- Fixed type-to-search not accepting symbols. Symbols typed with `Shift + number` now correctly activate search.
-
-### ☁️ iCloud Sync Improvements
-
-- Improved iCloud sync stability and consistency across devices.
-- Refined the connection between Mac and iOS so clipboard history moves more smoothly between them.
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.1.1/Clipaste-v2.1.1.zip" length="6518224" type="application/octet-stream" sparkle:edSignature="JlbeFK+fyhZOJvHTxgT6FsAJpmXwHw6eHFyT/MKnqScvVB6Q4tpBqxt2qHPmAXVJs/M1RP62yfBDutYNv6HVBQ=="/>
         </item>
     </channel>
 </rss>
