@@ -82,7 +82,6 @@ final class ClipboardViewModel: ObservableObject {
     nonisolated(unsafe) var flagsChangedMonitor: Any?
     var currentModifierFlags: NSEvent.ModifierFlags = []
     var shouldResetSelectionToFirstDisplayedItem = false
-    var shouldAutoFollowTopItemDuringPresentation = false
     var hasPreparedPanelData = false
     var isPanelPresentationActive = false
     var needsReloadOnNextPresentation = false

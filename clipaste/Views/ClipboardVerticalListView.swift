@@ -157,7 +157,8 @@ struct ClipboardVerticalListView: View {
         let resolvedIndexes = ClipboardQuickPasteVisibleIndexResolver.resolve(
             frames: frames,
             viewportSize: viewportSize,
-            axis: .vertical
+            axis: .vertical,
+            itemIDsInDisplayOrder: items.map(\.id)
         )
 
         guard resolvedIndexes != quickPasteIndexesByItemID else { return }

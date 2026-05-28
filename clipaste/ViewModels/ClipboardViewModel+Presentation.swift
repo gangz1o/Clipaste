@@ -6,7 +6,6 @@ extension ClipboardViewModel {
     func beginPresentation() {
         let wasAlreadyActive = isPanelPresentationActive
         isPanelPresentationActive = true
-        shouldAutoFollowTopItemDuringPresentation = true
         
         // Only reset search on the initial presentation, not when regaining focus
         // while already active. This preserves search state when the panel
@@ -35,7 +34,6 @@ extension ClipboardViewModel {
 
     func endPresentation() {
         isPanelPresentationActive = false
-        shouldAutoFollowTopItemDuringPresentation = false
     }
 
     func setupDataSubscriptions() {

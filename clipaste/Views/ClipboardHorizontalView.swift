@@ -76,7 +76,8 @@ struct ClipboardHorizontalView: View {
         let resolvedIndexes = ClipboardQuickPasteVisibleIndexResolver.resolve(
             frames: frames,
             viewportSize: viewportSize,
-            axis: .horizontal
+            axis: .horizontal,
+            itemIDsInDisplayOrder: items.map(\.id)
         )
 
         guard resolvedIndexes != quickPasteIndexesByItemID else { return }

@@ -3,8 +3,6 @@ import SwiftUI
 
 extension ClipboardViewModel {
     func handleSelection(id: UUID, isCommand: Bool, isShift: Bool) {
-        shouldAutoFollowTopItemDuringPresentation = false
-
         if isShift, let anchorID = lastSelectedID {
             let source = displayedItemsForInteraction
             if let anchorIdx = source.firstIndex(where: { $0.id == anchorID }),
@@ -29,7 +27,6 @@ extension ClipboardViewModel {
     }
 
     func selectAll() {
-        shouldAutoFollowTopItemDuringPresentation = false
         selectedItemIDs = Set(displayedItemsForInteraction.map(\.id))
     }
 
@@ -84,8 +81,6 @@ extension ClipboardViewModel {
     }
 
     func moveSelection(direction: Int) {
-        shouldAutoFollowTopItemDuringPresentation = false
-
         let displayedItems = displayedItemsForInteraction
         guard !displayedItems.isEmpty else { return }
 
@@ -164,7 +159,7 @@ extension ClipboardViewModel {
     }
 
     func reconcileSelectionAfterDisplayedItemsChange() {
-        if shouldResetSelectionToFirstDisplayedItem || shouldAutoFollowTopItemDuringPresentation {
+        if shouldResetSelectionToFirstDisplayedItem {
             shouldResetSelectionToFirstDisplayedItem = false
             selectFirstDisplayedItem()
             return

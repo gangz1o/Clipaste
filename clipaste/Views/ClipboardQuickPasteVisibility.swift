@@ -26,13 +26,24 @@ enum ClipboardQuickPasteVisibleIndexResolver {
     static func resolve(
         frames: [ClipboardQuickPasteVisibleFrame],
         viewportSize: CGSize,
-        axis: Axis
+        axis: Axis,
+        itemIDsInDisplayOrder: [UUID]
     ) -> [UUID: Int] {
         let viewport = CGRect(origin: .zero, size: viewportSize)
         guard viewport.width > 0, viewport.height > 0 else { return [:] }
 
+        let displayIndexByID = Dictionary(
+            uniqueKeysWithValues: itemIDsInDisplayOrder.enumerated().map { offset, id in
+                (id, offset)
+            }
+        )
+
         let visibleFrames = frames
-            .filter { isVisibleEnough(frame: $0.frame, in: viewport) }
+            .filter { frame in
+                guard let expectedSourceIndex = displayIndexByID[frame.id] else { return false }
+                guard frame.sourceIndex == expectedSourceIndex else { return false }
+                return isVisibleEnough(frame: frame.frame, in: viewport)
+            }
             .sorted { lhs, rhs in
                 switch axis {
                 case .horizontal:
