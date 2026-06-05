@@ -11,6 +11,7 @@ extension ClipboardViewModel {
     }
 
     func dismissQuickLook() {
+        clearAutoPreviewState()
         quickLookLoadGeneration &+= 1
         quickLookLoadTask?.cancel()
         quickLookLoadTask = nil
@@ -27,7 +28,13 @@ extension ClipboardViewModel {
         quickLookItem != nil || quickLookRequestedItemID != nil
     }
 
-    func presentQuickLook(for item: ClipboardItem) {
+    func presentQuickLook(for item: ClipboardItem, isAutomaticPreview: Bool = false) {
+        if isAutomaticPreview {
+            autoPreviewPresentedItemID = item.id
+        } else {
+            clearAutoPreviewState()
+        }
+
         quickLookLoadGeneration &+= 1
         quickLookLoadTask?.cancel()
         quickLookLoadTask = nil
@@ -50,6 +57,85 @@ extension ClipboardViewModel {
 
         resetQuickLookImageState()
         quickLookRequestedItemID = nil
+    }
+}
+
+extension ClipboardViewModel {
+    func handleAutoPreviewHover(
+        for item: ClipboardItem,
+        isHovering: Bool,
+        isEnabled: Bool
+    ) {
+        guard isEnabled else {
+            dismissAutoPreviewIfNeeded()
+            return
+        }
+
+        if isHovering {
+            scheduleAutoPreview(for: item)
+        } else {
+            cancelPendingAutoPreview(for: item.id)
+            dismissAutoPreview(for: item.id)
+        }
+    }
+
+    func presentAutoPreviewForSelectionIfNeeded(isEnabled: Bool) {
+        guard isEnabled else {
+            dismissAutoPreviewIfNeeded()
+            return
+        }
+
+        guard let item = quickLookPreviewCandidate else {
+            dismissAutoPreviewIfNeeded()
+            return
+        }
+
+        presentQuickLook(for: item, isAutomaticPreview: true)
+    }
+
+    func dismissAutoPreviewIfNeeded() {
+        cancelAutoPreviewTask()
+
+        guard autoPreviewPresentedItemID != nil else { return }
+        autoPreviewPresentedItemID = nil
+        dismissQuickLook()
+    }
+
+    private func scheduleAutoPreview(for item: ClipboardItem) {
+        cancelAutoPreviewTask()
+        autoPreviewPendingItemID = item.id
+        autoPreviewTask = Task { [weak self] in
+            try? await Task.sleep(for: .milliseconds(120))
+            guard let self, !Task.isCancelled else { return }
+            guard self.autoPreviewPendingItemID == item.id else { return }
+            self.autoPreviewTask = nil
+            self.autoPreviewPendingItemID = nil
+            self.presentQuickLook(for: item, isAutomaticPreview: true)
+        }
+    }
+
+    private func cancelPendingAutoPreview(for itemID: UUID) {
+        guard autoPreviewPendingItemID == itemID else { return }
+        cancelAutoPreviewTask()
+    }
+
+    private func cancelAutoPreviewTask() {
+        autoPreviewTask?.cancel()
+        autoPreviewTask = nil
+        autoPreviewPendingItemID = nil
+    }
+
+    private func dismissAutoPreview(for itemID: UUID) {
+        guard autoPreviewPresentedItemID == itemID else { return }
+        autoPreviewPresentedItemID = nil
+        dismissQuickLook()
+    }
+
+    private func clearAutoPreviewState() {
+        autoPreviewTask?.cancel()
+        autoPreviewTask = nil
+        autoPreviewPendingItemID = nil
+        autoPreviewPresentedItemID = nil
     }
 }
 

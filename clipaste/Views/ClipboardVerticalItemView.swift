@@ -15,10 +15,13 @@ struct ClipboardVerticalItemView: View {
     let item: ClipboardItem
     @ObservedObject var viewModel: ClipboardViewModel
     let quickPasteIndex: Int?
+    let usesPreviewPanel: Bool
+    let allowsAutoPreview: Bool
     let onHoverChange: ((Bool) -> Void)?
 
     @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
     @AppStorage("appAccentColor") private var appAccentColor: AppAccentColor = .defaultValue
+    @AppStorage("autoPreview") private var autoPreview = true
 
     @State private var isHovering = false
     @State private var richPreviewText: AttributedString?
@@ -128,6 +131,11 @@ struct ClipboardVerticalItemView: View {
                     isHovering = hovering
                 }
                 onHoverChange?(hovering)
+                viewModel.handleAutoPreviewHover(
+                    for: item,
+                    isHovering: hovering,
+                    isEnabled: allowsAutoPreview && autoPreview && !usesPreviewPanel
+                )
             }
             .animation(.easeInOut(duration: 0.15), value: showsQuickPasteBadge)
             .onDrag {

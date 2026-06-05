@@ -10,6 +10,7 @@ struct ClipboardCardView: View {
     @State private var richPreviewText: AttributedString?
     @State private var appIconDominantColorHex: String?
     @AppStorage("appAccentColor") private var appAccentColor: AppAccentColor = .defaultValue
+    @AppStorage("autoPreview") private var autoPreview = true
 
     private var isSelected: Bool {
         viewModel.selectedItemIDs.contains(item.id)
@@ -146,6 +147,11 @@ struct ClipboardCardView: View {
         .clipboardContextMenu(for: item, viewModel: viewModel)
         .onHover { hovering in
             isHovered = hovering
+            viewModel.handleAutoPreviewHover(
+                for: item,
+                isHovering: hovering,
+                isEnabled: autoPreview
+            )
         }
         .onDrag {
             viewModel.draggedItemId = item.id

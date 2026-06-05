@@ -78,6 +78,9 @@ final class ClipboardViewModel: ObservableObject {
     var quickLookLoadTask: Task<Void, Never>? = nil
     var quickLookLoadGeneration: UInt = 0
     var quickLookRequestedItemID: UUID? = nil
+    var autoPreviewTask: Task<Void, Never>? = nil
+    var autoPreviewPendingItemID: UUID? = nil
+    var autoPreviewPresentedItemID: UUID? = nil
     nonisolated(unsafe) var keyDownMonitor: Any?
     nonisolated(unsafe) var flagsChangedMonitor: Any?
     var currentModifierFlags: NSEvent.ModifierFlags = []
@@ -123,6 +126,7 @@ final class ClipboardViewModel: ObservableObject {
 
     deinit {
         operationNoticeHideTask?.cancel()
+        autoPreviewTask?.cancel()
         if let keyDownMonitor {
             NSEvent.removeMonitor(keyDownMonitor)
         }

@@ -5,6 +5,8 @@ struct ClipboardHorizontalView: View {
     let items: [ClipboardItem]
     @FocusState var focusedField: ClipboardPanelFocusField?
     @AppStorage("requireCmdToDelete") private var requireCmdToDelete: Bool = false
+    @AppStorage("singleClickPaste") private var singleClickPaste = false
+    @AppStorage("autoPreview") private var autoPreview = true
     @State private var quickPasteIndexesByItemID: [UUID: Int] = [:]
 
     private let quickPasteCoordinateSpaceName = "ClipboardHorizontalQuickPasteSpace"
@@ -22,7 +24,7 @@ struct ClipboardHorizontalView: View {
                             )
                                 .id(item.id)
                                 .contentShape(RoundedRectangle(cornerRadius: 16))
-                                .help("Click to paste to the active app")
+                                .help(pasteHelpText)
                                 .clipboardQuickPasteVisibleFrame(
                                     id: item.id,
                                     sourceIndex: index,
@@ -64,8 +66,22 @@ struct ClipboardHorizontalView: View {
                         animated: request.animated
                     )
                 }
+                .onChange(of: viewModel.selectedItemIDs) { _, _ in
+                    viewModel.presentAutoPreviewForSelectionIfNeeded(isEnabled: autoPreview)
+                }
+                .onChange(of: autoPreview) { _, _ in
+                    viewModel.presentAutoPreviewForSelectionIfNeeded(isEnabled: autoPreview)
+                }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
+        }
+    }
+
+    private var pasteHelpText: Text {
+        if singleClickPaste {
+            Text("Click to paste to the active app")
+        } else {
+            Text("Double-click to paste to the active app")
         }
     }
 

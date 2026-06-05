@@ -6,6 +6,7 @@ struct ClipboardVerticalListView: View {
     @FocusState var focusedField: ClipboardPanelFocusField?
     @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
     @AppStorage("previewPanelMode") private var previewPanelMode: PreviewPanelMode = .disabled
+    @AppStorage("autoPreview") private var autoPreview = true
 
     @State private var previewPanelViewModel = ClipboardPreviewPanelViewModel()
     @State private var quickPasteIndexesByItemID: [UUID: Int] = [:]
@@ -20,6 +21,14 @@ struct ClipboardVerticalListView: View {
 
     private var isPreviewEnabled: Bool {
         previewPanelMode == .enabled
+    }
+
+    private var shouldAutoPreview: Bool {
+        clipboardLayout == .vertical && isPreviewEnabled && autoPreview
+    }
+
+    private var shouldUseQuickLookAutoPreview: Bool {
+        clipboardLayout == .vertical && autoPreview && !isPreviewEnabled
     }
 
     private var itemSpacing: CGFloat {
@@ -40,7 +49,7 @@ struct ClipboardVerticalListView: View {
             listContent
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            // Preview panel (always visible when enabled)
+            // Preview panel
             if isPreviewEnabled, let previewItem = previewPanelViewModel.selectedItem {
                 ClipboardItemPreviewView(item: previewItem)
                     .transition(.asymmetric(
@@ -54,28 +63,44 @@ struct ClipboardVerticalListView: View {
             previewPanelViewModel.handleSelectionChange(
                 items: items,
                 selectedItemIDs: viewModel.selectedItemIDs,
-                isPreviewEnabled: isPreviewEnabled
+                isPreviewEnabled: shouldAutoPreview
+            )
+            viewModel.presentAutoPreviewForSelectionIfNeeded(
+                isEnabled: shouldUseQuickLookAutoPreview
             )
         }
         .onChange(of: items) { _, _ in
             previewPanelViewModel.reconcile(
                 items: items,
                 selectedItemIDs: viewModel.selectedItemIDs,
-                isPreviewEnabled: isPreviewEnabled
+                isPreviewEnabled: shouldAutoPreview
             )
         }
         .onChange(of: previewPanelMode) { _, _ in
             previewPanelViewModel.handlePreviewModeChange(
                 items: items,
                 selectedItemIDs: viewModel.selectedItemIDs,
-                isPreviewEnabled: isPreviewEnabled
+                isPreviewEnabled: shouldAutoPreview
+            )
+            viewModel.presentAutoPreviewForSelectionIfNeeded(
+                isEnabled: shouldUseQuickLookAutoPreview
+            )
+        }
+        .onChange(of: autoPreview) { _, _ in
+            previewPanelViewModel.handlePreviewModeChange(
+                items: items,
+                selectedItemIDs: viewModel.selectedItemIDs,
+                isPreviewEnabled: shouldAutoPreview
+            )
+            viewModel.presentAutoPreviewForSelectionIfNeeded(
+                isEnabled: shouldUseQuickLookAutoPreview
             )
         }
         .onAppear {
             previewPanelViewModel.handlePreviewModeChange(
                 items: items,
                 selectedItemIDs: viewModel.selectedItemIDs,
-                isPreviewEnabled: isPreviewEnabled
+                isPreviewEnabled: shouldAutoPreview
             )
         }
     }
@@ -91,13 +116,15 @@ struct ClipboardVerticalListView: View {
                                 item: item,
                                 viewModel: viewModel,
                                 quickPasteIndex: quickPasteIndexesByItemID[item.id],
+                                usesPreviewPanel: isPreviewEnabled,
+                                allowsAutoPreview: clipboardLayout == .vertical,
                                 onHoverChange: { isHovering in
                                     previewPanelViewModel.handleHoverChange(
                                         for: item,
                                         isHovering: isHovering,
                                         items: items,
                                         selectedItemIDs: viewModel.selectedItemIDs,
-                                        isPreviewEnabled: isPreviewEnabled
+                                        isPreviewEnabled: shouldAutoPreview
                                     )
                                 }
                             )
@@ -133,7 +160,7 @@ struct ClipboardVerticalListView: View {
                     previewPanelViewModel.handlePreviewModeChange(
                         items: items,
                         selectedItemIDs: viewModel.selectedItemIDs,
-                        isPreviewEnabled: isPreviewEnabled
+                        isPreviewEnabled: shouldAutoPreview
                     )
                 }
                 .onChange(of: viewModel.listScrollRequest) { _, request in

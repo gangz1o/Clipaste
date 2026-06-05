@@ -7,6 +7,8 @@ struct GeneralSettingsView: View {
     @AppStorage("appAccentColor") private var appAccentColor: AppAccentColor = .defaultValue
     @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
     @AppStorage("hideMenuBarIcon") private var hideMenuBarIcon = false
+    @AppStorage("singleClickPaste") private var singleClickPaste = false
+    @AppStorage("autoPreview") private var autoPreview = false
 
     @State private var showingClearAlert = false
 
@@ -45,6 +47,14 @@ private extension GeneralSettingsView {
 
             Toggle(isOn: $viewModel.isCopySoundEnabled) {
                 Text("Copy Notification Sound")
+            }
+
+            Toggle(isOn: $singleClickPaste) {
+                Text("Single-click Paste")
+            }
+
+            Toggle(isOn: $autoPreview) {
+                Text("Auto Preview")
             }
         } header: {
             SettingsSectionHeader(title: "Basic")

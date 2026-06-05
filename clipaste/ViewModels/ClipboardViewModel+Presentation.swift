@@ -34,6 +34,7 @@ extension ClipboardViewModel {
 
     func endPresentation() {
         isPanelPresentationActive = false
+        dismissAutoPreviewIfNeeded()
     }
 
     func setupDataSubscriptions() {
