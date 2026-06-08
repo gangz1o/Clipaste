@@ -10,6 +10,7 @@ struct ClipboardMainView: View {
     @Environment(\.openSettings) private var openSettings
     @StateObject var viewModel = ClipboardViewModel()
     @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
+    @AppStorage(PreviewPanelMode.defaultsKey) private var previewPanelMode: PreviewPanelMode = .disabled
     @AppStorage("appTheme") private var appTheme: AppTheme = .system
     @FocusState private var focusedField: ClipboardPanelFocusField?
 
@@ -75,6 +76,12 @@ struct ClipboardMainView: View {
                     object: clipboardLayout
                 )
                 requestDefaultListFocus()
+            }
+            .onChange(of: previewPanelMode) {
+                NotificationCenter.default.post(
+                    name: .clipboardPreviewPanelChanged,
+                    object: previewPanelMode
+                )
             }
             .onChange(of: focusedField) { _, newValue in
                 viewModel.panelFocusField = newValue

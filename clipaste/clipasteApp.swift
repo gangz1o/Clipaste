@@ -28,6 +28,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        PreviewPanelMode.registerDefault()
+        PreviewPanelMode.migrateStoredPreference()
+
         if let appIcon = NSImage(named: "AppIcon") {
             NSApp.applicationIconImage = appIcon
         }
@@ -93,8 +96,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        guard !flag else { return true }
+        handleForegroundReopenRequest()
+        return false
+    }
+
     private func handleTogglePanelShortcut() {
         ClipboardPanelManager.shared.togglePanel()
+    }
+
+    private func handleForegroundReopenRequest() {
+        if !lastKnownOnboardingState {
+            presentOnboardingWindow()
+            return
+        }
+
+        SettingsWindowCoordinator.openFromAppKit()
     }
 
     private func registerGlobalShortcutsIfNeeded() {

@@ -342,22 +342,7 @@ struct ClipboardVerticalItemView: View {
             .transition(.opacity)
         } else if showsAIShortcut {
             ClipboardAIActionMenu(item: item, viewModel: viewModel) {
-                HStack(spacing: -4) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 7, weight: .medium))
-
-                    Text("AI")
-                        .font(.system(size: 9, weight: .medium))
-                }
-                .foregroundStyle(dateTextColor.opacity(0.78))
-                .padding(.horizontal, 2)
-                .frame(height: 20)
-                .background(.regularMaterial, in: Capsule())
-                .overlay {
-                    Capsule()
-                        .stroke(Color.black.opacity(0.10), lineWidth: 0.5)
-                }
-                .contentShape(Capsule())
+                ClipboardAIBadgeView(size: 20)
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)

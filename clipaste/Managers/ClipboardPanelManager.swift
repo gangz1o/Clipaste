@@ -12,6 +12,7 @@ class ClipboardPanelManager {
     private(set) var panel: ClipboardPanel?
     private var eventMonitor: Any?
     private var layoutObserver: Any?
+    private var previewObserver: Any?
     private var pinObserver: Any?
     private var forceHideObserver: Any?
 
@@ -34,6 +35,7 @@ class ClipboardPanelManager {
     private init() {
         setupPanel()
         setupLayoutObserver()
+        setupPreviewObserver()
         setupPinObserver()
         setupForceHideObserver()
     }
@@ -114,6 +116,32 @@ class ClipboardPanelManager {
         }
     }
 
+    private func setupPreviewObserver() {
+        previewObserver = NotificationCenter.default.addObserver(
+            forName: .clipboardPreviewPanelChanged,
+            object: nil,
+            queue: nil
+        ) { [weak self] _ in
+            guard let self else { return }
+
+            let applyPreviewUpdate = {
+                MainActor.assumeIsolated {
+                    let layout = AppLayoutMode(
+                        rawValue: UserDefaults.standard.string(forKey: "clipboardLayout")
+                            ?? AppLayoutMode.horizontal.rawValue
+                    ) ?? .horizontal
+                    self.updatePanelSize(layout: layout, animated: false)
+                }
+            }
+
+            if Thread.isMainThread {
+                applyPreviewUpdate()
+            } else {
+                DispatchQueue.main.async(execute: applyPreviewUpdate)
+            }
+        }
+    }
+
     private func setupForceHideObserver() {
         forceHideObserver = NotificationCenter.default.addObserver(
             forName: NSNotification.Name("HidePanelForce"),
@@ -134,9 +162,7 @@ class ClipboardPanelManager {
         let sf = screen.visibleFrame
         
         // Determine if preview panel is enabled
-        let previewMode = PreviewPanelMode(
-            rawValue: UserDefaults.standard.string(forKey: "previewPanelMode") ?? PreviewPanelMode.disabled.rawValue
-        ) ?? .disabled
+        let previewMode = PreviewPanelMode.resolved()
         let isPreviewEnabled = previewMode == .enabled
         
         let baseWidth: CGFloat = 360

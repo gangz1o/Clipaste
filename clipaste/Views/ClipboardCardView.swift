@@ -214,23 +214,7 @@ struct ClipboardCardView: View {
             .transition(.opacity)
         } else if showsAIShortcut {
             ClipboardAIActionMenu(item: item, viewModel: viewModel) {
-                HStack(spacing: -4) {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 9, weight: .medium))
-
-                    Text("AI")
-                        .font(.system(size: 10, weight: .semibold))
-                }
-                .foregroundStyle(Color(nsColor: .systemGray))
-                .padding(.horizontal, 4)
-                .frame(height: 22)
-                .background(.regularMaterial, in: Capsule())
-                .overlay {
-                    Capsule()
-                        .stroke(Color.black.opacity(0.10), lineWidth: 0.5)
-                }
-                .shadow(color: Color.black.opacity(0.12), radius: 3, x: 0, y: 1)
-                .contentShape(Capsule())
+                ClipboardAIBadgeView(size: 22)
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
