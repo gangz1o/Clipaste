@@ -2,8 +2,14 @@ import SwiftUI
 import AppKit
 
 struct NativeTextView: NSViewRepresentable {
+    enum Style {
+        case plain
+        case code
+    }
+
     var text: String
     var attributedText: NSAttributedString?
+    var style: Style = .plain
 
     func makeNSView(context: Context) -> NSScrollView {
         let scrollView = NSTextView.scrollableTextView()
@@ -20,7 +26,14 @@ struct NativeTextView: NSViewRepresentable {
         // 极其关键：开启非连续布局，允许巨量文本在后台分块渲染
         textView.layoutManager?.allowsNonContiguousLayout = true
 
-        textView.textContainerInset = NSSize(width: 20, height: 20)
+        textView.isHorizontallyResizable = false
+        textView.isVerticallyResizable = true
+        textView.textContainer?.widthTracksTextView = true
+        textView.textContainer?.heightTracksTextView = false
+        textView.textContainer?.containerSize = NSSize(
+            width: 0,
+            height: CGFloat.greatestFiniteMagnitude
+        )
 
         configureTextView(textView)
         return scrollView
@@ -32,20 +45,34 @@ struct NativeTextView: NSViewRepresentable {
     }
 
     private func configureTextView(_ textView: NSTextView) {
+        textView.textContainerInset = NSSize(
+            width: style == .code ? 16 : 20,
+            height: style == .code ? 14 : 20
+        )
+
         if let attrText = attributedText {
-            // 语法高亮模式：根据系统深浅模式动态选择背景色
-            let isDark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-            textView.drawsBackground = true
-            textView.backgroundColor = isDark
-                ? NSColor(red: 0.16, green: 0.18, blue: 0.22, alpha: 1.0) // atom-one-dark 背景色
-                : NSColor(red: 0.97, green: 0.97, blue: 0.97, alpha: 1.0) // xcode 浅色背景
             textView.textStorage?.setAttributedString(attrText)
+            applyBackgroundStyle(to: textView)
         } else {
             // 纯文本降级模式
-            textView.drawsBackground = false
             textView.font = .systemFont(ofSize: 14, weight: .regular)
             textView.textColor = NSColor.labelColor
             textView.string = text
+            applyBackgroundStyle(to: textView)
         }
+    }
+
+    private func applyBackgroundStyle(to textView: NSTextView) {
+        guard style == .code else {
+            textView.drawsBackground = false
+            textView.backgroundColor = .clear
+            return
+        }
+
+        let isDark = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        textView.drawsBackground = true
+        textView.backgroundColor = isDark
+            ? NSColor(red: 0.17, green: 0.18, blue: 0.23, alpha: 1.0)
+            : NSColor(red: 0.95, green: 0.96, blue: 0.98, alpha: 1.0)
     }
 }

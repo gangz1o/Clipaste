@@ -2,6 +2,10 @@ import AppKit
 import SwiftUI
 
 extension ClipboardViewModel {
+    var isAutomaticPreviewActive: Bool {
+        autoPreviewPresentedItemID != nil
+    }
+
     func toggleQuickLook() {
         if isQuickLookActive {
             dismissQuickLook()
@@ -93,6 +97,20 @@ extension ClipboardViewModel {
         presentQuickLook(for: item, isAutomaticPreview: true)
     }
 
+    func scheduleAutoPreviewForSelectionIfNeeded(isEnabled: Bool) {
+        guard isEnabled else {
+            dismissAutoPreviewIfNeeded()
+            return
+        }
+
+        guard let item = quickLookPreviewCandidate else {
+            dismissAutoPreviewIfNeeded()
+            return
+        }
+
+        scheduleAutoPreview(for: item)
+    }
+
     func dismissAutoPreviewIfNeeded() {
         cancelAutoPreviewTask()
 
@@ -105,7 +123,7 @@ extension ClipboardViewModel {
         cancelAutoPreviewTask()
         autoPreviewPendingItemID = item.id
         autoPreviewTask = Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(120))
+            try? await Task.sleep(for: ClipboardAutoPreviewPolicy.hoverPresentationDelay)
             guard let self, !Task.isCancelled else { return }
             guard self.autoPreviewPendingItemID == item.id else { return }
             self.autoPreviewTask = nil

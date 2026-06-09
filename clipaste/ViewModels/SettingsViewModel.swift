@@ -10,6 +10,7 @@ final class SettingsViewModel: @preconcurrency ObservableObject {
     private let preferencesStore: AppPreferencesStore
     private var cancellables = Set<AnyCancellable>()
     private var isApplyingSharedState = false
+    private var isNormalizingModifierSelection = false
     var ignoredApps: [IgnoredAppItem] = [] {
         willSet { objectWillChange.send() }
     }
@@ -40,10 +41,26 @@ final class SettingsViewModel: @preconcurrency ObservableObject {
 
     @AppStorage(ModifierKey.quickPasteDefaultsKey) var quickPasteModifier: ModifierKey = .command {
         willSet { objectWillChange.send() }
+        didSet {
+            guard !isNormalizingModifierSelection, quickPasteModifier != oldValue else { return }
+            normalizeModifierSelection(
+                changedRole: .quickPaste,
+                previousQuickPaste: oldValue,
+                previousPlainText: plainTextModifier
+            )
+        }
     }
 
     @AppStorage(ModifierKey.plainTextDefaultsKey) var plainTextModifier: ModifierKey = .shift {
         willSet { objectWillChange.send() }
+        didSet {
+            guard !isNormalizingModifierSelection, plainTextModifier != oldValue else { return }
+            normalizeModifierSelection(
+                changedRole: .plainText,
+                previousQuickPaste: quickPasteModifier,
+                previousPlainText: oldValue
+            )
+        }
     }
 
     @AppStorage("isCopySoundEnabled") var isCopySoundEnabled: Bool = true {
@@ -77,6 +94,10 @@ final class SettingsViewModel: @preconcurrency ObservableObject {
     }
 
     @AppStorage("clearSearchOnPanelActivation") var clearSearchOnPanelActivation: Bool = false {
+        willSet { objectWillChange.send() }
+    }
+
+    @AppStorage("autoFocusFirstItemOnPanelActivation") var autoFocusFirstItemOnPanelActivation: Bool = false {
         willSet { objectWillChange.send() }
     }
 
@@ -152,6 +173,30 @@ final class SettingsViewModel: @preconcurrency ObservableObject {
         isApplyingSharedState = true
         updates()
         isApplyingSharedState = false
+    }
+
+    private func normalizeModifierSelection(
+        changedRole: ModifierKey.ShortcutRole,
+        previousQuickPaste: ModifierKey,
+        previousPlainText: ModifierKey
+    ) {
+        let normalized = ModifierKey.normalizedExclusiveShortcutPair(
+            quickPaste: quickPasteModifier,
+            plainText: plainTextModifier,
+            changedRole: changedRole,
+            previousQuickPaste: previousQuickPaste,
+            previousPlainText: previousPlainText
+        )
+
+        guard normalized.quickPaste != quickPasteModifier
+            || normalized.plainText != plainTextModifier else {
+            return
+        }
+
+        isNormalizingModifierSelection = true
+        quickPasteModifier = normalized.quickPaste
+        plainTextModifier = normalized.plainText
+        isNormalizingModifierSelection = false
     }
 
     private func migrateCopySoundPreferenceIfNeeded() {

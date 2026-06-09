@@ -165,8 +165,7 @@ extension ClipboardViewModel {
                 return event
             }
 
-            if let responder = NSApp.keyWindow?.firstResponder,
-               responder is NSTextView || responder is NSTextField {
+            if hasActiveTextInputResponder {
                 return event
             }
 
@@ -183,8 +182,7 @@ extension ClipboardViewModel {
                 return nil
             }
 
-            if let firstResponder = NSApp.keyWindow?.firstResponder,
-               firstResponder is NSTextView || firstResponder is NSTextField {
+            if hasActiveTextInputResponder {
                 return event
             }
 
@@ -209,8 +207,7 @@ extension ClipboardViewModel {
 
         // Cmd+Backspace to delete selected items (when requireCmdToDelete is enabled)
         if keyCode == 51, event.modifierFlags.contains(.command) {
-            if let responder = NSApp.keyWindow?.firstResponder,
-               responder is NSTextView || responder is NSTextField {
+            if hasActiveTextInputResponder {
                 return event
             }
             deleteSelection(isCommandHeld: true)
@@ -218,8 +215,7 @@ extension ClipboardViewModel {
         }
 
         if keyCode == 0, event.modifierFlags.contains(.command) {
-            if let responder = NSApp.keyWindow?.firstResponder,
-               responder is NSTextView || responder is NSTextField {
+            if hasActiveTextInputResponder {
                 return event
             }
             selectAll()
@@ -252,7 +248,7 @@ extension ClipboardViewModel {
         }
 
         if isPlainNavigationEvent(event),
-           !isQuickLookActive,
+           !shouldBlockKeyboardNavigationForQuickLook,
            let direction = navigationDirection(for: keyCode),
            shouldRouteSearchArrowNavigation {
             NotificationCenter.default.post(name: .focusListIntent, object: nil)
@@ -265,7 +261,7 @@ extension ClipboardViewModel {
         }
 
         if isPlainNavigationEvent(event),
-           !isQuickLookActive,
+           !shouldBlockKeyboardNavigationForQuickLook,
            let direction = navigationDirection(for: keyCode) {
             moveSelection(direction: direction)
             return nil
@@ -302,7 +298,19 @@ private extension ClipboardViewModel {
             return false
         }
 
-        return responder is NSTextView || responder is NSTextField
+        if let textView = responder as? NSTextView {
+            return textView.isEditable || textView.isFieldEditor
+        }
+
+        if responder is NSTextField {
+            return true
+        }
+
+        return false
+    }
+
+    var shouldBlockKeyboardNavigationForQuickLook: Bool {
+        isQuickLookActive && !isAutomaticPreviewActive
     }
 
     func matchesPanelShortcut(_ event: NSEvent, name: KeyboardShortcuts.Name) -> Bool {

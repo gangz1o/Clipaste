@@ -51,19 +51,21 @@ private extension ShortcutsSettingsView {
             ModifierPickerView(
                 title: "Quick Paste",
                 suffix: "+ 1…9",
-                selection: $viewModel.quickPasteModifier
+                selection: $viewModel.quickPasteModifier,
+                excludedOption: viewModel.plainTextModifier
             )
 
             ModifierPickerView(
-                title: "Plain Text Mode",
+                title: "Plain Text Modifier",
                 suffix: "",
-                selection: $viewModel.plainTextModifier
+                selection: $viewModel.plainTextModifier,
+                excludedOption: viewModel.quickPasteModifier
             )
         } header: {
             SettingsSectionHeader(title: "Modifier Keys")
         } footer: {
             SettingsSectionFooter {
-                Text("Hold the quick paste modifier to reveal 1…9 shortcuts. Hold the plain text modifier while copying or pasting to strip formatting.")
+                Text("Within the clipboard panel, hold the quick paste modifier to reveal 1…9 shortcuts. Add the plain text modifier while copying, pressing Return to paste, or using quick paste to strip formatting.")
             }
         }
     }

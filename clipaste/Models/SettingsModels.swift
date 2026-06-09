@@ -3,6 +3,11 @@ import Foundation
 import SwiftUI
 
 enum ModifierKey: String, CaseIterable, Identifiable {
+    enum ShortcutRole {
+        case quickPaste
+        case plainText
+    }
+
     case command
     case option
     case control
@@ -67,6 +72,37 @@ enum ModifierKey: String, CaseIterable, Identifiable {
         resolvedValue(forKey: plainTextDefaultsKey, fallback: .shift, in: defaults)
     }
 
+    static func normalizedExclusiveShortcutPair(
+        quickPaste: ModifierKey,
+        plainText: ModifierKey,
+        changedRole: ShortcutRole,
+        previousQuickPaste: ModifierKey? = nil,
+        previousPlainText: ModifierKey? = nil
+    ) -> (quickPaste: ModifierKey, plainText: ModifierKey) {
+        guard quickPaste == plainText else {
+            return (quickPaste, plainText)
+        }
+
+        switch changedRole {
+        case .quickPaste:
+            return (
+                quickPaste,
+                replacementExcluding(
+                    quickPaste,
+                    preferred: previousPlainText
+                )
+            )
+        case .plainText:
+            return (
+                replacementExcluding(
+                    plainText,
+                    preferred: previousQuickPaste
+                ),
+                plainText
+            )
+        }
+    }
+
     private static func migrate(defaultsKey: String, fallback: ModifierKey, in defaults: UserDefaults) {
         let resolved = resolvedValue(forKey: defaultsKey, fallback: fallback, in: defaults)
         defaults.set(resolved.rawValue, forKey: defaultsKey)
@@ -97,6 +133,17 @@ enum ModifierKey: String, CaseIterable, Identifiable {
         default:
             return nil
         }
+    }
+
+    private static func replacementExcluding(
+        _ excluded: ModifierKey,
+        preferred: ModifierKey?
+    ) -> ModifierKey {
+        if let preferred, preferred != excluded {
+            return preferred
+        }
+
+        return allCases.first(where: { $0 != excluded }) ?? excluded
     }
 }
 

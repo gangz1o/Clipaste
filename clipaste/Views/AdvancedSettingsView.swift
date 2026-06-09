@@ -45,6 +45,10 @@ private extension AdvancedSettingsView {
                 Text("Clear Search When Opening Clipboard History")
             }
 
+            Toggle(isOn: $viewModel.autoFocusFirstItemOnPanelActivation) {
+                Text("Auto-Focus First Item When Opening Clipboard History")
+            }
+
             Toggle(isOn: $viewModel.requireCmdToDelete) {
                 Text("Require Cmd+Backspace to Delete")
             }

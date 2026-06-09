@@ -5,6 +5,7 @@ struct ModifierPickerView: View {
     let title: LocalizedStringKey
     let suffix: String
     @Binding var selection: ModifierKey
+    var excludedOption: ModifierKey?
     @Environment(\.locale) private var locale
 
     var body: some View {
@@ -19,6 +20,7 @@ struct ModifierPickerView: View {
                 ForEach(ModifierKey.allCases) { option in
                     Text(verbatim: option.pickerLabel(locale: locale))
                         .tag(option)
+                        .disabled(option == excludedOption)
                 }
             }
             .labelsHidden()

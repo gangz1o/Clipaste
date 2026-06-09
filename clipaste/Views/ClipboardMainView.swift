@@ -231,7 +231,9 @@ struct ClipboardMainView: View {
     private func requestDefaultListFocus() {
         pendingListFocusGeneration &+= 1
         pendingSearchFocusGeneration &+= 1
-        pendingListFocusRequest = .preserveSelection
+        pendingListFocusRequest = viewModel.settingsViewModel.autoFocusFirstItemOnPanelActivation
+            ? .selectFirstItem
+            : .preserveSelection
         focusedField = nil
         searchService.isTextFieldFocused = false
         resetPendingBlindTypedSearchInput()

@@ -65,7 +65,7 @@ struct ClipboardVerticalListView: View {
                 selectedItemIDs: viewModel.selectedItemIDs,
                 isPreviewEnabled: shouldAutoPreview
             )
-            viewModel.presentAutoPreviewForSelectionIfNeeded(
+            viewModel.scheduleAutoPreviewForSelectionIfNeeded(
                 isEnabled: shouldUseQuickLookAutoPreview
             )
         }

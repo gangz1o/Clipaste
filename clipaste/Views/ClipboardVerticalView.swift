@@ -21,7 +21,7 @@ struct ClipboardVerticalView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onChange(of: viewModel.selectedItemIDs) { _, _ in
-            viewModel.presentAutoPreviewForSelectionIfNeeded(isEnabled: autoPreview)
+            viewModel.scheduleAutoPreviewForSelectionIfNeeded(isEnabled: autoPreview)
         }
         .onChange(of: autoPreview) { _, _ in
             viewModel.presentAutoPreviewForSelectionIfNeeded(isEnabled: autoPreview)

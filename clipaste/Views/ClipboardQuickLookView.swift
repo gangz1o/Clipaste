@@ -31,6 +31,10 @@ private struct ClipboardQuickLookTextContent: View {
 
     @State private var highlightedAttr: NSAttributedString?
 
+    private var isCodeContent: Bool {
+        item.contentType == .code
+    }
+
     private var safeText: String {
         let fullText = item.rawText ?? item.textPreview
         if fullText.utf8.count > 200_000 {
@@ -41,17 +45,63 @@ private struct ClipboardQuickLookTextContent: View {
         return fullText
     }
 
+    private var previewLineCount: Int {
+        max(safeText.split(separator: "\n", omittingEmptySubsequences: false).count, 1)
+    }
+
+    private var previewMinWidth: CGFloat {
+        isCodeContent ? 360 : 400
+    }
+
+    private var previewIdealWidth: CGFloat {
+        isCodeContent ? 460 : 500
+    }
+
+    private var previewMaxWidth: CGFloat {
+        700
+    }
+
+    private var previewMinHeight: CGFloat {
+        isCodeContent ? 96 : 180
+    }
+
+    private var previewMaxHeight: CGFloat {
+        isCodeContent ? 360 : 600
+    }
+
+    private var previewIdealHeight: CGFloat {
+        let estimatedLineHeight: CGFloat = isCodeContent ? 20 : 22
+        let verticalChrome: CGFloat = isCodeContent ? 42 : 56
+        let estimated = CGFloat(min(previewLineCount, 18)) * estimatedLineHeight + verticalChrome
+        return min(max(estimated, previewMinHeight), previewMaxHeight)
+    }
+
+    private var outerPadding: CGFloat {
+        isCodeContent ? 12 : 16
+    }
+
     var body: some View {
-        NativeTextView(text: safeText, attributedText: highlightedAttr)
+        NativeTextView(
+            text: safeText,
+            attributedText: highlightedAttr,
+            style: isCodeContent ? .code : .plain
+        )
             .frame(
-                minWidth: 400,
-                idealWidth: 500,
-                maxWidth: 700,
-                minHeight: 300,
-                idealHeight: 400,
-                maxHeight: 600
+                minWidth: previewMinWidth,
+                idealWidth: previewIdealWidth,
+                maxWidth: previewMaxWidth,
+                minHeight: previewMinHeight,
+                idealHeight: previewIdealHeight,
+                maxHeight: previewMaxHeight
             )
-            .padding(16)
+            .clipShape(RoundedRectangle(cornerRadius: isCodeContent ? 12 : 0, style: .continuous))
+            .overlay {
+                if isCodeContent {
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                }
+            }
+            .padding(outerPadding)
             .task(id: item.contentHash) {
                 highlightedAttr = await ClipboardQuickLookTextLoader.loadHighlightedText(for: item)
             }

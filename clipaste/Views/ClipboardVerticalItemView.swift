@@ -324,9 +324,12 @@ struct ClipboardVerticalItemView: View {
         if let quickPasteIndex {
             QuickPasteShortcutHost(
                 shortcutIndex: quickPasteIndex,
-                modifierKey: viewModel.quickPasteModifier
+                modifierKey: viewModel.quickPasteModifier,
+                plainTextModifierKey: viewModel.plainTextModifier
             ) {
                 viewModel.pasteToActiveApp(item: item)
+            } plainTextAction: {
+                viewModel.pasteAsPlainText(item: item)
             }
         }
     }
