@@ -121,10 +121,19 @@ final class ClipboardRuntimeStore {
     private(set) var syncError: String?
     private(set) var lastSyncDate: Date?
     private(set) var runtimeGeneration: UUID
+    // ⚠️ 性能边界：以下几个字段在 sync 活跃时高频变化（每条 diagnostic、每次
+    // CloudKit 拉取都会写入），但只用于 `diagnosticsSnapshot` / `diagnosticsReport`
+    // 拼字符串，没有任何 SwiftUI 视图直接读取。用 @ObservationIgnored 把它们
+    // 从 @Observable 的追踪图里摘出去，避免无意义的 view invalidation 广播。
+    @ObservationIgnored
     private(set) var diagnosticsEntries: [ClipboardSyncDiagnosticEntry]
+    @ObservationIgnored
     private(set) var cloudKitAccountRecordName: String?
+    @ObservationIgnored
     private(set) var cloudStoreDiagnostics: ClipboardStoreDiagnosticsSnapshot?
+    @ObservationIgnored
     private(set) var cloudServerDiagnostics: CloudKitServerDiagnosticsSnapshot?
+    @ObservationIgnored
     private(set) var cloudServerDiagnosticsError: String?
 
     private let defaults: UserDefaults
@@ -139,8 +148,8 @@ final class ClipboardRuntimeStore {
     private var remoteStoreObserver: NSObjectProtocol?
     private var cloudKitEventObserver: NSObjectProtocol?
     private var remoteRepairTask: Task<Void, Never>?
-    private var foregroundSyncPollTask: Task<Void, Never>?
     private var clipboardSnapshotSignature: String?
+    private var lastDuplicateRepairDate: Date?
 
     private init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -258,8 +267,6 @@ final class ClipboardRuntimeStore {
                 self?.scheduleRemoteImportRepair()
             }
         }
-
-        updateForegroundSyncPolling()
     }
 
     var storage: StorageManager {
@@ -420,7 +427,7 @@ final class ClipboardRuntimeStore {
             let repairedClassificationCount = await repairTextClassificationsIfNeeded(using: currentRuntime.storage)
             let repairedAppIconColorCount = await repairAppIconColorsIfNeeded(using: currentRuntime.storage)
             let repairedAppIconDataCount = await repairAppIconDataIfNeeded(using: currentRuntime.storage)
-            let repairedDuplicateCount = await currentRuntime.storage.repairDuplicateRecords()
+            let repairedDuplicateCount = await repairDuplicateRecordsIfNeeded(using: currentRuntime.storage)
             if currentRuntime.syncEnabled {
                 cloudKitAccountRecordName = try await CloudSyncAvailabilityService.accountRecordName(
                     containerIdentifier: ClipboardModelContainerFactory.cloudKitContainerIdentifier
@@ -636,8 +643,6 @@ final class ClipboardRuntimeStore {
         ClipboardMonitor.shared.stopMonitoring()
         remoteRepairTask?.cancel()
         remoteRepairTask = nil
-        foregroundSyncPollTask?.cancel()
-        foregroundSyncPollTask = nil
 
         appendDiagnostic(
             level: .warning,
@@ -708,7 +713,6 @@ final class ClipboardRuntimeStore {
         }
 
         ClipboardMonitor.shared.startMonitoring()
-        updateForegroundSyncPolling()
         isSyncing = false
         processPendingSyncRequestIfNeeded()
     }
@@ -802,7 +806,6 @@ final class ClipboardRuntimeStore {
             NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
             scheduleWarmCacheRefresh(using: runtime.storage, routeKey: rootIdentity)
         }
-        updateForegroundSyncPolling()
         appendDiagnostic(
             level: .info,
             message: ClipboardSyncDiagnosticMessage(
@@ -910,12 +913,6 @@ final class ClipboardRuntimeStore {
     private func scheduleMaintenance() {
         maintenanceTask?.cancel()
 
-        let retentionRaw = defaults.string(forKey: "historyRetention") ?? HistoryRetention.oneMonth.rawValue
-        guard let retention = HistoryRetention(rawValue: retentionRaw),
-              let expirationDate = retention.expirationDate else {
-            return
-        }
-
         maintenanceTask = Task { [weak self] in
             guard let self else { return }
 
@@ -923,12 +920,24 @@ final class ClipboardRuntimeStore {
             try? await Task.sleep(nanoseconds: 10_000_000_000)
             guard Task.isCancelled == false else { return }
 
-            while self.isSyncing || ClipboardPanelManager.shared.isVisible {
-                try? await Task.sleep(nanoseconds: 5_000_000_000)
-                guard Task.isCancelled == false else { return }
-            }
+            // 长生命周期菜单栏应用，会被用户保持开启数天甚至数周。原实现只在
+            // 启动后 10s 跑一次清理任务就退出，意味着这段时间里过期记录会一直
+            // 累积。改为"24h 复检 + 每次读最新 retention 偏好"的常驻循环，
+            // 但读偏好/做清理之前依然让步给同步任务和可见面板。
+            while Task.isCancelled == false {
+                while self.isSyncing || ClipboardPanelManager.shared.isVisible {
+                    try? await Task.sleep(nanoseconds: 5_000_000_000)
+                    guard Task.isCancelled == false else { return }
+                }
 
-            StorageManager.shared.performAutoCleanup(before: expirationDate)
+                let retentionRaw = self.defaults.string(forKey: "historyRetention") ?? HistoryRetention.oneMonth.rawValue
+                if let retention = HistoryRetention(rawValue: retentionRaw),
+                   let expirationDate = retention.expirationDate {
+                    StorageManager.shared.performAutoCleanup(before: expirationDate)
+                }
+
+                try? await Task.sleep(nanoseconds: 24 * 60 * 60 * 1_000_000_000)
+            }
         }
     }
 
@@ -937,8 +946,11 @@ final class ClipboardRuntimeStore {
         remoteRepairTask = Task { [weak self] in
             guard let self else { return }
 
+            // Single tail-pass catches CloudKit deliveries that finish a
+            // short moment after eventChanged fires; the no-op signature
+            // check makes this cheap when nothing actually changed.
             await self.refreshAfterRemoteImport()
-            await self.refreshAfterRemoteImportPasses(delays: [500_000_000, 3_000_000_000, 10_000_000_000])
+            await self.refreshAfterRemoteImportPasses(delays: [1_500_000_000])
         }
     }
 
@@ -969,67 +981,18 @@ final class ClipboardRuntimeStore {
         }
     }
 
-    private func updateForegroundSyncPolling() {
-        guard currentRuntime.syncEnabled else {
-            foregroundSyncPollTask?.cancel()
-            foregroundSyncPollTask = nil
-            return
-        }
-
-        guard foregroundSyncPollTask == nil else { return }
-
-        foregroundSyncPollTask = Task { [weak self] in
-            try? await Task.sleep(nanoseconds: 5_000_000_000)
-
-            while Task.isCancelled == false {
-                await self?.performForegroundSyncPoll()
-                try? await Task.sleep(nanoseconds: 15_000_000_000)
-            }
-        }
-
-        appendDiagnostic(
-            level: .info,
-            message: ClipboardSyncDiagnosticMessage("Started foreground iCloud sync polling")
-        )
-    }
-
-    private func performForegroundSyncPoll() async {
-        guard currentRuntime.syncEnabled, isSyncing == false else { return }
-
-        let storage = currentRuntime.storage
-        let routeKey = rootIdentity
-
-        do {
-            try await Task.detached(priority: .utility) {
-                try await storage.touchSyncAnchor()
-            }.value
-
-            lastSyncDate = Date()
-            defaults.set(lastSyncDate, forKey: Keys.lastSyncDate)
-
-            try? await Task.sleep(nanoseconds: 1_000_000_000)
-            guard currentRuntime.syncEnabled, rootIdentity == routeKey else { return }
-
-            await refreshAfterRemoteImport()
-        } catch {
-            syncError = CloudSyncErrorFormatter.message(for: error)
-            appendDiagnostic(
-                level: .error,
-                message: ClipboardSyncDiagnosticMessage(
-                    "Foreground sync polling failed: %@",
-                    arguments: [.string(syncError ?? error.localizedDescription)]
-                )
-            )
-        }
-    }
-
     private func refreshAfterRemoteImport() async {
-        let repairedCount = await currentRuntime.storage.repairDuplicateRecords()
-        await refreshCloudStoreDiagnostics(using: currentRuntime.storage)
+        // Detect actual content change first via the lightweight signature;
+        // skip dedup entirely on no-op CloudKit pings. When a change is
+        // observed, dedup is throttled (default: at most once per 10 min) —
+        // ordinary capture-time dedup is already handled inline in upsert.
         let latestSignature = await makeClipboardSnapshotSignature(using: currentRuntime.storage)
         let didChange = updateClipboardSnapshotSignature(latestSignature)
 
-        guard repairedCount > 0 || didChange else { return }
+        guard didChange else { return }
+
+        let repairedCount = await repairDuplicateRecordsIfThrottled(using: currentRuntime.storage)
+        await refreshCloudStoreDiagnostics(using: currentRuntime.storage)
 
         NotificationCenter.default.post(name: .clipboardDataDidChange, object: nil)
         scheduleWarmCacheRefresh(using: currentRuntime.storage, routeKey: rootIdentity)
@@ -1108,6 +1071,34 @@ final class ClipboardRuntimeStore {
                 )
             }
         }
+    }
+
+    private func repairDuplicateRecordsIfNeeded(using storage: StorageManager) async -> Int {
+        let currentVersion = DedupThrottle.currentVersion
+        let storedVersion = defaults.integer(forKey: Keys.duplicateRepairVersion)
+        guard storedVersion < currentVersion else {
+            // Treat the last completed run as "recent enough" so the
+            // remote-import path's throttle does not redundantly retrigger
+            // dedup right after startup.
+            lastDuplicateRepairDate = Date()
+            return 0
+        }
+
+        let repairedCount = await storage.repairDuplicateRecords()
+        defaults.set(currentVersion, forKey: Keys.duplicateRepairVersion)
+        lastDuplicateRepairDate = Date()
+        return repairedCount
+    }
+
+    private func repairDuplicateRecordsIfThrottled(using storage: StorageManager) async -> Int {
+        if let lastDuplicateRepairDate,
+           Date().timeIntervalSince(lastDuplicateRepairDate) < DedupThrottle.minimumInterval {
+            return 0
+        }
+
+        let repairedCount = await storage.repairDuplicateRecords()
+        lastDuplicateRepairDate = Date()
+        return repairedCount
     }
 
     private func repairTextClassificationsIfNeeded(using storage: StorageManager) async -> Int {
@@ -1517,5 +1508,16 @@ private extension ClipboardRuntimeStore {
         static let textClassificationRepairVersion = "clipboard_text_classification_repair_version"
         static let appIconColorRepairVersion = "clipboard_app_icon_color_repair_version"
         static let appIconDataRepairVersion = "clipboard_app_icon_data_repair_version"
+        static let duplicateRepairVersion = "clipboard_duplicate_repair_version"
+    }
+
+    enum DedupThrottle {
+        // Dedup is O(n) over the full record table. Only run it occasionally
+        // after CloudKit deliveries — most CloudKit events do not actually
+        // introduce duplicates, and our inline upsert path already handles
+        // ordinary capture-time duplicates.
+        static let minimumInterval: TimeInterval = 10 * 60
+        // Version bumps force a one-shot dedup on next startup.
+        static let currentVersion = 1
     }
 }

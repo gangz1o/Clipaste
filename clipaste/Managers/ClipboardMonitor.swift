@@ -139,7 +139,12 @@ final class ClipboardMonitor {
         let sourceApplication = NSWorkspace.shared.frontmostApplication
         let appID = sourceApplication?.bundleIdentifier
         let appName = sourceApplication?.localizedName
-        let sourceAppIconData = sourceApplication?.icon.flatMap { AppIconManager.pngData(from: $0) }
+        // 优先走缓存（按 bundleID 命中已编码好的 PNG），缺 bundleID 才回退到
+        // 当前进程图标重新编码 —— 极少发生，但保留兜底以兼容老路径。
+        let sourceAppIconData = AppIconManager.shared.iconPNGData(
+            for: appID,
+            fallbackImage: sourceApplication?.icon
+        )
         let sourcePlatformRawValue = ClipboardSourceMetadata.currentPlatform
         let sourceDeviceName = ClipboardSourceMetadata.currentDeviceName
         let captureMethodRawValue = ClipboardSourceMetadata.macOSMonitorMethod
@@ -370,7 +375,7 @@ final class ClipboardMonitor {
         }
 
         for recordPayload in recordPayloads {
-            persistRecordPayload(
+            await persistRecordPayload(
                 recordPayload,
                 appIconDominantColorHex: appIconDominantColorHex,
                 appIconData: sourceAppIconData
@@ -390,6 +395,10 @@ final class ClipboardMonitor {
         )
         let imageMetadata = ImageProcessor.metadata(for: payload.data)
         let recordExists = await StorageManager.shared.recordExists(hash: contentHash)
+        // 已存在的 hash 走"置顶"路径，不再重复写入相同的 PNG 图标数据 —— 这块
+        // 走 externalStorage，每次写都要重新落盘，对长时间运行的菜单栏应用是
+        // 显著的累计 IO。
+        let iconDataToPersist: Data? = recordExists ? nil : appIconData
 
         StorageManager.shared.upsertRecord(
             hash: contentHash,
@@ -397,7 +406,7 @@ final class ClipboardMonitor {
             appID: payload.appID,
             appName: payload.appName,
             appIconDominantColorHex: appIconDominantColorHex,
-            appIconData: appIconData,
+            appIconData: iconDataToPersist,
             type: ClipboardContentType.image.rawValue,
             previewImageData: previewData,
             imageData: payload.data,
@@ -419,14 +428,19 @@ final class ClipboardMonitor {
         _ payload: ClipboardRecordPayload,
         appIconDominantColorHex: String?,
         appIconData: Data?
-    ) {
+    ) async {
+        // 同样走"已存在则跳过 icon 写入"。文本路径之前不查 recordExists，所以
+        // 每次复制都把同一份 App icon PNG 重新落盘一次。
+        let recordExists = await StorageManager.shared.recordExists(hash: payload.hash)
+        let iconDataToPersist: Data? = recordExists ? nil : appIconData
+
         StorageManager.shared.upsertRecord(
             hash: payload.hash,
             text: payload.text,
             appID: payload.appID,
             appName: payload.appName,
             appIconDominantColorHex: appIconDominantColorHex,
-            appIconData: appIconData,
+            appIconData: iconDataToPersist,
             type: payload.type,
             rtfData: payload.rtfData,
             richTextArchiveData: payload.richTextArchive?.encodedData(),

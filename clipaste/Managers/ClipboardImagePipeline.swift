@@ -15,6 +15,9 @@ final class ClipboardImagePipeline {
 
     private init() {
         cache.countLimit = 256
+        // 64 MB upper bound — Quick Look 高分图 + 列表缩略图共享同一个 cache，
+        // 没有 byte-level 上限时菜单栏应用持续运行会一路涨到几百 MB。
+        cache.totalCostLimit = 64 * 1024 * 1024
     }
 
     func invalidateAll() {
@@ -39,7 +42,7 @@ final class ClipboardImagePipeline {
         let image = await Self.downsampleImageOffMain(data, maxPixelSize: maxPixelSize)
 
         if let image {
-            cache.setObject(image, forKey: cacheKey)
+            cache.setObject(image, forKey: cacheKey, cost: Self.estimatedCost(forPixelSize: maxPixelSize, sourceByteCount: data.count))
         }
 
         return image
@@ -65,7 +68,7 @@ final class ClipboardImagePipeline {
         let image = await Self.downsampleImageOffMain(data, maxPixelSize: maxPixelSize)
 
         if let image {
-            cache.setObject(image, forKey: cacheKey)
+            cache.setObject(image, forKey: cacheKey, cost: Self.estimatedCost(forPixelSize: maxPixelSize, sourceByteCount: data.count))
         }
 
         return image
@@ -91,7 +94,7 @@ final class ClipboardImagePipeline {
         let image = await Self.downsampleImageOffMain(data, maxPixelSize: maxPixelSize)
 
         if let image {
-            cache.setObject(image, forKey: cacheKey)
+            cache.setObject(image, forKey: cacheKey, cost: Self.estimatedCost(forPixelSize: maxPixelSize, sourceByteCount: data.count))
         }
 
         return image
@@ -109,10 +112,19 @@ final class ClipboardImagePipeline {
         )
 
         if let image {
-            cache.setObject(image, forKey: cacheKey)
+            cache.setObject(image, forKey: cacheKey, cost: Self.estimatedCost(forPixelSize: maxPixelSize, sourceByteCount: 0))
         }
 
         return image
+    }
+
+    /// 估算单张缓存项的字节数。downsample 后图像约为 maxPixelSize² × 4 字节（RGBA）；
+    /// 当源数据更小时退化到源数据大小，避免高估。
+    private static func estimatedCost(forPixelSize maxPixelSize: Int, sourceByteCount: Int) -> Int {
+        let bounded = max(64, min(maxPixelSize, 4096))
+        let pixelEstimate = bounded * bounded * 4
+        guard sourceByteCount > 0 else { return pixelEstimate }
+        return min(pixelEstimate, sourceByteCount * 4)
     }
 
     private static func downsampleImageOffMain(_ data: Data, maxPixelSize: Int) async -> NSImage? {

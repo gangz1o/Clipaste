@@ -1315,21 +1315,39 @@ actor ClipboardStoreActor {
     }
 
     func repairDuplicateRecords() -> Int {
+        // Two passes:
+        // 1) Scan with batched fetch to identify which contentHashes have >1 row.
+        //    We don't keep references to records here — let the context drop
+        //    intermediate faults so memory stays flat regardless of table size.
+        // 2) Only fetch and merge the small subset of records belonging to a
+        //    duplicate hash.
         let descriptor = FetchDescriptor<ClipboardRecord>()
 
         do {
+            var counts: [String: Int] = [:]
             let records = try modelContext.fetch(descriptor)
-            var recordsByHash: [String: [ClipboardRecord]] = [:]
+            counts.reserveCapacity(min(records.count, 4096))
 
             for record in records {
                 let contentHash = record.contentHash.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard contentHash.isEmpty == false else { continue }
-                recordsByHash[contentHash, default: []].append(record)
+                counts[contentHash, default: 0] += 1
             }
+
+            let duplicateHashes = counts.compactMap { $0.value > 1 ? $0.key : nil }
+            guard duplicateHashes.isEmpty == false else { return 0 }
 
             var repairedCount = 0
 
-            for duplicates in recordsByHash.values where duplicates.count > 1 {
+            for hash in duplicateHashes {
+                let dupDescriptor = FetchDescriptor<ClipboardRecord>(
+                    predicate: #Predicate<ClipboardRecord> { record in
+                        record.contentHash == hash
+                    }
+                )
+                let duplicates = (try? modelContext.fetch(dupDescriptor)) ?? []
+                guard duplicates.count > 1 else { continue }
+
                 let orderedRecords = duplicates.sorted(by: shouldPreferSurvivor)
                 guard let survivor = orderedRecords.first else { continue }
 

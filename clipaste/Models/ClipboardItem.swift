@@ -206,70 +206,32 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
 }
 
 extension ClipboardItem {
+    // ⚠️ 等价性收窄：只比较"身份 + 易变标志"。
+    // 1. `id` + `contentHash` 锁定身份；包含 contentHash 是因为编辑/迁移可能在同一
+    //    UUID 下替换内容，UI 需要触发 diff。
+    // 2. `timestamp` 反映置顶/重排序。
+    // 3. 剩余字段是"会驱动 UI 重渲染"的可变标志（标题、链接元数据、固定、分组）。
+    // 4. 大字段（linkIconData、rawText、fileDisplayPath 等）从比较和哈希中移除：
+    //    这些要么由 id+contentHash 隐含锁定，要么会让 Published diff / Set / SwiftUI
+    //    自带 .id() 路径在每次刷新时跑昂贵的字节级比较。
     static func == (lhs: ClipboardItem, rhs: ClipboardItem) -> Bool {
         lhs.id == rhs.id &&
-        lhs.contentType == rhs.contentType &&
         lhs.contentHash == rhs.contentHash &&
-        lhs.textPreview == rhs.textPreview &&
-        lhs.searchableText == rhs.searchableText &&
-        lhs.sourceBundleIdentifier == rhs.sourceBundleIdentifier &&
-        lhs.appName == rhs.appName &&
-        lhs.appIconName == rhs.appIconName &&
         lhs.timestamp == rhs.timestamp &&
-        lhs.rawText == rhs.rawText &&
-        lhs.hasImagePreview == rhs.hasImagePreview &&
-        lhs.hasImageData == rhs.hasImageData &&
-        lhs.imageUTType == rhs.imageUTType &&
-        lhs.imagePixelWidth == rhs.imagePixelWidth &&
-        lhs.imagePixelHeight == rhs.imagePixelHeight &&
-        lhs.fileURL == rhs.fileURL &&
-        lhs.resolvedFileURL == rhs.resolvedFileURL &&
-        lhs.fileDisplayPath == rhs.fileDisplayPath &&
-        lhs.fileDisplayName == rhs.fileDisplayName &&
-        lhs.fileRepresentsImage == rhs.fileRepresentsImage &&
-        lhs.groupIDs == rhs.groupIDs &&
+        lhs.isPinned == rhs.isPinned &&
         lhs.customTitle == rhs.customTitle &&
         lhs.linkTitle == rhs.linkTitle &&
-        lhs.linkIconData == rhs.linkIconData &&
-        lhs.isPinned == rhs.isPinned &&
+        lhs.groupIDs == rhs.groupIDs &&
         lhs.hasRTF == rhs.hasRTF &&
-        lhs.sourcePlatformRawValue == rhs.sourcePlatformRawValue &&
-        lhs.sourceDeviceName == rhs.sourceDeviceName &&
-        lhs.captureMethodRawValue == rhs.captureMethodRawValue &&
-        lhs.captureSessionID == rhs.captureSessionID
+        lhs.hasImagePreview == rhs.hasImagePreview &&
+        lhs.hasImageData == rhs.hasImageData
     }
 
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
-        hasher.combine(contentType)
         hasher.combine(contentHash)
-        hasher.combine(textPreview)
-        hasher.combine(searchableText)
-        hasher.combine(sourceBundleIdentifier)
-        hasher.combine(appName)
-        hasher.combine(appIconName)
         hasher.combine(timestamp)
-        hasher.combine(rawText)
-        hasher.combine(hasImagePreview)
-        hasher.combine(hasImageData)
-        hasher.combine(imageUTType)
-        hasher.combine(imagePixelWidth)
-        hasher.combine(imagePixelHeight)
-        hasher.combine(fileURL)
-        hasher.combine(resolvedFileURL)
-        hasher.combine(fileDisplayPath)
-        hasher.combine(fileDisplayName)
-        hasher.combine(fileRepresentsImage)
-        hasher.combine(groupIDs)
-        hasher.combine(customTitle)
-        hasher.combine(linkTitle)
-        hasher.combine(linkIconData)
         hasher.combine(isPinned)
-        hasher.combine(hasRTF)
-        hasher.combine(sourcePlatformRawValue)
-        hasher.combine(sourceDeviceName)
-        hasher.combine(captureMethodRawValue)
-        hasher.combine(captureSessionID)
     }
 }
 

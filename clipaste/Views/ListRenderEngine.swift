@@ -11,8 +11,8 @@ final class ListRenderEngine {
 
     // MARK: - 缓存
 
-    /// 内存缓存：卡片 ID → 已排版的 AttributedString
-    private var cache: [UUID: AttributedString] = [:]
+    /// 有界 LRU：避免长时间运行的菜单栏应用把任意多 RTF 卡片永久驻留在内存里。
+    private let cache = LRUAttributedStringCache(countLimit: 200)
 
     /// 正在后台排版中的任务集合，防止同一个 item 被重复解析。
     private var inflight: [UUID: Task<AttributedString?, Never>] = [:]
@@ -21,14 +21,14 @@ final class ListRenderEngine {
 
     /// O(1) 缓存查询。缓存命中则 0 延迟渲染高亮文本。
     func cachedText(for id: UUID) -> AttributedString? {
-        cache[id]
+        cache.value(for: id)
     }
 
     /// 触发后台排版（幂等）并返回当前 item 的已排版文本。
     /// - 从数据库按需加载 rtfData → 后台解析 → 回主线程写入缓存
     func prepareText(for item: ClipboardItem) async -> AttributedString? {
         let id = item.id
-        if let cached = cache[id] {
+        if let cached = cache.value(for: id) {
             return cached
         }
 
@@ -63,7 +63,7 @@ final class ListRenderEngine {
         inflight[id] = nil
 
         if let result {
-            cache[id] = result
+            cache.set(result, for: id)
         }
 
         return result
@@ -71,7 +71,7 @@ final class ListRenderEngine {
 
     /// 清除指定卡片的缓存（编辑保存后调用）
     func invalidate(id: UUID) {
-        cache.removeValue(forKey: id)
+        cache.removeValue(for: id)
         inflight[id]?.cancel()
         inflight.removeValue(forKey: id)
     }
@@ -81,6 +81,110 @@ final class ListRenderEngine {
         cache.removeAll()
         inflight.values.forEach { $0.cancel() }
         inflight.removeAll()
+    }
+}
+
+/// 简易 MainActor LRU：AttributedString 不是 AnyObject，无法直接放入 NSCache。
+/// 200 张已排版 RTF 在常见场景下约占 10-30 MB，足以覆盖一屏 + 滚动 buffer。
+@MainActor
+private final class LRUAttributedStringCache {
+    private struct Node {
+        var value: AttributedString
+        var next: UUID?
+        var prev: UUID?
+    }
+
+    private let countLimit: Int
+    private var storage: [UUID: Node] = [:]
+    private var head: UUID?
+    private var tail: UUID?
+
+    init(countLimit: Int) {
+        self.countLimit = max(countLimit, 1)
+    }
+
+    func value(for id: UUID) -> AttributedString? {
+        guard let node = storage[id] else { return nil }
+        moveToHead(id, node: node)
+        return node.value
+    }
+
+    func set(_ value: AttributedString, for id: UUID) {
+        if storage[id] != nil {
+            storage[id]?.value = value
+            moveToHead(id, node: storage[id]!)
+            return
+        }
+
+        var newNode = Node(value: value, next: head, prev: nil)
+        storage[id] = newNode
+
+        if let oldHead = head {
+            storage[oldHead]?.prev = id
+            newNode.next = oldHead
+            storage[id] = newNode
+        }
+
+        head = id
+        if tail == nil {
+            tail = id
+        }
+
+        evictIfNeeded()
+    }
+
+    func removeValue(for id: UUID) {
+        guard let node = storage.removeValue(forKey: id) else { return }
+        unlink(id: id, node: node)
+    }
+
+    func removeAll() {
+        storage.removeAll(keepingCapacity: false)
+        head = nil
+        tail = nil
+    }
+
+    private func moveToHead(_ id: UUID, node: Node) {
+        guard head != id else { return }
+        unlink(id: id, node: node)
+        var updated = node
+        updated.prev = nil
+        updated.next = head
+        storage[id] = updated
+        if let oldHead = head {
+            storage[oldHead]?.prev = id
+        }
+        head = id
+        if tail == nil {
+            tail = id
+        }
+    }
+
+    private func unlink(id: UUID, node: Node) {
+        if let prev = node.prev {
+            storage[prev]?.next = node.next
+        } else if head == id {
+            head = node.next
+        }
+
+        if let next = node.next {
+            storage[next]?.prev = node.prev
+        } else if tail == id {
+            tail = node.prev
+        }
+    }
+
+    private func evictIfNeeded() {
+        while storage.count > countLimit, let tailID = tail {
+            guard let tailNode = storage.removeValue(forKey: tailID) else { break }
+            tail = tailNode.prev
+            if let prev = tailNode.prev {
+                storage[prev]?.next = nil
+            }
+            if head == tailID {
+                head = nil
+            }
+        }
     }
 }
 

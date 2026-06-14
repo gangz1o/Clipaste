@@ -34,6 +34,11 @@ final class ClipboardViewModel: ObservableObject {
 
     static let initialVisibleItemBatchSize = 80
     static let backgroundPageBatchSize = 160
+    /// 后台加载窗口上限：超过此值后停止后台分页，依赖搜索路径走 SQL 直查。
+    /// 避免菜单栏应用把全部历史（数万条）常驻 in-memory items 数组。
+    static let backgroundLoadMaxItems = 2000
+    /// 数据库搜索分页大小。
+    static let databaseSearchPageSize = 200
 
     struct QuickLookImagePreviewState {
         let image: NSImage
