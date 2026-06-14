@@ -3703,6 +3703,9 @@
     "Choose Icon" : {
 
     },
+    "Choose the EcoPaste SQLite database file. Clipaste will import the text history into your current library." : {
+
+    },
     "Choose the iCopy SQLite database file. Clipaste will import the text history into your current library." : {
       "localizations" : {
         "de" : {
@@ -16876,6 +16879,9 @@
         }
       }
     },
+    "Select the EcoPaste SQLite database file." : {
+
+    },
     "Select the iCopy SQLite database file." : {
       "localizations" : {
         "de" : {
@@ -21253,6 +21259,9 @@
           }
         }
       }
+    },
+    "导入器将使用原生 SQLite3 读取 history 表的文本记录，不依赖任何第三方数据库库。" : {
+
     },
     "导入器将使用原生 SQLite3 读取 t_data 表的纯文本记录，不依赖任何第三方数据库库。" : {
       "localizations" : {

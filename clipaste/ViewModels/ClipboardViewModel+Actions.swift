@@ -109,12 +109,17 @@ extension ClipboardViewModel {
         let hashesToDelete = deletableItems.map(\.contentHash)
         let fallbackSelectionID = selectionCandidateAfterRemoving(ids: idsToDelete)
 
-        withAnimation(.easeOut(duration: 0.2)) {
-            removeItems(withIDs: idsToDelete)
-        }
-
+        // Dismiss the QuickLook popover BEFORE removing the anchor card.
+        // The popover is attached to each ClipboardCardView, so tearing the
+        // card down while it's still presenting can leave NSPopover with a
+        // dangling parent view and crash on rapid repeated deletes.
         if let qlItem = quickLookItem, idsToDelete.contains(qlItem.id) {
             dismissQuickLook()
+        }
+        dismissAutoPreviewIfNeeded()
+
+        withAnimation(.easeOut(duration: 0.2)) {
+            removeItems(withIDs: idsToDelete)
         }
 
         for hash in hashesToDelete {
@@ -433,13 +438,18 @@ extension ClipboardViewModel {
             return
         }
         let fallbackSelectionID = selectionCandidateAfterRemoving(ids: [item.id])
+
+        // Dismiss the QuickLook popover BEFORE the anchor card unmounts —
+        // see batchDelete() for the rationale.
+        if quickLookItem?.id == item.id {
+            dismissQuickLook()
+        }
+        dismissAutoPreviewIfNeeded()
+
         withAnimation(.easeOut(duration: 0.2)) {
             removeItems(withIDs: [item.id])
         }
         applySelectionAfterDeletion(fallbackID: fallbackSelectionID)
-        if quickLookItem?.id == item.id {
-            dismissQuickLook()
-        }
         StorageManager.shared.deleteRecord(hash: item.contentHash)
     }
 }

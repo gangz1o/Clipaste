@@ -171,9 +171,14 @@ private extension ClipboardViewModel {
         // so there is no point making background network requests.
         guard settingsViewModel.linkDisplayMode == .rich else { return }
 
+        // We intentionally key off `linkTitle` only: snapshots no longer carry
+        // `linkIconData` (it's an externalStorage attribute and was crashing
+        // the searcher when accessed cross-actor during rapid deletes), so a
+        // nil icon doesn't mean the metadata is missing — just that it isn't
+        // present in this snapshot.
         let candidates = sourceItems
             .lazy
-            .filter { $0.isFastLink && ($0.linkTitle == nil || $0.linkIconData == nil) }
+            .filter { $0.isFastLink && $0.linkTitle == nil }
             .prefix(24)
 
         for item in candidates {

@@ -25,6 +25,57 @@ private struct ClipboardRecordSnapshot: Sendable {
     let sourceDeviceName: String?
     let captureMethodRawValue: String
     let captureSessionID: UUID?
+
+    /// Build a snapshot without touching any `@Attribute(.externalStorage)`
+    /// property on the record. External-storage getters trap with EXC_BAD_ACCESS
+    /// when the backing file has been removed by a concurrent write on another
+    /// `@ModelActor` — a hard-to-recover crash we hit when the user mashes
+    /// delete while a search/page fetch is in flight. We derive the
+    /// "has-X" hints from regular columns instead and let downstream loaders
+    /// (which hit the store actor with a fresh fetch) handle the actual blobs.
+    static func makeFromRecord(_ record: ClipboardRecord) -> ClipboardRecordSnapshot {
+        let truncatedText: String? = {
+            guard let text = record.plainText else { return nil }
+            return text.count > 500 ? String(text.prefix(500)) : text
+        }()
+
+        let isImageType = record.typeRawValue == ClipboardContentType.image.rawValue
+        let mayHaveRichText: Bool = {
+            switch record.typeRawValue {
+            case ClipboardContentType.text.rawValue,
+                 ClipboardContentType.code.rawValue:
+                return true
+            default:
+                return false
+            }
+        }()
+
+        return ClipboardRecordSnapshot(
+            id: record.id,
+            contentHash: record.contentHash,
+            bundleIdentifier: record.appBundleID,
+            appName: record.appLocalizedName ?? "Unknown App",
+            timestamp: record.timestamp,
+            plainText: truncatedText,
+            hasPreviewImage: isImageType,
+            hasImageData: isImageType,
+            imageUTType: record.imageUTType,
+            imagePixelWidth: record.imagePixelWidth,
+            imagePixelHeight: record.imagePixelHeight,
+            typeRawValue: record.typeRawValue,
+            groupId: record.groupId,
+            groupIdsRaw: record.groupIdsRaw,
+            customTitle: record.customTitle,
+            linkTitle: record.linkTitle,
+            linkIconData: nil,
+            isPinned: record.isPinned,
+            hasRTF: mayHaveRichText,
+            sourcePlatformRawValue: record.sourcePlatformRawValue,
+            sourceDeviceName: record.sourceDeviceName,
+            captureMethodRawValue: record.captureMethodRawValue,
+            captureSessionID: record.captureSessionID
+        )
+    }
 }
 
 struct ClipboardStoreDiagnosticsSnapshot: Sendable {
@@ -106,36 +157,7 @@ actor ClipboardSearcher {
 
         let records = (try? modelContext.fetch(descriptor)) ?? []
         let snapshots = records.map { record in
-            let truncatedText: String? = {
-                guard let text = record.plainText else { return nil }
-                return text.count > 500 ? String(text.prefix(500)) : text
-            }()
-
-            return ClipboardRecordSnapshot(
-                id: record.id,
-                contentHash: record.contentHash,
-                bundleIdentifier: record.appBundleID,
-                appName: record.appLocalizedName ?? "Unknown App",
-                timestamp: record.timestamp,
-                plainText: truncatedText,
-                hasPreviewImage: record.previewImageData != nil,
-                hasImageData: record.imageData != nil,
-                imageUTType: record.imageUTType,
-                imagePixelWidth: record.imagePixelWidth,
-                imagePixelHeight: record.imagePixelHeight,
-                typeRawValue: record.typeRawValue,
-                groupId: record.groupId,
-                groupIdsRaw: record.groupIdsRaw,
-                customTitle: record.customTitle,
-                linkTitle: record.linkTitle,
-                linkIconData: record.linkIconData,
-                isPinned: record.isPinned,
-                hasRTF: record.rtfData != nil || record.richTextArchiveData != nil,
-                sourcePlatformRawValue: record.sourcePlatformRawValue,
-                sourceDeviceName: record.sourceDeviceName,
-                captureMethodRawValue: record.captureMethodRawValue,
-                captureSessionID: record.captureSessionID
-            )
+            ClipboardRecordSnapshot.makeFromRecord(record)
         }
 
         return snapshots.map { StorageManager.makeClipboardItem(from: $0) }
@@ -836,36 +858,7 @@ actor ClipboardStoreActor {
             return nil
         }
 
-        let truncatedText: String? = {
-            guard let text = record.plainText else { return nil }
-            return text.count > 500 ? String(text.prefix(500)) : text
-        }()
-
-        return ClipboardRecordSnapshot(
-            id: record.id,
-            contentHash: record.contentHash,
-            bundleIdentifier: record.appBundleID,
-            appName: record.appLocalizedName ?? "Unknown App",
-            timestamp: record.timestamp,
-            plainText: truncatedText,
-            hasPreviewImage: record.previewImageData != nil,
-            hasImageData: record.imageData != nil,
-            imageUTType: record.imageUTType,
-            imagePixelWidth: record.imagePixelWidth,
-            imagePixelHeight: record.imagePixelHeight,
-            typeRawValue: record.typeRawValue,
-            groupId: record.groupId,
-            groupIdsRaw: record.groupIdsRaw,
-            customTitle: record.customTitle,
-            linkTitle: record.linkTitle,
-            linkIconData: record.linkIconData,
-            isPinned: record.isPinned,
-            hasRTF: record.rtfData != nil || record.richTextArchiveData != nil,
-            sourcePlatformRawValue: record.sourcePlatformRawValue,
-            sourceDeviceName: record.sourceDeviceName,
-            captureMethodRawValue: record.captureMethodRawValue,
-            captureSessionID: record.captureSessionID
-        )
+        return ClipboardRecordSnapshot.makeFromRecord(record)
     }
 
     func recordExists(hash: String) -> Bool {

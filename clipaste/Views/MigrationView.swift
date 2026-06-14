@@ -139,14 +139,24 @@ struct MigrationView: View {
                 .appendingPathComponent("Application Support", isDirectory: true)
                 .appendingPathComponent("Maccy", isDirectory: true)
 
+        case .ecoPaste:
+            return homeDirectory
+                .appendingPathComponent("Library", isDirectory: true)
+                .appendingPathComponent("Application Support", isDirectory: true)
+                .appendingPathComponent("com.ayangweb.EcoPaste", isDirectory: true)
+
         case .pasteNow:
             return nil
         }
     }
 
     private var fileDialogBrowserOptions: FileDialogBrowserOptions {
-        let source = selectedSource
-        return source == .paste || source == .iCopy || source == .maccy ? [.includeHiddenFiles] : []
+        switch selectedSource {
+        case .paste, .iCopy, .maccy, .ecoPaste:
+            return [.includeHiddenFiles]
+        case .pasteNow:
+            return []
+        }
     }
 
     private func handleImportSelection(_ result: Result<[URL], Error>) {
