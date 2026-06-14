@@ -3704,7 +3704,44 @@
 
     },
     "Choose the EcoPaste SQLite database file. Clipaste will import the text history into your current library." : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle die SQLite-Datenbankdatei von EcoPaste aus. Clipaste importiert den Textverlauf in deine aktuelle Mediathek."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez le fichier de base de données SQLite d'EcoPaste. Clipaste importera l'historique de texte dans votre bibliothèque actuelle."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EcoPaste の SQLite データベースファイルを選択すると、Clipaste がテキスト履歴を現在のライブラリに取り込みます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EcoPaste SQLite 데이터베이스 파일을 선택하면 Clipaste가 텍스트 기록을 현재 라이브러리로 가져옵니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择 EcoPaste 的 SQLite 数据库文件后，Clipaste 会将文本历史记录导入当前资料库。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "選擇 EcoPaste 的 SQLite 資料庫檔案後，Clipaste 會將文字歷史記錄匯入目前資料庫。"
+          }
+        }
+      }
     },
     "Choose the iCopy SQLite database file. Clipaste will import the text history into your current library." : {
       "localizations" : {
@@ -16880,7 +16917,44 @@
       }
     },
     "Select the EcoPaste SQLite database file." : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle die SQLite-Datenbankdatei von EcoPaste aus."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez le fichier de base de données SQLite d'EcoPaste."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EcoPaste の SQLite データベースファイルを選択してください。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "EcoPaste SQLite 데이터베이스 파일을 선택하세요."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请选择 EcoPaste 的 SQLite 数据库文件。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請選擇 EcoPaste 的 SQLite 資料庫檔案。"
+          }
+        }
+      }
     },
     "Select the iCopy SQLite database file." : {
       "localizations" : {
@@ -21261,7 +21335,50 @@
       }
     },
     "导入器将使用原生 SQLite3 读取 history 表的文本记录，不依赖任何第三方数据库库。" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Importer verwendet natives SQLite3, um Textdatensätze aus der Tabelle history zu lesen, ohne Bibliotheken von Drittanbietern."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The importer uses native SQLite3 to read text records from the history table, without relying on any third-party database libraries."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'importateur utilise SQLite3 natif pour lire les enregistrements texte de la table history, sans dépendre de bibliothèques de base de données tierces."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "インポーターはネイティブ SQLite3 を使用して history テーブルのテキスト記録を読み取り、サードパーティ製データベースライブラリには依存しません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "가져오기 도구는 네이티브 SQLite3를 사용해 history 테이블의 텍스트 레코드를 읽으며, 서드파티 데이터베이스 라이브러리에 의존하지 않습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入器将使用原生 SQLite3 读取 history 表的文本记录，不依赖任何第三方数据库库。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "匯入器將使用原生 SQLite3 讀取 history 資料表的文字記錄，不依賴任何第三方資料庫函式庫。"
+          }
+        }
+      }
     },
     "导入器将使用原生 SQLite3 读取 t_data 表的纯文本记录，不依赖任何第三方数据库库。" : {
       "localizations" : {
