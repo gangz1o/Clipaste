@@ -81,6 +81,7 @@ final class ClipboardViewModel: ObservableObject {
     var autoPreviewTask: Task<Void, Never>? = nil
     var autoPreviewPendingItemID: UUID? = nil
     var autoPreviewPresentedItemID: UUID? = nil
+    var shouldAutoSelectFirstItemAfterNextRefresh = false
     nonisolated(unsafe) var keyDownMonitor: Any?
     nonisolated(unsafe) var flagsChangedMonitor: Any?
     var currentModifierFlags: NSEvent.ModifierFlags = []

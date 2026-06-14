@@ -20,6 +20,7 @@ extension ClipboardViewModel {
             hasPreparedPanelData = true
             hydrateFromWarmCacheIfAvailable()
             shouldResetSelectionToFirstDisplayedItem = true
+            shouldAutoSelectFirstItemAfterNextRefresh = settingsViewModel.autoFocusFirstItemOnPanelActivation
             loadData(mode: .visibleFirst)
             loadCustomGroups()
             return
@@ -28,12 +29,14 @@ extension ClipboardViewModel {
         guard needsReloadOnNextPresentation else { return }
         needsReloadOnNextPresentation = false
         shouldResetSelectionToFirstDisplayedItem = true
+        shouldAutoSelectFirstItemAfterNextRefresh = settingsViewModel.autoFocusFirstItemOnPanelActivation
         loadData(mode: .fullRefresh)
         loadCustomGroups()
     }
 
     func endPresentation() {
         isPanelPresentationActive = false
+        shouldAutoSelectFirstItemAfterNextRefresh = false
         dismissAutoPreviewIfNeeded()
     }
 

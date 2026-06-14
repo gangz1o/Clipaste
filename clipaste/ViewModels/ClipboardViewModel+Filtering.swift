@@ -156,10 +156,14 @@ extension ClipboardViewModel {
         replaceItems(mappedItems)
         isInitialHistoryLoading = false
 
-        // Always use the filter pipeline to set displayedItemIDs to ensure
-        // consistent behavior. The filter pipeline will set displayedItemIDs
-        // based on the current activeSearchQuery (which may be debounced).
-        // This ensures search state is preserved when loading new items.
+        // Keep displayedItemIDs in sync with the newly loaded items before
+        // reconciling selection. Relying on the async filter pipeline alone can
+        // leave one activation frame using the previous display order.
+        refreshDisplayedItemsFromCurrentScope()
+
+        if applyDeferredAutoSelectFirstItemIfNeeded() {
+            return
+        }
 
         let validIDs = Set(mappedItems.map(\.id))
         let staleIDs = selectedItemIDs.subtracting(validIDs)
@@ -180,6 +184,15 @@ extension ClipboardViewModel {
         if mode == .visibleFirst, items.isEmpty == false {
             mergeItems(pageItems, prepend: true)
             refreshDisplayedItemsFromCurrentScope()
+
+            if applyDeferredAutoSelectFirstItemIfNeeded() {
+                isInitialHistoryLoading = false
+                isLoadingMoreHistory = pageItems.count == Self.initialVisibleItemBatchSize
+                loadedHistoryCount = items.count
+                hasLoadedFullHistory = pageItems.count < Self.initialVisibleItemBatchSize
+                return
+            }
+
             reconcileSelectionAfterDisplayedItemsChange()
         } else {
             applyLoadedItems(pageItems)
@@ -209,5 +222,19 @@ extension ClipboardViewModel {
         isLoadingMoreHistory = false
         loadedHistoryCount = loadedCount
         hasLoadedFullHistory = true
+    }
+
+    @discardableResult
+    private func applyDeferredAutoSelectFirstItemIfNeeded() -> Bool {
+        guard shouldAutoSelectFirstItemAfterNextRefresh else { return false }
+        shouldAutoSelectFirstItemAfterNextRefresh = false
+
+        guard displayedItemsForInteraction.isEmpty == false else {
+            clearSelection()
+            return true
+        }
+
+        selectFirstDisplayedItem()
+        return true
     }
 }
