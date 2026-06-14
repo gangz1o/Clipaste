@@ -50,6 +50,25 @@ log() {
   printf '[update-homebrew-tap] %s\n' "$*"
 }
 
+normalize_macos_dependency() {
+  local raw="${1#"${1%%[![:space:]]*}"}"
+  raw="${raw%"${raw##*[![:space:]]}"}"
+
+  case "$raw" in
+    :*)
+      printf '%s\n' "$raw"
+      ;;
+    ">= :"*)
+      printf '%s\n' "${raw#>= }"
+      ;;
+    *)
+      echo "Unsupported MINIMUM_MACOS format: $1" >&2
+      echo "Expected ':sonoma' or '>= :sonoma'." >&2
+      exit 1
+      ;;
+  esac
+}
+
 ensure_release_artifacts() {
   mkdir -p "$DIST_DIR"
 
@@ -80,6 +99,7 @@ extract_sha256() {
 write_cask_file() {
   local version="$1"
   local sha256="$2"
+  local minimum_macos="$3"
 
   mkdir -p "$(dirname "$CASK_ABSOLUTE_PATH")"
 
@@ -99,7 +119,7 @@ cask "${CASK_TOKEN}" do
   end
 
   auto_updates true
-  depends_on macos: ">= ${MINIMUM_MACOS}"
+  depends_on macos: ${minimum_macos}
 
   app "${APP_NAME}.app"
 
@@ -203,8 +223,9 @@ mkdir -p "$RUNNER_TEMP_DIR"
 ensure_release_artifacts
 
 SHA256="$(extract_sha256 "$SHA256_PATH")"
+NORMALIZED_MINIMUM_MACOS="$(normalize_macos_dependency "$MINIMUM_MACOS")"
 log "Updating ${CASK_RELATIVE_PATH} to version ${VERSION}"
-write_cask_file "$VERSION" "$SHA256"
+write_cask_file "$VERSION" "$SHA256" "$NORMALIZED_MINIMUM_MACOS"
 
 ruby -c "$CASK_ABSOLUTE_PATH"
 
