@@ -3,6 +3,35 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.1.9</title>
+            <pubDate>Mon, 15 Jun 2026 02:03:04 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.1.9</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20109</sparkle:version>
+            <sparkle:shortVersionString>2.1.9</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# ✨ 本次更新
+
+## ✨ 新功能 (Features)
+* ✨ 新增 支持从 EcoPaste 导入非图片历史。
+
+## 🐛 缺陷修复 (Bug Fixes)
+* 🔧 修复 连续删除导致应用闪退的问题。
+
+---
+
+# ✨ What's New
+
+## ✨ Features
+* ✨ Added: Supported importing non-image history from EcoPaste.
+
+## 🐛 Bug Fixes
+* 🔧 Fixed: Resolved an issue where continuous deletion caused the application to crash.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.1.9/Clipaste-v2.1.9.zip" length="6580316" type="application/octet-stream" sparkle:edSignature="wI7IcZfNScaM4/hnTjt9SN/HyH92GrE6SdOSpgDAn1M3y4xMTR2Pz/9M3j5qT1q6q/8fenhW2bNa3Dt1kSkwDw=="/>
+        </item>
+        <item>
             <title>2.1.8</title>
             <pubDate>Sun, 14 Jun 2026 08:57:27 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -72,31 +101,6 @@
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.1.7/Clipaste-v2.1.7.zip" length="6560360" type="application/octet-stream" sparkle:edSignature="3CACpxUATFpCbsd1kNy5U+dgdHTBKoHU13kWAlr5H5dv9ERVvPGuf5FXtB+9iGR4ILEpQoppzB4XyTEkf8ajCw=="/>
-        </item>
-        <item>
-            <title>2.1.6</title>
-            <pubDate>Mon, 08 Jun 2026 14:54:32 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.1.6</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20106</sparkle:version>
-            <sparkle:shortVersionString>2.1.6</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
-
-### 🛠 Fixes
-
-- 修复自动预览开关默认关闭时未立即生效的问题
-- 修复后台运行时再次打开 Clipaste 仅显示 Dock 图标、不显示界面的问题
-
----
-
-## ✨ What's New
-### 🛠 Fixes
-
-- Fixed Auto Preview not taking effect immediately when disabled by default
-- Fixed an issue where reopening Clipaste while running in the background could show only a Dock icon with no visible interface
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.1.6/Clipaste-v2.1.6.zip" length="6548847" type="application/octet-stream" sparkle:edSignature="jg//XbWJo8/S5T0xnKcLCzRKQdPK4b4Sj8csCg4Sxa0lUhvq3LkQ1GtZfpQCAAwQM5DP+3XVqsLpaoWPlHvWAA=="/>
         </item>
     </channel>
 </rss>
