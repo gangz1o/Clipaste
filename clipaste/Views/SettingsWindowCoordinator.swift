@@ -86,23 +86,28 @@ enum SettingsWindowCoordinator {
             forName: NSWindow.willCloseNotification,
             object: window,
             queue: .main
-        ) { _ in
-            Task { @MainActor in
-                restoreAccessoryPolicyIfNeeded()
+        ) { [weak window] _ in
+            Task { @MainActor [weak window] in
+                restoreAccessoryPolicyIfNeeded(excluding: window)
             }
         }
     }
 
     @MainActor
-    private static func restoreAccessoryPolicyIfNeeded() {
+    private static func restoreAccessoryPolicyIfNeeded(excluding closingWindow: NSWindow? = nil) {
         guard shouldRestoreAccessoryPolicy else { return }
         guard shouldUseAccessoryPolicy else {
             shouldRestoreAccessoryPolicy = false
             return
         }
 
-        let hasVisibleSettingsWindow = NSApp.windows.contains {
-            $0.identifier == windowIdentifier && $0.isVisible
+        // willCloseNotification 在窗口真正关闭前触发，此时 `closingWindow.isVisible`
+        // 仍会返回 true。若不显式排除正在关闭的窗口，本方法会误以为设置窗还在显示，
+        // 直接跳过恢复逻辑，导致 Dock 图标残留、必须强杀应用。
+        let hasVisibleSettingsWindow = NSApp.windows.contains { window in
+            window !== closingWindow
+                && window.identifier == windowIdentifier
+                && window.isVisible
         }
 
         guard !hasVisibleSettingsWindow else { return }

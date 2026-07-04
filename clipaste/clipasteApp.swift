@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import CoreServices
 import KeyboardShortcuts
 import SwiftData
 
@@ -21,10 +22,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private var onboardingWindow: NSWindow?
     private var hasRegisteredGlobalShortcuts = false
     private var statusBarController: StatusBarController?
+    private var wasLaunchedAtLoginItem = false
+    private var hasCompletedDeferredStartupWork = false
 
     private func normalizedAppLanguageStorageRaw() -> String {
         let raw = UserDefaults.standard.string(forKey: "appLanguage") ?? ""
         return raw.isEmpty ? AppLanguage.auto.rawValue : raw
+    }
+
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        wasLaunchedAtLoginItem = resolveLaunchedAtLoginItemFlag()
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -41,21 +48,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         lastKnownOnboardingState = hasCompleted
         updateActivationPolicy(hasCompletedOnboarding: hasCompleted)
 
-        if !hasCompleted {
+        if !hasCompleted, !wasLaunchedAtLoginItem {
             presentOnboardingWindow()
         }
 
         registerGlobalShortcutsIfNeeded()
-
-        // Verify accessibility permission so KeyboardShortcuts can use the privileged
-        // CGEventTap (session-level) instead of the degraded NSEvent global monitor.
-        // Without this, apps like Xcode that handle ⌘⇧C internally will swallow the
-        // event before our monitor sees it.
-        checkAndRequestAccessibility()
-
-        // 提前构建隐藏面板与其 SwiftUI 视图树，让首屏展示前就完成
-        // ViewModel 初始化、warm cache 订阅与基础窗口准备，减少第一次呼出时的白屏等待。
-        ClipboardPanelManager.shared.preparePanelIfNeeded()
+        performDeferredStartupWorkIfNeeded()
 
         lastObservedAppLanguageRaw = normalizedAppLanguageStorageRaw()
 
@@ -91,6 +89,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidBecomeActive(_ notification: Notification) {
         Task { @MainActor in
+            performDeferredStartupWorkIfNeeded()
+
+            if !lastKnownOnboardingState, onboardingWindow == nil {
+                presentOnboardingWindow()
+            }
+
             AppPreferencesStore.shared.refreshLaunchAtLoginStatus()
             ClipboardRuntimeStore.shared.handleAppBecameActive()
         }
@@ -137,6 +141,36 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func refreshGlobalShortcuts() {
         KeyboardShortcuts.disable(globalShortcutNames)
         KeyboardShortcuts.enable(globalShortcutNames)
+    }
+
+    private func resolveLaunchedAtLoginItemFlag() -> Bool {
+        let keyword = AEKeyword(keyAELaunchedAsLogInItem)
+        return NSAppleEventManager.shared()
+            .currentAppleEvent?
+            .paramDescriptor(forKeyword: keyword)?
+            .booleanValue ?? false
+    }
+
+    private func performDeferredStartupWorkIfNeeded() {
+        guard !hasCompletedDeferredStartupWork else { return }
+        guard !wasLaunchedAtLoginItem || NSApp.isActive else { return }
+
+        hasCompletedDeferredStartupWork = true
+
+        // 登录项冷启动时先保持最小可用启动路径，等真正进入前台后再做权限提示；
+        // 避免在系统刚恢复登录会话时立刻弹 TCC 对话框卡住主界面。
+        checkAndRequestAccessibility()
+
+        // 面板预热只影响首屏性能，不影响功能，延后一拍让 AppKit/SwiftUI 先完成基础启动。
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            ClipboardPanelManager.shared.preparePanelIfNeeded()
+        }
+
+        // Sparkle 在 menubar/accessory 场景下不适合跟冷启动抢主线程和窗口时序；
+        // 延后启动即可保留更新能力，同时避开登录项自动启动路径。
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            AppUpdateViewModel.shared.start()
+        }
     }
 
     /// Ensures the privileged CGEventTap (session-level) is available.
@@ -248,12 +282,6 @@ struct clipasteApp: App {
     private let runtimeStore = ClipboardRuntimeStore.shared
     private let appUpdateViewModel = AppUpdateViewModel.shared
     @AppStorage("appLanguage") private var appLanguage: AppLanguage = .auto
-
-    init() {
-        Task { @MainActor in
-            AppUpdateViewModel.shared.start()
-        }
-    }
 
     var body: some Scene {
         // Register standard macOS Settings Window
