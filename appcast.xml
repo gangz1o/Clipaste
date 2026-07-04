@@ -3,6 +3,19 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.0</title>
+            <pubDate>Sat, 04 Jul 2026 14:33:06 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.0</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20200</sparkle:version>
+            <sparkle:shortVersionString>2.2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[- 🐛 优化性能以及修复部分已知问题
+- 🐛 Optimized performance and fixed some known issues
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.0/Clipaste-v2.2.0.zip" length="6582107" type="application/octet-stream" sparkle:edSignature="C9tI1A0Neu96hgs/APKHhVtNJUnC95+VOCaOi916OU3JzqOJug6PLYF0peprci37nkDpA/23Px9DRXzolcSRCQ=="/>
+        </item>
+        <item>
             <title>2.1.9</title>
             <pubDate>Mon, 15 Jun 2026 02:03:04 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -62,45 +75,6 @@
 * ⚡ **Optimized:** Enhanced software performance under specific scenarios.
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.1.8/Clipaste-v2.1.8.zip" length="6575375" type="application/octet-stream" sparkle:edSignature="SPyCOl+bCpMmacMGeRTgc2QZbpKDwaV1Q7W6/c+leQK92s8xioK9lKXsKONJYS39SrsbvSQg7tRkYS0epw+TBA=="/>
-        </item>
-        <item>
-            <title>2.1.7</title>
-            <pubDate>Wed, 10 Jun 2026 01:24:41 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.1.7</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20107</sparkle:version>
-            <sparkle:shortVersionString>2.1.7</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
-
-### 🚀 新特性 (New Features)
-* ✨ **新增** 自动定位到历史记录首项功能。
-
-### 🐛 缺陷修复 (Bug Fixes)
-* 🔧 **修复** 自动预览开启的情况下，方向键切换历史记录失效的问题。
-* 🔧 **修复** 部分场景下 Dock 栏图标常驻不隐藏的问题。
-* 🔧 **修复** 部分场景下“粘贴为纯文本”功能失效的问题。
-
-### 🎨 界面优化 (UI Enhancements)
-* 💄 **优化** 调整了部分界面的 UI 细节，提升视觉体验。
-
----
-
-## ✨ What's New
-
-### 🚀 New Features
-* ✨ **New:** Added a feature to automatically locate the first item in the history logs.
-
-### 🐛 Bug Fixes
-* 🔧 **Fixed:** Resolved an issue where using arrow keys to switch history records failed when auto-preview was enabled.
-* 🔧 **Fixed:** Fixed a bug where the Dock icon remained visible and failed to hide in certain scenarios.
-* 🔧 **Fixed:** Fixed an issue where "Paste as Plain Text" did not work properly under specific circumstances.
-
-### 🎨 UI Enhancements
-* 💄 **Optimized:** Adjusted partial UI elements to improve the overall visual experience.
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.1.7/Clipaste-v2.1.7.zip" length="6560360" type="application/octet-stream" sparkle:edSignature="3CACpxUATFpCbsd1kNy5U+dgdHTBKoHU13kWAlr5H5dv9ERVvPGuf5FXtB+9iGR4ILEpQoppzB4XyTEkf8ajCw=="/>
         </item>
     </channel>
 </rss>
