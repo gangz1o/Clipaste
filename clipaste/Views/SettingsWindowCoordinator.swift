@@ -4,8 +4,8 @@ import SwiftUI
 enum SettingsWindowCoordinator {
     private static let windowIdentifier = NSUserInterfaceItemIdentifier("clipaste.settings.window")
     private static let onboardingDefaultsKey = "hasCompletedOnboarding"
-    private static var closeObservers: [ObjectIdentifier: NSObjectProtocol] = [:]
-    private static var shouldRestoreAccessoryPolicy = false
+    private static var windowObservers: [ObjectIdentifier: [NSObjectProtocol]] = [:]
+    private static var activationPolicyTracker = SettingsActivationPolicyTracker()
 
     /// SwiftUI `Settings` 场景里 representable 拿到的 `window` 即设置窗口；弱引用避免仅靠 identifier 扫描不到的情况。
     private static weak var trackedSettingsWindow: NSWindow?
@@ -37,15 +37,18 @@ enum SettingsWindowCoordinator {
         trackedSettingsWindow = window
         window.identifier = windowIdentifier
         window.collectionBehavior.insert(.moveToActiveSpace)
-        attachCloseObserver(to: window)
+        noteSettingsPresentedIfNeeded()
+        attachWindowObservers(to: window)
     }
 
     @MainActor
     private static func promoteToRegularIfNeeded() {
-        guard shouldUseAccessoryPolicy else { return }
-        guard NSApp.activationPolicy() == .accessory else { return }
+        let shouldPromote = activationPolicyTracker.noteSettingsRequested(
+            usesAccessoryPolicy: shouldUseAccessoryPolicy,
+            currentPolicy: currentActivationPolicy
+        )
+        guard shouldPromote else { return }
 
-        shouldRestoreAccessoryPolicy = true
         NSApp.setActivationPolicy(.regular)
     }
 
@@ -73,34 +76,47 @@ enum SettingsWindowCoordinator {
     }
 
     @MainActor
-    private static func attachCloseObserver(to window: NSWindow) {
+    private static func noteSettingsPresentedIfNeeded() {
+        activationPolicyTracker.noteSettingsPresented(
+            usesAccessoryPolicy: shouldUseAccessoryPolicy,
+            currentPolicy: currentActivationPolicy
+        )
+    }
+
+    @MainActor
+    private static func attachWindowObservers(to window: NSWindow) {
         let windowID = ObjectIdentifier(window)
-        guard closeObservers[windowID] == nil else { return }
+        guard windowObservers[windowID] == nil else { return }
 
         // SwiftUI 的 Settings 场景会在 App 生命周期内复用同一个 NSWindow 与内容视图树：
         // 第一次关闭后再打开时 viewDidMoveToWindow 不会再次触发，因此 register(window:) 也
         // 不会重新执行。这里保持监听器一直附着在窗口上，每次关闭都能恢复 accessory，从而
         // 避免第二次关闭后 Dock 图标残留。restoreAccessoryPolicyIfNeeded 自身是幂等的
         // （shouldRestoreAccessoryPolicy 用过即清），多次触发不会有副作用。
-        closeObservers[windowID] = NotificationCenter.default.addObserver(
-            forName: NSWindow.willCloseNotification,
-            object: window,
-            queue: .main
-        ) { [weak window] _ in
-            Task { @MainActor [weak window] in
-                restoreAccessoryPolicyIfNeeded(excluding: window)
+        windowObservers[windowID] = [
+            NotificationCenter.default.addObserver(
+                forName: NSWindow.willCloseNotification,
+                object: window,
+                queue: .main
+            ) { [weak window] _ in
+                Task { @MainActor [weak window] in
+                    restoreAccessoryPolicyIfNeeded(excluding: window)
+                }
+            },
+            NotificationCenter.default.addObserver(
+                forName: NSWindow.didBecomeKeyNotification,
+                object: window,
+                queue: .main
+            ) { _ in
+                Task { @MainActor in
+                    noteSettingsPresentedIfNeeded()
+                }
             }
-        }
+        ]
     }
 
     @MainActor
     private static func restoreAccessoryPolicyIfNeeded(excluding closingWindow: NSWindow? = nil) {
-        guard shouldRestoreAccessoryPolicy else { return }
-        guard shouldUseAccessoryPolicy else {
-            shouldRestoreAccessoryPolicy = false
-            return
-        }
-
         // willCloseNotification 在窗口真正关闭前触发，此时 `closingWindow.isVisible`
         // 仍会返回 true。若不显式排除正在关闭的窗口，本方法会误以为设置窗还在显示，
         // 直接跳过恢复逻辑，导致 Dock 图标残留、必须强杀应用。
@@ -110,17 +126,24 @@ enum SettingsWindowCoordinator {
                 && window.isVisible
         }
 
-        guard !hasVisibleSettingsWindow else { return }
+        let shouldRestore = activationPolicyTracker.noteSettingsClosed(
+            usesAccessoryPolicy: shouldUseAccessoryPolicy,
+            hasVisibleSettingsWindow: hasVisibleSettingsWindow
+        )
+        guard shouldRestore else { return }
 
         // 必须先让 App 失去激活状态，否则在 macOS Ventura/Sonoma 上
         // setActivationPolicy(.accessory) 可能被系统忽略，导致 Dock 图标残留。
         NSApp.deactivate()
         NSApp.setActivationPolicy(.accessory)
-        shouldRestoreAccessoryPolicy = false
     }
 
     private static var shouldUseAccessoryPolicy: Bool {
         UserDefaults.standard.bool(forKey: onboardingDefaultsKey)
+    }
+
+    private static var currentActivationPolicy: SettingsActivationPolicy {
+        NSApp.activationPolicy() == .accessory ? .accessory : .regular
     }
 
     /// 与 `UserDefaults` 中 `appLanguage` 一致；`auto` 读取系统全局语言，显式语言用 `LocalizedStringResource(locale:)`，
