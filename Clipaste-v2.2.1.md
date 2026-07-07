@@ -1,0 +1,2 @@
+- 🐛 优化性能以及修复部分已知问题
+- 🐛 Optimized performance and fixed some known issues

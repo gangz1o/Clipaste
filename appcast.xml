@@ -3,6 +3,19 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.1</title>
+            <pubDate>Tue, 07 Jul 2026 05:38:43 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.1</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20201</sparkle:version>
+            <sparkle:shortVersionString>2.2.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[- 🐛 优化性能以及修复部分已知问题
+- 🐛 Optimized performance and fixed some known issues
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.1/Clipaste-v2.2.1.zip" length="6582416" type="application/octet-stream" sparkle:edSignature="QQRbTwpNl/4AJ6AbgdAsdbxmAVWcxyx8UtCq9R1j5cHZtfggrra+r/y51Ynzoi6mBWHVkl/OOB9tG2/cF3fFCQ=="/>
+        </item>
+        <item>
             <title>2.2.0</title>
             <pubDate>Sat, 04 Jul 2026 14:33:06 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -43,38 +56,6 @@
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.1.9/Clipaste-v2.1.9.zip" length="6580316" type="application/octet-stream" sparkle:edSignature="wI7IcZfNScaM4/hnTjt9SN/HyH92GrE6SdOSpgDAn1M3y4xMTR2Pz/9M3j5qT1q6q/8fenhW2bNa3Dt1kSkwDw=="/>
-        </item>
-        <item>
-            <title>2.1.8</title>
-            <pubDate>Sun, 14 Jun 2026 08:57:27 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.1.8</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20108</sparkle:version>
-            <sparkle:shortVersionString>2.1.8</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
-
-### 🐛 缺陷修复 (Bug Fixes)
-
-* 🔧 **修复** 部分场景下跳到首项失败的问题。
-
-### ⚡ 性能优化 (Performance Improvements)
-
-* ⚡ **优化** 提升了软件在部分场景下的运行性能。
-
----
-
-## ✨ What's New
-
-### 🐛 Bug Fixes
-
-* 🔧 **Fixed:** Resolved an issue where jumping to the first item failed in certain scenarios.
-
-### ⚡ Performance Improvements
-
-* ⚡ **Optimized:** Enhanced software performance under specific scenarios.
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.1.8/Clipaste-v2.1.8.zip" length="6575375" type="application/octet-stream" sparkle:edSignature="SPyCOl+bCpMmacMGeRTgc2QZbpKDwaV1Q7W6/c+leQK92s8xioK9lKXsKONJYS39SrsbvSQg7tRkYS0epw+TBA=="/>
         </item>
     </channel>
 </rss>
