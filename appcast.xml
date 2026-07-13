@@ -3,6 +3,45 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.2</title>
+            <pubDate>Mon, 13 Jul 2026 10:40:50 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.2</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20202</sparkle:version>
+            <sparkle:shortVersionString>2.2.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[# ✨ 本次更新
+
+## ☁️ iCloud 同步优化
+
+* iCloud 同步现在支持自定义文本同步大小，可根据需要调整同步范围。
+* 修复大文本同步时可能导致同步队列卡死的问题，提升同步稳定性。
+
+## 📱 移动端同步策略调整
+
+* 优化移动端同步策略，减少不必要的同步操作，提升使用体验和同步效率。
+
+赶快更新体验吧！✨
+
+---
+
+# ✨ What's New
+
+## ☁️ iCloud Sync Improvements
+
+* iCloud Sync now lets you choose the maximum text size to sync, giving you more control over synced content.
+* Fixed an issue where syncing large text content could cause the sync queue to become stuck.
+
+## 📱 Mobile Sync Strategy Updates
+
+* Updated the sync strategy on mobile devices to reduce unnecessary sync operations and improve overall efficiency.
+
+Update now and enjoy a more stable syncing experience! ✨
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.2/Clipaste-v2.2.2.zip" length="6615893" type="application/octet-stream" sparkle:edSignature="w57ZEe/7LQzuPRzj6d4TpHlKuvj6FHB75DAefZBlRiwcnuZbpgi5LjRva0G1x+f/CTKuvUuHZNTNHR3QTPJODg=="/>
+        </item>
+        <item>
             <title>2.2.1</title>
             <pubDate>Tue, 07 Jul 2026 05:38:43 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -27,35 +66,6 @@
 - 🐛 Optimized performance and fixed some known issues
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.0/Clipaste-v2.2.0.zip" length="6582107" type="application/octet-stream" sparkle:edSignature="C9tI1A0Neu96hgs/APKHhVtNJUnC95+VOCaOi916OU3JzqOJug6PLYF0peprci37nkDpA/23Px9DRXzolcSRCQ=="/>
-        </item>
-        <item>
-            <title>2.1.9</title>
-            <pubDate>Mon, 15 Jun 2026 02:03:04 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.1.9</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20109</sparkle:version>
-            <sparkle:shortVersionString>2.1.9</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[# ✨ 本次更新
-
-## ✨ 新功能 (Features)
-* ✨ 新增 支持从 EcoPaste 导入非图片历史。
-
-## 🐛 缺陷修复 (Bug Fixes)
-* 🔧 修复 连续删除导致应用闪退的问题。
-
----
-
-# ✨ What's New
-
-## ✨ Features
-* ✨ Added: Supported importing non-image history from EcoPaste.
-
-## 🐛 Bug Fixes
-* 🔧 Fixed: Resolved an issue where continuous deletion caused the application to crash.
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.1.9/Clipaste-v2.1.9.zip" length="6580316" type="application/octet-stream" sparkle:edSignature="wI7IcZfNScaM4/hnTjt9SN/HyH92GrE6SdOSpgDAn1M3y4xMTR2Pz/9M3j5qT1q6q/8fenhW2bNa3Dt1kSkwDw=="/>
         </item>
     </channel>
 </rss>
