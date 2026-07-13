@@ -261,10 +261,32 @@ final class ClipboardRuntimeStore {
             object: nil,
             queue: nil
         ) { [weak self] notification in
-            guard Self.shouldRefreshAfterCloudKitEvent(notification) else { return }
+            guard let event = notification.userInfo?[NSPersistentCloudKitContainer.eventNotificationUserInfoKey]
+                as? NSPersistentCloudKitContainer.Event else {
+                Task { @MainActor [weak self] in
+                    self?.scheduleRemoteImportRepair()
+                }
+                return
+            }
+
+            guard event.endDate != nil else { return }
+
+            let eventType = event.type
+            let errorMessage = event.error.map { CloudSyncErrorFormatter.message(for: $0) }
 
             Task { @MainActor [weak self] in
-                self?.scheduleRemoteImportRepair()
+                guard let self else { return }
+
+                switch eventType {
+                case .import:
+                    self.scheduleRemoteImportRepair()
+                case .export:
+                    // 导出失败以前是完全静默的:队列卡死数周用户也毫无感知。
+                    // 这里把导出结果同步进 syncError / lastSyncDate,让设置页状态灯反映真实健康度。
+                    self.handleExportEventCompletion(errorMessage: errorMessage)
+                default:
+                    break
+                }
             }
         }
     }
@@ -428,6 +450,7 @@ final class ClipboardRuntimeStore {
             let repairedAppIconColorCount = await repairAppIconColorsIfNeeded(using: currentRuntime.storage)
             let repairedAppIconDataCount = await repairAppIconDataIfNeeded(using: currentRuntime.storage)
             let repairedDuplicateCount = await repairDuplicateRecordsIfNeeded(using: currentRuntime.storage)
+            let repairedOversizedTextCount = await repairOversizedTextRecordsIfNeeded(using: currentRuntime.storage)
             if currentRuntime.syncEnabled {
                 cloudKitAccountRecordName = try await CloudSyncAvailabilityService.accountRecordName(
                     containerIdentifier: ClipboardModelContainerFactory.cloudKitContainerIdentifier
@@ -481,6 +504,15 @@ final class ClipboardRuntimeStore {
                     message: ClipboardSyncDiagnosticMessage(
                         "Repaired %@ duplicate synced record(s)",
                         arguments: [.count(repairedDuplicateCount)]
+                    )
+                )
+            }
+            if repairedOversizedTextCount > 0 {
+                appendDiagnostic(
+                    level: .info,
+                    message: ClipboardSyncDiagnosticMessage(
+                        "Repaired %@ oversized text record(s)",
+                        arguments: [.count(repairedOversizedTextCount)]
                     )
                 )
             }
@@ -954,13 +986,31 @@ final class ClipboardRuntimeStore {
         }
     }
 
-    nonisolated private static func shouldRefreshAfterCloudKitEvent(_ notification: Notification) -> Bool {
-        guard let event = notification.userInfo?[NSPersistentCloudKitContainer.eventNotificationUserInfoKey]
-            as? NSPersistentCloudKitContainer.Event else {
-            return true
+    private func handleExportEventCompletion(errorMessage: String?) {
+        if let errorMessage {
+            guard syncError != errorMessage else { return }
+
+            syncError = errorMessage
+            appendDiagnostic(
+                level: .error,
+                message: ClipboardSyncDiagnosticMessage(
+                    "iCloud export failed: %@",
+                    arguments: [.string(errorMessage)]
+                )
+            )
+            return
         }
 
-        return event.type == .import && event.endDate != nil
+        lastSyncDate = Date()
+        defaults.set(lastSyncDate, forKey: Keys.lastSyncDate)
+
+        if syncError != nil {
+            syncError = nil
+            appendDiagnostic(
+                level: .info,
+                message: ClipboardSyncDiagnosticMessage("iCloud export recovered after previous failure")
+            )
+        }
     }
 
     private func nudgeCurrentRoute() async {
@@ -1098,6 +1148,19 @@ final class ClipboardRuntimeStore {
 
         let repairedCount = await storage.repairDuplicateRecords()
         lastDuplicateRepairDate = Date()
+        return repairedCount
+    }
+
+    private func repairOversizedTextRecordsIfNeeded(using storage: StorageManager) async -> Int {
+        let currentVersion = 1
+        let storedVersion = defaults.integer(forKey: Keys.oversizedTextRepairVersion)
+
+        guard storedVersion < currentVersion else {
+            return 0
+        }
+
+        let repairedCount = await storage.repairOversizedInlineTextRecords()
+        defaults.set(currentVersion, forKey: Keys.oversizedTextRepairVersion)
         return repairedCount
     }
 
@@ -1463,6 +1526,17 @@ private enum CloudKitServerDiagnosticsService {
 
 private enum CloudSyncErrorFormatter {
     static func message(for error: Error) -> String {
+        // CKError.partialFailure 的顶层描述只有一句 "Failed to modify some records",
+        // 真正的失败原因(记录过大、配额不足等)藏在 per-item 错误里,展开它。
+        if let ckError = error as? CKError,
+           ckError.code == .partialFailure,
+           let partialErrors = ckError.partialErrorsByItemID,
+           partialErrors.isEmpty == false {
+            let distinctReasons = Set(partialErrors.values.map { ($0 as NSError).localizedDescription })
+            let detail = distinctReasons.sorted().prefix(3).joined(separator: "；")
+            return "CloudKit 部分记录同步失败（\(partialErrors.count) 条）：\(detail)"
+        }
+
         if let localizedError = error as? LocalizedError,
            let description = localizedError.errorDescription,
            description.isEmpty == false {
@@ -1509,6 +1583,7 @@ private extension ClipboardRuntimeStore {
         static let appIconColorRepairVersion = "clipboard_app_icon_color_repair_version"
         static let appIconDataRepairVersion = "clipboard_app_icon_data_repair_version"
         static let duplicateRepairVersion = "clipboard_duplicate_repair_version"
+        static let oversizedTextRepairVersion = "clipboard_oversized_text_repair_version"
     }
 
     enum DedupThrottle {

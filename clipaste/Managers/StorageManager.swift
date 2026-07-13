@@ -553,6 +553,10 @@ final class StorageManager {
         await storeActor.repairDuplicateRecords()
     }
 
+    func repairOversizedInlineTextRecords() async -> Int {
+        await storeActor.repairOversizedInlineTextRecords()
+    }
+
     func fetchDistinctAppBundleIDsForColorRepair() async -> [String] {
         await storeActor.fetchDistinctAppBundleIDsForColorRepair()
     }
@@ -800,7 +804,10 @@ actor ClipboardStoreActor {
         )
         descriptor.fetchLimit = 1
         if let record = try? modelContext.fetch(descriptor).first {
-            record.plainText = text
+            let storedText = ClipboardTextSyncPolicy.storedTextUsingPreferences(for: text)
+            record.plainText = storedText.inlineText
+            record.fullTextData = storedText.fullTextData
+            record.isPlainTextTruncated = storedText.isTruncated
             try? markSyncAnchorUpdated()
             try? modelContext.save()
         }
@@ -921,9 +928,14 @@ actor ClipboardStoreActor {
                 existingRecord.captureSessionID = captureSessionID
 
                 if let text {
-                    existingRecord.plainText = text
+                    let storedText = ClipboardTextSyncPolicy.storedTextUsingPreferences(for: text)
+                    existingRecord.plainText = storedText.inlineText
+                    existingRecord.fullTextData = storedText.fullTextData
+                    existingRecord.isPlainTextTruncated = storedText.isTruncated
                 } else if type != ClipboardContentType.image.rawValue {
                     existingRecord.plainText = nil
+                    existingRecord.fullTextData = nil
+                    existingRecord.isPlainTextTruncated = false
                 }
 
                 refreshStoredTextRepresentations(
@@ -953,11 +965,14 @@ actor ClipboardStoreActor {
                     modelContext.delete(duplicate)
                 }
             } else {
+                let storedText = ClipboardTextSyncPolicy.storedTextUsingPreferences(for: text)
                 let newRecord = ClipboardRecord(
                     timestamp: now,
                     contentHash: hash,
                     typeRawValue: type,
-                    plainText: text,
+                    plainText: storedText.inlineText,
+                    fullTextData: storedText.fullTextData,
+                    isPlainTextTruncated: storedText.isTruncated,
                     previewImageData: previewImageData,
                     imageData: imageData,
                     imageMetadata: imageMetadata,
@@ -1280,7 +1295,10 @@ actor ClipboardStoreActor {
         descriptor.fetchLimit = 1
         do {
             if let record = try modelContext.fetch(descriptor).first {
-                record.plainText = newText
+                let storedText = ClipboardTextSyncPolicy.storedTextUsingPreferences(for: newText)
+                record.plainText = storedText.inlineText
+                record.fullTextData = storedText.fullTextData
+                record.isPlainTextTruncated = storedText.isTruncated
                 if newRTFData != nil || newRichTextArchiveData != nil {
                     record.rtfData = newRTFData
                     record.richTextArchiveData = newRichTextArchiveData
@@ -1359,6 +1377,43 @@ actor ClipboardStoreActor {
             return repairedCount
         } catch {
             print("❌ [ClipboardStoreActor] 修复重复记录失败: \(error)")
+            return 0
+        }
+    }
+
+    /// 把存量的超限内联文本迁移到 fullTextData(CKAsset 形态)。
+    /// 单条超过 CloudKit 1MB 内联上限的记录会让整个导出队列卡死,
+    /// 这个一次性修复能在不删数据的前提下疏通同步。
+    func repairOversizedInlineTextRecords() -> Int {
+        let descriptor = FetchDescriptor<ClipboardRecord>(
+            predicate: #Predicate<ClipboardRecord> { $0.plainText != nil }
+        )
+
+        do {
+            let records = try modelContext.fetch(descriptor)
+            var repairedCount = 0
+
+            for record in records {
+                guard let text = record.plainText,
+                      text.utf8.count > ClipboardTextSyncPolicy.inlineLimitBytes else {
+                    continue
+                }
+
+                let storedText = ClipboardTextSyncPolicy.storedTextUsingPreferences(for: text)
+                record.plainText = storedText.inlineText
+                record.fullTextData = storedText.fullTextData
+                record.isPlainTextTruncated = storedText.isTruncated
+                repairedCount += 1
+            }
+
+            if repairedCount > 0 {
+                try markSyncAnchorUpdated()
+                try modelContext.save()
+            }
+
+            return repairedCount
+        } catch {
+            print("❌ [ClipboardStoreActor] 修复超大文本记录失败: \(error)")
             return 0
         }
     }
@@ -1559,6 +1614,8 @@ actor ClipboardStoreActor {
                 contentHash: $0.contentHash,
                 typeRawValue: $0.typeRawValue,
                 plainText: $0.plainText,
+                fullTextData: $0.fullTextData,
+                isPlainTextTruncated: $0.isPlainTextTruncated,
                 previewImageData: $0.previewImageData,
                 imageData: $0.imageData,
                 imageUTType: $0.imageUTType,
@@ -1640,7 +1697,11 @@ actor ClipboardStoreActor {
                 existingRecord.appLocalizedName = incomingRecord.appLocalizedName ?? existingRecord.appLocalizedName
                 existingRecord.appIconDominantColorHex = incomingRecord.appIconDominantColorHex ?? existingRecord.appIconDominantColorHex
                 existingRecord.appIconData = incomingRecord.appIconData ?? existingRecord.appIconData
-                existingRecord.plainText = incomingRecord.plainText ?? existingRecord.plainText
+                if let incomingStoredText = Self.normalizedStoredText(from: incomingRecord) {
+                    existingRecord.plainText = incomingStoredText.inlineText
+                    existingRecord.fullTextData = incomingStoredText.fullTextData
+                    existingRecord.isPlainTextTruncated = incomingStoredText.isTruncated
+                }
                 existingRecord.previewImageData = incomingRecord.previewImageData ?? existingRecord.previewImageData
                 existingRecord.imageData = incomingRecord.imageData ?? existingRecord.imageData
                 existingRecord.imageUTType = incomingRecord.imageUTType ?? existingRecord.imageUTType
@@ -1690,12 +1751,15 @@ actor ClipboardStoreActor {
                     )
                 }()
 
+                let incomingStoredText = Self.normalizedStoredText(from: incomingRecord)
                 let record = ClipboardRecord(
                     id: incomingRecord.id,
                     timestamp: incomingRecord.timestamp,
                     contentHash: incomingRecord.contentHash,
                     typeRawValue: incomingRecord.typeRawValue,
-                    plainText: incomingRecord.plainText,
+                    plainText: incomingStoredText?.inlineText,
+                    fullTextData: incomingStoredText?.fullTextData,
+                    isPlainTextTruncated: incomingStoredText?.isTruncated ?? false,
                     previewImageData: incomingRecord.previewImageData,
                     imageData: incomingRecord.imageData,
                     imageMetadata: importedImageMetadata,
@@ -1729,7 +1793,7 @@ actor ClipboardStoreActor {
     }
 
     func loadPlainText(id: UUID) -> String? {
-        fetchStoredRecord(id: id)?.plainText
+        fetchStoredRecord(id: id)?.resolvedPlainText
     }
 
     func loadAppIconDominantColorHex(id: UUID) -> String? {
@@ -1748,7 +1812,7 @@ actor ClipboardStoreActor {
         return ClipboardPasteRecord(
             id: record.id,
             typeRawValue: record.typeRawValue,
-            plainText: record.plainText,
+            plainText: record.resolvedPlainText,
             rtfData: record.rtfData,
             richTextArchiveData: record.richTextArchiveData
         )
@@ -1815,6 +1879,37 @@ private extension ClipboardStoreActor {
         anchor.generation = UUID()
     }
 
+    /// 归一化导入负载中的文本三元组。返回 nil 表示来源没有文本(合并时保留现值)。
+    /// 老版本导出的负载可能带着超限的内联文本,这里统一按策略重新拆分。
+    nonisolated static func normalizedStoredText(
+        from incomingRecord: ClipboardRecordExport
+    ) -> ClipboardTextSyncPolicy.StoredText? {
+        guard let inlineText = incomingRecord.plainText else {
+            guard let fullTextData = incomingRecord.fullTextData else { return nil }
+            return ClipboardTextSyncPolicy.storedTextUsingPreferences(
+                for: String(data: fullTextData, encoding: .utf8)
+            )
+        }
+
+        if incomingRecord.fullTextData != nil {
+            return ClipboardTextSyncPolicy.StoredText(
+                inlineText: inlineText,
+                fullTextData: incomingRecord.fullTextData,
+                isTruncated: incomingRecord.isPlainTextTruncated
+            )
+        }
+
+        if inlineText.utf8.count > ClipboardTextSyncPolicy.inlineLimitBytes {
+            return ClipboardTextSyncPolicy.storedTextUsingPreferences(for: inlineText)
+        }
+
+        return ClipboardTextSyncPolicy.StoredText(
+            inlineText: inlineText,
+            fullTextData: nil,
+            isTruncated: incomingRecord.isPlainTextTruncated
+        )
+    }
+
     func merge(_ source: ClipboardRecord, into target: ClipboardRecord) {
         let sourceIsNewer = source.timestamp > target.timestamp
 
@@ -1829,7 +1924,16 @@ private extension ClipboardStoreActor {
             target.captureSessionID = source.captureSessionID ?? target.captureSessionID
         }
 
-        target.plainText = target.plainText ?? source.plainText
+        if target.plainText == nil, source.plainText != nil {
+            // 文本三元组(内联前缀/全文/截断标记)必须整体迁移,拆开取值会破坏一致性。
+            target.plainText = source.plainText
+            target.fullTextData = source.fullTextData
+            target.isPlainTextTruncated = source.isPlainTextTruncated
+        } else if target.fullTextData == nil, let sourceFullTextData = source.fullTextData {
+            // 同 contentHash 意味着同一份原文;副本带有全文时借此补全(并解除截断标记)。
+            target.fullTextData = sourceFullTextData
+            target.isPlainTextTruncated = false
+        }
         target.previewImageData = target.previewImageData ?? source.previewImageData
         target.imageData = target.imageData ?? source.imageData
         target.imageUTType = target.imageUTType ?? source.imageUTType

@@ -210,11 +210,14 @@ final class MigrationManager {
                 continue
             }
 
+            let storedText = ClipboardTextSyncPolicy.storedTextUsingPreferences(for: row.text)
             let record = ClipboardRecord(
                 timestamp: row.timestamp ?? Date(),
                 contentHash: contentHash,
                 typeRawValue: row.contentType.rawValue,
-                plainText: row.text,
+                plainText: storedText.inlineText,
+                fullTextData: storedText.fullTextData,
+                isPlainTextTruncated: storedText.isTruncated,
                 appBundleID: source.migratedBundleIdentifier,
                 appLocalizedName: resolvedAppName(for: row, source: source),
                 groupId: targetGroup.id,

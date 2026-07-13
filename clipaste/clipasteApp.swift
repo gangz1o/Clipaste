@@ -283,6 +283,13 @@ struct clipasteApp: App {
     private let appUpdateViewModel = AppUpdateViewModel.shared
     @AppStorage("appLanguage") private var appLanguage: AppLanguage = .auto
 
+    init() {
+        #if DEBUG
+        // 命中 --initialize-cloudkit-schema 时同步执行并退出,不进入正常启动流程。
+        CloudKitSchemaInitializer.runIfRequested()
+        #endif
+    }
+
     var body: some Scene {
         // Register standard macOS Settings Window
         Settings {

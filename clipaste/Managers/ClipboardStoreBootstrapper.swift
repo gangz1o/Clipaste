@@ -7,6 +7,8 @@ struct ClipboardRecordExport: Sendable {
     let contentHash: String
     let typeRawValue: String
     let plainText: String?
+    let fullTextData: Data?
+    let isPlainTextTruncated: Bool
     let previewImageData: Data?
     let imageData: Data?
     let imageUTType: String?
@@ -208,12 +210,18 @@ final class ClipboardStoreBootstrapper: @unchecked Sendable {
             thumbnailPath: record.thumbnailPath
         )
 
+        // 旧库文本可能超过 CloudKit 内联上限,导入时先按策略拆分,
+        // 避免超大 plainText 直接进入云存储卡死导出队列。
+        let storedText = ClipboardTextSyncPolicy.storedTextUsingPreferences(for: record.plainText)
+
         return ClipboardRecordExport(
             id: record.id,
             timestamp: record.timestamp,
             contentHash: record.contentHash,
             typeRawValue: record.typeRawValue,
-            plainText: record.plainText,
+            plainText: storedText.inlineText,
+            fullTextData: storedText.fullTextData,
+            isPlainTextTruncated: storedText.isTruncated,
             previewImageData: imageBinary?.previewData,
             imageData: imageBinary?.fullData,
             imageUTType: imageBinary?.metadata.utTypeIdentifier,

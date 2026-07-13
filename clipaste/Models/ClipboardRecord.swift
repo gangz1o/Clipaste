@@ -8,6 +8,12 @@ final class ClipboardRecord {
     var contentHash: String = ""
     var typeRawValue: String = ClipboardContentType.text.rawValue
     var plainText: String?
+    /// 超大文本的完整 UTF-8 数据。CloudKit 内联字段有 1MB 硬上限,超过
+    /// `ClipboardTextSyncPolicy.inlineLimitBytes` 的文本全文存这里(同步走
+    /// CKAsset),`plainText` 只保留截断前缀供搜索/预览。
+    @Attribute(.externalStorage) var fullTextData: Data?
+    /// 文本超过用户设置的同步大小上限、超出部分未保留时为 true。
+    var isPlainTextTruncated: Bool = false
     @Attribute(.externalStorage) var previewImageData: Data?
     @Attribute(.externalStorage) var imageData: Data?
     var imageUTType: String?
@@ -37,6 +43,8 @@ final class ClipboardRecord {
         contentHash: String,
         typeRawValue: String,
         plainText: String? = nil,
+        fullTextData: Data? = nil,
+        isPlainTextTruncated: Bool = false,
         previewImageData: Data? = nil,
         imageData: Data? = nil,
         imageMetadata: ClipboardImageMetadata? = nil,
@@ -62,6 +70,8 @@ final class ClipboardRecord {
         self.contentHash = contentHash
         self.typeRawValue = typeRawValue
         self.plainText = plainText
+        self.fullTextData = fullTextData
+        self.isPlainTextTruncated = isPlainTextTruncated
         self.previewImageData = previewImageData
         self.imageData = imageData
         self.imageUTType = imageMetadata?.utTypeIdentifier
@@ -84,5 +94,17 @@ final class ClipboardRecord {
         self.sourceDeviceName = sourceDeviceName
         self.captureMethodRawValue = captureMethodRawValue
         self.captureSessionID = captureSessionID
+    }
+}
+
+extension ClipboardRecord {
+    /// 完整文本:优先取 `fullTextData`(超大文本全文),否则回退到内联 `plainText`。
+    /// ⚠️ 会触碰 `.externalStorage` getter,只应在 store actor 的 fetch 上调用,
+    /// 不要在 UI 层持有的 model 实例上访问。
+    var resolvedPlainText: String? {
+        if let fullTextData, let fullText = String(data: fullTextData, encoding: .utf8) {
+            return fullText
+        }
+        return plainText
     }
 }

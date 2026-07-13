@@ -271,6 +271,36 @@ extension HistoryRetention {
     }
 }
 
+enum TextSyncSizeLimit: String, CaseIterable, Identifiable {
+    case unlimited = "unlimited"
+    case tenMegabytes = "10mb"
+    case oneMegabyte = "1mb"
+    case quarterMegabyte = "256kb"
+
+    nonisolated static let defaultsKey = "text_sync_size_limit"
+
+    var id: String { rawValue }
+
+    /// 完整文本超过该字节数时,仅同步截断后的前缀;nil = 无限制。
+    nonisolated var limitBytes: Int? {
+        switch self {
+        case .unlimited: return nil
+        case .tenMegabytes: return 10 * 1024 * 1024
+        case .oneMegabyte: return 1024 * 1024
+        case .quarterMegabyte: return 256 * 1024
+        }
+    }
+
+    var localizedTitle: LocalizedStringResource {
+        switch self {
+        case .unlimited: return LocalizedStringResource("No Limit")
+        case .tenMegabytes: return "10 MB"
+        case .oneMegabyte: return "1 MB"
+        case .quarterMegabyte: return "256 KB"
+        }
+    }
+}
+
 enum PasteTextFormat: String, CaseIterable, Identifiable {
     case original  = "original"
     case plainText = "plainText"

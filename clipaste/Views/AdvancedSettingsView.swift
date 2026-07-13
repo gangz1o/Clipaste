@@ -6,6 +6,7 @@ struct AdvancedSettingsView: View {
     @Environment(\.locale) private var locale
     @AppStorage("appAccentColor") private var appAccentColor: AppAccentColor = .defaultValue
     @AppStorage("enable_smart_groups") private var isSmartGroupsEnabled: Bool = true
+    @AppStorage(TextSyncSizeLimit.defaultsKey) private var textSyncSizeLimit: TextSyncSizeLimit = .unlimited
 
     var body: some View {
         Form {
@@ -143,6 +144,19 @@ private extension AdvancedSettingsView {
                     .disabled(runtimeStore.isSyncing)
                 }
 
+                VStack(alignment: .leading, spacing: 4) {
+                    Picker("Text Sync Size Limit", selection: $textSyncSizeLimit) {
+                        ForEach(TextSyncSizeLimit.allCases) { limit in
+                            Text(limit.localizedTitle).tag(limit)
+                        }
+                    }
+
+                    if textSyncSizeLimit != .unlimited {
+                        Text("Text beyond the limit is truncated and the excess is not kept.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
             }
         } header: {
             SettingsSectionHeader(title: "Data Sync")
