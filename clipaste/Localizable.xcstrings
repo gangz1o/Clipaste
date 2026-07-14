@@ -325,6 +325,9 @@
         }
       }
     },
+    "1 MB" : {
+
+    },
     "1 Month" : {
       "localizations" : {
         "de" : {
@@ -524,6 +527,12 @@
           }
         }
       }
+    },
+    "10 MB" : {
+
+    },
+    "256 KB" : {
+
     },
     "A new version is available" : {
       "extractionState" : "stale",
@@ -8963,6 +8972,7 @@
       }
     },
     "iCloud export failed: %@" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -9003,6 +9013,7 @@
       }
     },
     "iCloud export recovered after previous failure" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -16009,6 +16020,7 @@
       }
     },
     "Repaired %@ oversized text record(s)" : {
+      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
