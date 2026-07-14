@@ -19,6 +19,7 @@ struct ClipboardVerticalItemView: View {
     let allowsAutoPreview: Bool
     let onHoverChange: ((Bool) -> Void)?
 
+    @Environment(ScreenPinViewModel.self) private var screenPinViewModel
     @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
     @AppStorage("appAccentColor") private var appAccentColor: AppAccentColor = .defaultValue
     @AppStorage("autoPreview") private var autoPreview = true
@@ -126,17 +127,6 @@ struct ClipboardVerticalItemView: View {
             // 分享锚点：用 background 捕获 NSView + onChange 触发分享
             .shareable(item: item, viewModel: viewModel)
             .clipboardContextMenu(for: item, viewModel: viewModel)
-            .onHover { hovering in
-                withAnimation(.easeInOut(duration: 0.1)) {
-                    isHovering = hovering
-                }
-                onHoverChange?(hovering)
-                viewModel.handleAutoPreviewHover(
-                    for: item,
-                    isHovering: hovering,
-                    isEnabled: allowsAutoPreview && autoPreview && !usesPreviewPanel
-                )
-            }
             .animation(.easeInOut(duration: 0.15), value: showsQuickPasteBadge)
             .onDrag {
                 viewModel.draggedItemId = item.id
@@ -158,6 +148,27 @@ struct ClipboardVerticalItemView: View {
                 arrowEdge: .trailing  // 气泡在卡片左侧弹出，箭头指向卡片
             ) {
                 ClipboardQuickLookView(item: item, viewModel: viewModel)
+            }
+            .overlay(alignment: .leading) {
+                ScreenPinIconDragTarget(isActive: isScreenPinDragActive) { screenPoint in
+                    screenPinViewModel.createPin(for: item, at: screenPoint)
+                }
+                .frame(
+                    width: isCompact ? Layout.compactAppIconSize : Layout.appIconSize,
+                    height: isCompact ? Layout.compactAppIconSize : Layout.appIconSize
+                )
+                .padding(.leading, isCompact ? 6 : Layout.rowHorizontalPadding)
+            }
+            .onHover { hovering in
+                withAnimation(.easeInOut(duration: 0.1)) {
+                    isHovering = hovering
+                }
+                onHoverChange?(hovering)
+                viewModel.handleAutoPreviewHover(
+                    for: item,
+                    isHovering: hovering,
+                    isEnabled: allowsAutoPreview && autoPreview && !usesPreviewPanel
+                )
             }
     }
 
@@ -359,6 +370,10 @@ struct ClipboardVerticalItemView: View {
         viewModel.aiSettingsViewModel.isAIEnabled
             && (isHovering || isSelected)
             && viewModel.isQuickPasteModifierHeld == false
+    }
+
+    private var isScreenPinDragActive: Bool {
+        screenPinViewModel.isEnabled && item.isScreenPinEligible
     }
 
     @ViewBuilder

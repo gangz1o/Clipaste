@@ -106,6 +106,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         return false
     }
 
+    func applicationWillTerminate(_ notification: Notification) {
+        ScreenPinViewModel.shared.closeAll()
+    }
+
     private func handleTogglePanelShortcut() {
         ClipboardPanelManager.shared.togglePanel()
     }
@@ -279,6 +283,7 @@ struct clipasteApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var preferencesStore = AppPreferencesStore.shared
     @StateObject private var settingsViewModel = SettingsViewModel.shared
+    @State private var screenPinViewModel = ScreenPinViewModel.shared
     private let runtimeStore = ClipboardRuntimeStore.shared
     private let appUpdateViewModel = AppUpdateViewModel.shared
     @AppStorage("appLanguage") private var appLanguage: AppLanguage = .auto
@@ -297,6 +302,7 @@ struct clipasteApp: App {
                 .environmentObject(preferencesStore)
                 .environmentObject(settingsViewModel)
                 .environment(runtimeStore)
+                .environment(screenPinViewModel)
                 .modelContainer(runtimeStore.container)
                 .environment(\.locale, appLanguage.resolvedLocale)
                 .environment(appUpdateViewModel)

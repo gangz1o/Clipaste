@@ -7,6 +7,7 @@ struct ClipboardMainView: View {
     }
 
     @Environment(ClipboardRuntimeStore.self) private var runtimeStore
+    @Environment(ScreenPinViewModel.self) private var screenPinViewModel
     @Environment(\.openSettings) private var openSettings
     @StateObject var viewModel = ClipboardViewModel()
     @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
@@ -58,7 +59,7 @@ struct ClipboardMainView: View {
             )
             .background(WindowAppearanceObserver(theme: appTheme))
             .overlay(alignment: .top) {
-                if let operationNotice = viewModel.operationNotice {
+                if let operationNotice = currentOperationNotice {
                     ClipboardOperationNoticeView(message: operationNotice)
                         .padding(.top, (clipboardLayout == .vertical || clipboardLayout == .compact) ? 72 : 52)
                         .padding(.horizontal, 12)
@@ -67,7 +68,7 @@ struct ClipboardMainView: View {
             }
             .clipShape(RoundedRectangle(cornerRadius: (clipboardLayout == .vertical || clipboardLayout == .compact) ? 14 : 0))
             .ignoresSafeArea()
-            .animation(.spring(response: 0.24, dampingFraction: 0.9), value: viewModel.operationNotice != nil)
+            .animation(.spring(response: 0.24, dampingFraction: 0.9), value: currentOperationNotice != nil)
             .onChange(of: clipboardLayout) {
                 // Only resize the AppKit panel after the AppStorage-backed SwiftUI layout
                 // has already switched, avoiding a one-frame stretch of the old content.
@@ -144,6 +145,10 @@ struct ClipboardMainView: View {
                     viewModel.saveCustomTitle(for: item, title: title)
                 }
             }
+    }
+
+    private var currentOperationNotice: String? {
+        screenPinViewModel.operationNotice ?? viewModel.operationNotice
     }
 
     @ViewBuilder

@@ -3,6 +3,7 @@ import SwiftUI
 struct AdvancedSettingsView: View {
     @EnvironmentObject private var viewModel: SettingsViewModel
     @Environment(ClipboardRuntimeStore.self) private var runtimeStore
+    @Environment(ScreenPinViewModel.self) private var screenPinViewModel
     @Environment(\.locale) private var locale
     @AppStorage("appAccentColor") private var appAccentColor: AppAccentColor = .defaultValue
     @AppStorage("enable_smart_groups") private var isSmartGroupsEnabled: Bool = true
@@ -69,10 +70,33 @@ private extension AdvancedSettingsView {
 
 private extension AdvancedSettingsView {
     var interfaceSection: some View {
-        Section {
+        @Bindable var screenPinViewModel = screenPinViewModel
+
+        return Section {
             Toggle(isOn: $isSmartGroupsEnabled) {
                 Text("Show Smart Groups")
             }
+
+            Toggle(isOn: $screenPinViewModel.isEnabled) {
+                Text("Enable Screen Pinning")
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("Initial Pinned Image Size")
+                    Spacer()
+                    Text(screenPinViewModel.initialSizeScale, format: .percent.precision(.fractionLength(0)))
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                }
+
+                Slider(
+                    value: $screenPinViewModel.initialSizeScale,
+                    in: ScreenPinViewModel.minimumInitialSizeScale...ScreenPinViewModel.maximumInitialSizeScale,
+                    step: ScreenPinViewModel.initialSizeScaleStep
+                )
+            }
+            .disabled(screenPinViewModel.isEnabled == false)
 
             Picker("Link Display Mode", selection: $viewModel.linkDisplayMode) {
                 ForEach(ClipboardLinkDisplayMode.allCases) { mode in
@@ -216,4 +240,5 @@ private extension AdvancedSettingsView {
     AdvancedSettingsView()
         .environmentObject(SettingsViewModel())
         .environment(ClipboardRuntimeStore.shared)
+        .environment(ScreenPinViewModel.shared)
 }

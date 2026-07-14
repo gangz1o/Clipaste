@@ -1,7 +1,7 @@
 import Foundation
 import SwiftData
 
-private struct ClipboardRecordSnapshot: Sendable {
+private nonisolated struct ClipboardRecordSnapshot: Sendable {
     let id: UUID
     let contentHash: String
     let bundleIdentifier: String?

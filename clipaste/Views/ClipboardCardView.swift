@@ -6,6 +6,7 @@ struct ClipboardCardView: View {
     @ObservedObject var viewModel: ClipboardViewModel
     var quickPasteIndex: Int? = nil
 
+    @Environment(ScreenPinViewModel.self) private var screenPinViewModel
     @State private var isHovered = false
     @State private var richPreviewText: AttributedString?
     @State private var appIconDominantColorHex: String?
@@ -148,6 +149,19 @@ struct ClipboardCardView: View {
             await refreshHeaderDominantColorHex()
         }
         .clipboardContextMenu(for: item, viewModel: viewModel)
+        .onDrag {
+            viewModel.draggedItemId = item.id
+            return item.universalDragProvider
+        } preview: {
+            ClipboardDragPreview(item: item)
+        }
+        .overlay(alignment: .topLeading) {
+            ScreenPinIconDragTarget(isActive: isScreenPinDragActive) { screenPoint in
+                screenPinViewModel.createPin(for: item, at: screenPoint)
+            }
+            .frame(width: headerHeight, height: headerHeight)
+            .padding(.leading, 8)
+        }
         .onHover { hovering in
             isHovered = hovering
             viewModel.handleAutoPreviewHover(
@@ -155,12 +169,6 @@ struct ClipboardCardView: View {
                 isHovering: hovering,
                 isEnabled: autoPreview
             )
-        }
-        .onDrag {
-            viewModel.draggedItemId = item.id
-            return item.universalDragProvider
-        } preview: {
-            ClipboardDragPreview(item: item)
         }
         .modifier(ClipboardCardActionModifier(item: item, viewModel: viewModel))
     }
@@ -352,6 +360,10 @@ struct ClipboardCardView: View {
         viewModel.aiSettingsViewModel.isAIEnabled
             && (isHovered || isSelected)
             && viewModel.isQuickPasteModifierHeld == false
+    }
+
+    private var isScreenPinDragActive: Bool {
+        screenPinViewModel.isEnabled && item.isScreenPinEligible
     }
 
     @ViewBuilder

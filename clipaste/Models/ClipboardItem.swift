@@ -272,6 +272,10 @@ extension ClipboardItem {
         return CGSize(width: imagePixelWidth, height: imagePixelHeight)
     }
 
+    var isScreenPinEligible: Bool {
+        contentType == .image || (contentType == .fileURL && fileRepresentsImage)
+    }
+
     private nonisolated static func normalizedGroupIDs(primaryGroupID: String?, groupIDs: [String]) -> [String] {
         var result: [String] = []
 

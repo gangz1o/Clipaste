@@ -68,6 +68,7 @@ class ClipboardPanelManager {
             rootView: ClipboardPanelRootView()
                 .environmentObject(AppPreferencesStore.shared)
                 .environment(ClipboardRuntimeStore.shared)
+                .environment(ScreenPinViewModel.shared)
         )
         hostingController.sizingOptions = []   // 禁止 SwiftUI 内容撑大面板，由 setFrame 控制
         panel.contentViewController = hostingController
