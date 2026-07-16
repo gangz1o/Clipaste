@@ -3,6 +3,42 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.4</title>
+            <pubDate>Thu, 16 Jul 2026 14:38:02 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.4</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20204</sparkle:version>
+            <sparkle:shortVersionString>2.2.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
+
+### ⌨️ 新增历史记录快捷键复制操作
+
+-   支持使用快捷键直接复制历史记录条目，无需右键菜单。
+
+### 📌 贴图功能上线
+
+-   支持将剪贴板内容以“贴图”形式悬浮在屏幕上，方便随时对照参考。
+-   该功能默认关闭，请前往「高级 - 界面 - 贴图」手动开启。
+-   开启后，拖动来源图标即可将内容随意贴在屏幕任意位置，打造你的专属桌面便签。
+
+---
+
+## ✨ What's New
+
+### ⌨️ Shortcut for Copying History Items
+
+-   You can now copy history items directly via keyboard shortcut instead of right-clicking.
+
+### 📌 Pin to Screen
+
+-   You can now pin clipboard items as floating overlays on your screen for easy reference.
+-   This feature is disabled by default. Enable it via Advanced → Interface → Pin to Screen.
+-   Once enabled, simply drag the source icon to place content anywhere on your screen.
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.4/Clipaste-v2.2.4.zip" length="6720911" type="application/octet-stream" sparkle:edSignature="EL0eSFbvpRK9PD+a32i9kFU4ihG7GADaLDk5hDA1qwgUKz1s50Aqrpj6vcNBlF8Uibq4jO3e/a4JLk7GfrViCA=="/>
+        </item>
+        <item>
             <title>2.2.3</title>
             <pubDate>Tue, 14 Jul 2026 03:56:04 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -90,19 +126,6 @@ Update now and enjoy a more stable syncing experience! ✨
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.2/Clipaste-v2.2.2.zip" length="6615893" type="application/octet-stream" sparkle:edSignature="w57ZEe/7LQzuPRzj6d4TpHlKuvj6FHB75DAefZBlRiwcnuZbpgi5LjRva0G1x+f/CTKuvUuHZNTNHR3QTPJODg=="/>
-        </item>
-        <item>
-            <title>2.2.1</title>
-            <pubDate>Tue, 07 Jul 2026 05:38:43 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.1</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20201</sparkle:version>
-            <sparkle:shortVersionString>2.2.1</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[- 🐛 优化性能以及修复部分已知问题
-- 🐛 Optimized performance and fixed some known issues
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.1/Clipaste-v2.2.1.zip" length="6582416" type="application/octet-stream" sparkle:edSignature="QQRbTwpNl/4AJ6AbgdAsdbxmAVWcxyx8UtCq9R1j5cHZtfggrra+r/y51Ynzoi6mBWHVkl/OOB9tG2/cF3fFCQ=="/>
         </item>
     </channel>
 </rss>
