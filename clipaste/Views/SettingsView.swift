@@ -84,6 +84,7 @@ struct SettingsView: View {
                     .padding(.vertical, 16)
                 }
                 .settingsScrollChromeHidden()
+                .settingsTopEdgeEffectHidden()
                 .frame(width: 198)
                 .frame(maxHeight: .infinity, alignment: .top)
                 .background {

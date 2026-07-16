@@ -171,10 +171,7 @@ extension ClipboardViewModel {
                 }
             }
 
-            let moveToTop = UserDefaults.standard.bool(forKey: "moveToTopAfterPaste")
-            if moveToTop {
-                moveItemToTop(item)
-            }
+            moveItemToTopIfPreferred(item)
         }
     }
 
@@ -187,7 +184,35 @@ extension ClipboardViewModel {
                 try? await Task.sleep(for: PasteEngine.postHidePasteDelay)
                 PasteEngine.shared.simulateCommandV()
             }
+            moveItemToTopIfPreferred(item)
         }
+    }
+
+    /// Moves the item to the top when the "Move Item to Top After Pasting" preference is enabled.
+    /// Applies to every use of an item: pasting, plain-text pasting, and copying.
+    func moveItemToTopIfPreferred(_ item: ClipboardItem) {
+        guard UserDefaults.standard.bool(forKey: "moveToTopAfterPaste") else { return }
+        moveItemToTop(item)
+    }
+
+    /// Copies the current selection: merges multiple items, or copies the single focused item.
+    /// Returns `false` when nothing is selected so the caller can let the event pass through.
+    @discardableResult
+    func copySelection() -> Bool {
+        guard !selectedItemIDs.isEmpty else { return false }
+
+        if selectedItemIDs.count > 1 {
+            batchCopy()
+            return true
+        }
+
+        guard let firstID = selectedItemIDs.first,
+              let item = displayedItemsForInteraction.first(where: { $0.id == firstID }) else {
+            return false
+        }
+
+        copyToClipboard(item: item)
+        return true
     }
 
     func copyToClipboard(item: ClipboardItem) {
@@ -200,6 +225,7 @@ extension ClipboardViewModel {
             )
             guard wroteToPasteboard else { return }
             playCopySound()
+            moveItemToTopIfPreferred(item)
         }
     }
 

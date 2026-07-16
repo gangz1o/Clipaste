@@ -4740,6 +4740,53 @@
         }
       }
     },
+    "Press and hold the source app icon on an image history item, then drag it anywhere on the screen and release to pin the image." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Halte das Symbol der Quell-App eines Bildeintrags gedrückt, ziehe es an eine beliebige Stelle auf dem Bildschirm und lasse los, um das Bild anzuheften."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Press and hold the source app icon on an image history item, then drag it anywhere on the screen and release to pin the image."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maintenez l’icône de l’app source d’un élément d’image, faites-la glisser à l’endroit souhaité sur l’écran, puis relâchez pour épingler l’image."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "画像履歴項目の取得元アプリアイコンを押したまま画面上の任意の場所までドラッグし、放すと画像を固定できます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이미지 기록 항목의 원본 앱 아이콘을 누른 채 화면의 원하는 위치로 드래그한 후 놓으면 이미지를 고정할 수 있습니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按住图片历史记录的来源应用图标，拖到屏幕任意位置后松开，即可生成贴图。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按住圖片歷史記錄的來源 App 圖示，拖到螢幕任意位置後放開，即可建立貼圖。"
+          }
+        }
+      }
+    },
     "Initial Pinned Image Size" : {
       "extractionState" : "manual",
       "localizations" : {

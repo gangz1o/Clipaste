@@ -222,6 +222,17 @@ extension ClipboardViewModel {
             return nil
         }
 
+        // Cmd+C to copy the selected item(s)
+        if keyCode == 8, event.modifierFlags.contains(.command) {
+            if hasActiveTextInputResponder {
+                return event
+            }
+            if copySelection() {
+                return nil
+            }
+            return event
+        }
+
         if matchesPanelShortcut(event, name: .toggleVerticalClipboard) {
             togglePanelLayoutShortcut()
             return nil

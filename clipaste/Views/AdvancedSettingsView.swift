@@ -77,8 +77,14 @@ private extension AdvancedSettingsView {
                 Text("Show Smart Groups")
             }
 
-            Toggle(isOn: $screenPinViewModel.isEnabled) {
-                Text("Enable Screen Pinning")
+            VStack(alignment: .leading, spacing: 4) {
+                Toggle(isOn: $screenPinViewModel.isEnabled) {
+                    Text("Enable Screen Pinning")
+                }
+
+                Text("Press and hold the source app icon on an image history item, then drag it anywhere on the screen and release to pin the image.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
 
             VStack(alignment: .leading, spacing: 6) {

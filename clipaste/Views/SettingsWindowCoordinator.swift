@@ -220,12 +220,14 @@ struct SettingsWindowObserver: NSViewRepresentable {
         private let sidebarButtonTag = 9_421
         nonisolated(unsafe) private var pendingTitleWorkItem: DispatchWorkItem?
         nonisolated(unsafe) private var localMouseMonitor: Any?
+        nonisolated(unsafe) private var toolbarObservation: NSKeyValueObservation?
         private weak var observedWindow: NSWindow?
         private weak var installedSidebarButton: NSButton?
         private var hasAppliedTrafficLightOffset = false
 
         deinit {
             pendingTitleWorkItem?.cancel()
+            toolbarObservation?.invalidate()
             stopObservingWindowClicks()
         }
 
@@ -234,6 +236,7 @@ struct SettingsWindowObserver: NSViewRepresentable {
 
             guard let window else { return }
             observeWindowClicks(for: window)
+            observeToolbarChanges(for: window)
             window.titleVisibility = .hidden
             window.titlebarSeparatorStyle = .none
             window.titlebarAppearsTransparent = true
@@ -309,11 +312,45 @@ struct SettingsWindowObserver: NSViewRepresentable {
             applyTrafficLightLayout()
         }
 
+        /// SwiftUI 的 Settings 场景会在场景刷新时异步重建 NSToolbar，仅靠固定延迟的清理
+        /// 覆盖不到所有时机；这里用 KVO 保证 toolbar 一旦被重建就立刻再次移除。
+        private func observeToolbarChanges(for window: NSWindow) {
+            toolbarObservation?.invalidate()
+            toolbarObservation = window.observe(\.toolbar, options: [.new]) { [weak self] _, change in
+                guard (change.newValue ?? nil) != nil else { return }
+                Task { @MainActor [weak self] in
+                    self?.refreshToolbarChrome()
+                }
+            }
+        }
+
         private func suppressSystemToolbarChrome() {
             guard let window else { return }
-            window.toolbar = nil
+            if window.toolbar != nil {
+                window.toolbar = nil
+            }
             window.titlebarSeparatorStyle = .none
+            window.titlebarAppearsTransparent = true
+            window.titleVisibility = .hidden
             window.setContentBorderThickness(0, for: .maxY)
+            hideTitlebarSeparatorViews()
+        }
+
+        /// `titlebarSeparatorStyle = .none` 偶尔不生效（系统仍保留 `NSTitlebarSeparatorView`），
+        /// 直接在窗口框架视图里找到分隔线视图并隐藏。
+        private func hideTitlebarSeparatorViews() {
+            guard let frameView = window?.contentView?.superview else { return }
+            hideTitlebarSeparators(in: frameView)
+        }
+
+        private func hideTitlebarSeparators(in view: NSView) {
+            for subview in view.subviews {
+                if String(describing: type(of: subview)).contains("TitlebarSeparator") {
+                    subview.isHidden = true
+                } else {
+                    hideTitlebarSeparators(in: subview)
+                }
+            }
         }
 
         private func removeSystemSidebarToolbarItems() {
