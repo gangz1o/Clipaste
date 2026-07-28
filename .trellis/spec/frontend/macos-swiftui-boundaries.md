@@ -276,3 +276,73 @@ if animated {
     proxy.scrollTo(itemID, anchor: .center)
 }
 ```
+
+## Scenario: Database-supplemented clipboard search
+
+### 1. Scope / Trigger
+
+Use this contract when an active search combines the bounded in-memory history window with matching records fetched directly from SwiftData.
+
+### 2. Signatures
+
+```swift
+nonisolated static func uniqueAppendIndexes(
+    existing: [ClipboardItemDeduplicationKey],
+    incoming: [ClipboardItemDeduplicationKey]
+) -> [Int]
+
+private func applyDisplayedItemIDsIfChanged(_ newIDs: [UUID])
+```
+
+### 3. Contracts
+
+- Deduplicate supplemental records against the complete in-memory item collection by both persistent ID and `contentHash`, not only against currently visible IDs.
+- Apply the same ID-and-hash rule within one supplemental database page.
+- Append only IDs belonging to items that were accepted for insertion into `items`; every `displayedItemIDs` entry must resolve through `item(for:)`.
+- Treat an unchanged ordered ID sequence as a no-op. Do not publish it or reconcile selection again.
+- Keep supplement filtering and merge policy in the ViewModel/model layer. Views receive a stable ordered item sequence.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Database result has an existing UUID | Reject it |
+| Database result has a new UUID but an existing content hash | Reject it without mutating `items` |
+| Two results in one page share a content hash | Accept only the first result |
+| Supplemental result is unique | Merge it, then publish its resolvable ID once |
+| Refilter produces the current ordered IDs | Do not publish another list change |
+| Query or scope changes while SQL search is running | Discard the stale generation |
+
+### 5. Good / Base / Bad Cases
+
+- Good: the supplemental merge accepts only new ID/hash pairs and publishes one stable combined result.
+- Base: SQL returns no records outside the memory window and no list mutation occurs.
+- Bad: append every SQL result ID before `mergeItems` performs content-hash deduplication.
+- Bad: assign an equal `displayedItemIDs` array on every `$items` emission.
+
+### 6. Tests Required
+
+- A policy regression test must cover a new UUID with an existing content hash.
+- The same test must cover duplicate IDs and duplicate hashes within the incoming page.
+- Run a macOS Debug build after changing the search supplement pipeline.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```swift
+mergeItems(dbResults, prepend: false)
+displayedItemIDs.append(contentsOf: dbResults.map(\.id))
+```
+
+#### Correct
+
+```swift
+let acceptedIndexes = ClipboardItemDeduplicationPolicy.uniqueAppendIndexes(
+    existing: existingKeys,
+    incoming: candidateKeys
+)
+let newItems = acceptedIndexes.map { scopedResults[$0] }
+mergeItems(newItems, prepend: false)
+applyDisplayedItemIDsIfChanged(visibleIDs + newItems.map(\.id))
+```

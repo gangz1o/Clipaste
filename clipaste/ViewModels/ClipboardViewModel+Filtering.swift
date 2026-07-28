@@ -51,8 +51,7 @@ extension ClipboardViewModel {
         let thisGeneration = filterGeneration
 
         if cleanQuery.isEmpty && groupId == nil && typeFilter == nil && builtInGroup == nil {
-            self.displayedItemIDs = items.map(\.id)
-            reconcileSelectionAfterDisplayedItemsChange()
+            applyDisplayedItemIDsIfChanged(items.map(\.id))
             return
         }
 
@@ -87,8 +86,7 @@ extension ClipboardViewModel {
 
             DispatchQueue.main.async { [weak self] in
                 guard let self, self.filterGeneration == thisGeneration else { return }
-                self.displayedItemIDs = filteredIDs
-                self.reconcileSelectionAfterDisplayedItemsChange()
+                self.applyDisplayedItemIDsIfChanged(filteredIDs)
 
                 guard shouldUseDatabaseSearch else { return }
 
@@ -127,27 +125,38 @@ extension ClipboardViewModel {
             guard self.filterGeneration == generation else { return }
             guard dbResults.isEmpty == false else { return }
 
-            // 过滤同 scope 条件（分组/类型/收藏），只追加内存里还没有的命中。
-            let knownIDs = Set(visibleIDs)
-            var newItems: [ClipboardItem] = []
-            var supplementaryIDs: [UUID] = []
-            supplementaryIDs.reserveCapacity(dbResults.count)
-
-            for item in dbResults where knownIDs.contains(item.id) == false {
-                if let typeFilter, item.contentType != typeFilter { continue }
-                if let groupId, item.groupIDs.contains(groupId) == false { continue }
-                if let builtInGroup, builtInGroup.matches(item) == false { continue }
-
-                newItems.append(item)
-                supplementaryIDs.append(item.id)
+            let scopedResults = dbResults.filter { item in
+                if let typeFilter, item.contentType != typeFilter { return false }
+                if let groupId, item.groupIDs.contains(groupId) == false { return false }
+                if let builtInGroup, builtInGroup.matches(item) == false { return false }
+                return true
             }
 
-            guard supplementaryIDs.isEmpty == false else { return }
+            let existingKeys = self.items.map {
+                ClipboardItemDeduplicationKey(id: $0.id, contentHash: $0.contentHash)
+            }
+            let candidateKeys = scopedResults.map {
+                ClipboardItemDeduplicationKey(id: $0.id, contentHash: $0.contentHash)
+            }
+            let acceptedIndexes = ClipboardItemDeduplicationPolicy.uniqueAppendIndexes(
+                existing: existingKeys,
+                incoming: candidateKeys
+            )
+            let newItems = acceptedIndexes.map { scopedResults[$0] }
+
+            guard newItems.isEmpty == false else { return }
             guard self.filterGeneration == generation else { return }
 
             self.mergeItems(newItems, prepend: false)
-            self.displayedItemIDs.append(contentsOf: supplementaryIDs)
+            self.applyDisplayedItemIDsIfChanged(visibleIDs + newItems.map(\.id))
         }
+    }
+
+    private func applyDisplayedItemIDsIfChanged(_ newIDs: [UUID]) {
+        guard displayedItemIDs != newIDs else { return }
+
+        displayedItemIDs = newIDs
+        reconcileSelectionAfterDisplayedItemsChange()
     }
 
     func loadData(mode: DataLoadMode = .fullRefresh) {
