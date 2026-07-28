@@ -4,6 +4,14 @@ import SwiftUI
 extension ClipboardViewModel {
     func suppressNextPaste(for itemID: UUID) {
         suppressedPasteItemIDs.insert(itemID)
+
+        // The ancestor tap gesture consumes this synchronously during the same
+        // input event. Expire an unconsumed marker so a keyboard, accessibility,
+        // or non-single-click action cannot suppress a later intentional paste.
+        Task { @MainActor [weak self] in
+            await Task.yield()
+            self?.suppressedPasteItemIDs.remove(itemID)
+        }
     }
 
     func batchCopy() {

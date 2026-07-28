@@ -22,6 +22,7 @@ struct ClipboardVerticalItemView: View {
     @Environment(ScreenPinViewModel.self) private var screenPinViewModel
     @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
     @AppStorage("appAccentColor") private var appAccentColor: AppAccentColor = .defaultValue
+    @AppStorage("singleClickPaste") private var singleClickPaste = false
     @AppStorage("autoPreview") private var autoPreview = true
 
     @State private var isHovering = false
@@ -354,26 +355,49 @@ struct ClipboardVerticalItemView: View {
                 color: timeTextColor
             )
             .transition(.opacity)
-        } else if showsAIShortcut {
-            ClipboardAIActionMenu(item: item, viewModel: viewModel) {
-                ClipboardAIBadgeView(size: 20)
+        } else if showsInlineActions {
+            HStack(spacing: 4) {
+                ClipboardFavoriteButton(
+                    isFavorite: item.isPinned,
+                    accentColor: appAccentColor.color,
+                    action: toggleFavorite
+                )
+
+                if showsAIShortcut {
+                    ClipboardAIActionMenu(item: item, viewModel: viewModel) {
+                        ClipboardAIBadgeView(size: 20)
+                    }
+                    .menuStyle(.borderlessButton)
+                    .menuIndicator(.hidden)
+                    .fixedSize()
+                    .help(Text("AI"))
+                }
             }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
             .fixedSize()
-            .help(Text("AI"))
             .transition(.opacity.combined(with: .scale(scale: 0.96)))
         }
     }
 
+    private var showsInlineActions: Bool {
+        (isHovering || isSelected)
+            && viewModel.isQuickPasteModifierHeld == false
+    }
+
     private var showsAIShortcut: Bool {
         viewModel.aiSettingsViewModel.isAIEnabled
-            && (isHovering || isSelected)
-            && viewModel.isQuickPasteModifierHeld == false
+            && showsInlineActions
     }
 
     private var isScreenPinDragActive: Bool {
         screenPinViewModel.isEnabled && item.isScreenPinEligible
+    }
+
+    private func toggleFavorite() {
+        if singleClickPaste {
+            viewModel.handlePrimaryClickSelection(for: item.id)
+        }
+        viewModel.suppressNextPaste(for: item.id)
+        viewModel.pinItem(item: item)
     }
 
     @ViewBuilder

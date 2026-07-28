@@ -129,3 +129,72 @@ func windowDidEndLiveResize(_ notification: Notification) {
 ```
 
 The resize transaction owns geometry until `windowDidEndLiveResize`; constraint updates happen once afterward.
+
+## Scenario: Controls nested inside clipboard-item tap gestures
+
+### 1. Scope / Trigger
+
+Use this contract when adding a `Button`, `Menu`, or other control inside a clipboard item that already owns ancestor `simultaneousGesture` handlers for selection and single-click paste.
+
+### 2. Signatures
+
+```swift
+@MainActor
+func suppressNextPaste(for itemID: UUID)
+
+@MainActor
+func pasteToActiveApp(item: ClipboardItem)
+```
+
+### 3. Contracts
+
+- A nested control that must not paste calls `suppressNextPaste(for:)` before forwarding its domain intent.
+- If single-click paste replaced the normal ancestor selection gesture, the nested control forwards the existing primary-selection intent explicitly.
+- Paste suppression is event-scoped. `suppressNextPaste(for:)` must remove an unconsumed marker after yielding once on `MainActor`; a stale marker must never suppress a later keyboard, accessibility, or intentional paste action.
+- The View renders the control and forwards interaction only. Favorite state still changes through `ClipboardViewModel.pinItem(item:)` and `setFavoriteState(for:isFavorite:)`.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Single-click paste enabled, nested control clicked | Select the item, perform the control action, and do not paste |
+| Normal selection mode, nested control clicked | Ancestor selection remains active and the control action runs once |
+| Suppression marker is not consumed in the current event | Remove it after one main-actor yield |
+| Later keyboard or accessibility paste | Never consume a marker left by an earlier control click |
+
+### 5. Good / Base / Bad Cases
+
+- Good: clicking the favorite button selects the row when needed, toggles the existing favorite state, and cannot paste the item.
+- Base: clicking the card background keeps the configured selection or paste behavior.
+- Bad: inserting an item ID into `suppressedPasteItemIDs` without expiry; the next unrelated paste can be silently dropped.
+
+### 6. Tests Required
+
+- With single-click paste enabled, assert a nested-control click updates selection and does not call the paste engine.
+- Assert consumed suppression prevents exactly the current paste attempt.
+- Assert unconsumed suppression expires before a later explicit paste.
+- Rebuild both horizontal and vertical clipboard layouts after changing the shared nested-control contract.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```swift
+func nestedControlAction() {
+    suppressedPasteItemIDs.insert(item.id)
+    performAction()
+}
+```
+
+#### Correct
+
+```swift
+func suppressNextPaste(for itemID: UUID) {
+    suppressedPasteItemIDs.insert(itemID)
+
+    Task { @MainActor [weak self] in
+        await Task.yield()
+        self?.suppressedPasteItemIDs.remove(itemID)
+    }
+}
+```

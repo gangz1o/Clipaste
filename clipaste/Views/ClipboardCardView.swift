@@ -12,6 +12,7 @@ struct ClipboardCardView: View {
     @State private var appIconDominantColorHex: String?
     @AppStorage("appAccentColor") private var appAccentColor: AppAccentColor = .defaultValue
     @AppStorage("autoPreview") private var autoPreview = true
+    @AppStorage("singleClickPaste") private var singleClickPaste = false
 
     private var isSelected: Bool {
         viewModel.selectedItemIDs.contains(item.id)
@@ -115,6 +116,18 @@ struct ClipboardCardView: View {
         }
         .overlay(alignment: .bottomTrailing) {
             bottomAccessory
+        }
+        .overlay(alignment: .bottomLeading) {
+            if showsFavoriteShortcut {
+                ClipboardFavoriteButton(
+                    isFavorite: item.isPinned,
+                    accentColor: appAccentColor.color,
+                    action: toggleFavorite
+                )
+                .padding(.leading, 12)
+                .padding(.bottom, 12)
+                .transition(.opacity.combined(with: .scale(scale: 0.96)))
+            }
         }
         .overlay {
             RoundedRectangle(cornerRadius: 16, style: .continuous)
@@ -362,8 +375,21 @@ struct ClipboardCardView: View {
             && viewModel.isQuickPasteModifierHeld == false
     }
 
+    private var showsFavoriteShortcut: Bool {
+        (isHovered || isSelected)
+            && viewModel.isQuickPasteModifierHeld == false
+    }
+
     private var isScreenPinDragActive: Bool {
         screenPinViewModel.isEnabled && item.isScreenPinEligible
+    }
+
+    private func toggleFavorite() {
+        if singleClickPaste {
+            viewModel.handlePrimaryClickSelection(for: item.id)
+        }
+        viewModel.suppressNextPaste(for: item.id)
+        viewModel.pinItem(item: item)
     }
 
     @ViewBuilder
