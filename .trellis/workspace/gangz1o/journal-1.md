@@ -37,3 +37,36 @@
 ### Next Steps
 
 - None - task complete
+
+
+## Session 2: Add hover favorite button
+
+**Date**: 2026-07-28
+**Task**: Add hover favorite button
+**Branch**: `master`
+
+### Summary
+
+Added themed hover-only favorite controls to horizontal and non-compact vertical clipboard layouts, reused existing favorite persistence, hardened nested-control paste suppression, and verified localization plus a clean macOS Debug build.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7a77555` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
