@@ -198,3 +198,81 @@ func suppressNextPaste(for itemID: UUID) {
     }
 }
 ```
+
+## Scenario: Filtered horizontal list positioning
+
+### 1. Scope / Trigger
+
+Use this contract when a group, smart filter, search scope, or refresh replaces `displayedItemIDs` and also changes the primary selection in the horizontal clipboard panel.
+
+### 2. Signatures
+
+```swift
+@MainActor
+func requestListScroll(to itemID: UUID, animated: Bool)
+
+private func scrollToItem(
+    with proxy: ScrollViewProxy,
+    itemID: UUID,
+    animated: Bool
+)
+```
+
+### 3. Contracts
+
+- Do not wrap group or filter data-source mutations in a broad `withAnimation`. Animate the tab's `isSelected` and hover styling locally with value-scoped modifiers.
+- When `displayedItemIDs`, first-item selection, and `listScrollRequest` change as one logical filter result, handle the scroll request in the same SwiftUI update cycle. Do not add another `DispatchQueue.main.async` hop.
+- Initial appearance may yield once before positioning because the lazy stack needs its first layout pass. Use a cancellable SwiftUI `.task`, not a persistent queue callback.
+- Preserve explicit animated scrolling for keyboard navigation; group-switch first-item resets remain unanimated.
+
+### 4. Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Switch between two filters | Replace content and position the new first item without an intermediate old offset |
+| Switch back to All | Insert restored cards without spring animation |
+| Horizontal list first appears | Yield once, then position the existing primary selection |
+| Keyboard selection moves | Center the target using the explicit short animation |
+| Group tab selection changes | Animate only the tab's visual state |
+
+### 5. Good / Base / Bad Cases
+
+- Good: the filter publishes new IDs, resets selection, and the list consumes the resulting scroll request in one view update.
+- Base: keyboard navigation issues an animated request to an item already in the current list.
+- Bad: new IDs render at the old offset, then a queued callback moves the list one frame later.
+- Bad: a spring transaction surrounds `showSmartFilter`, `showBuiltInGroup`, or another data-source intent.
+
+### 6. Tests Required
+
+- A regression check must reject broad animation wrappers around group scope mutations.
+- A regression check must reject unconditional main-queue deferral inside requested horizontal scrolling.
+- Verify the local `isSelected` tab animation and the explicit keyboard scroll animation remain present.
+- Run a macOS Debug clean build after changing scroll timing.
+
+### 7. Wrong vs Correct
+
+#### Wrong
+
+```swift
+withAnimation(.spring()) {
+    viewModel.showSmartFilter(type)
+}
+
+DispatchQueue.main.async {
+    proxy.scrollTo(itemID, anchor: .center)
+}
+```
+
+#### Correct
+
+```swift
+viewModel.showSmartFilter(type)
+
+if animated {
+    withAnimation(.easeInOut(duration: 0.12)) {
+        proxy.scrollTo(itemID, anchor: .center)
+    }
+} else {
+    proxy.scrollTo(itemID, anchor: .center)
+}
+```

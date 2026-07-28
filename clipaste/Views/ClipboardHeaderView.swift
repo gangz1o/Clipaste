@@ -930,27 +930,19 @@ struct ClipboardHeaderView: View {
     }
 
     private func selectAllGroup() {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            viewModel.showAllItems()
-        }
+        viewModel.showAllItems()
     }
 
     private func selectCustomGroup(_ groupID: String) {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            viewModel.showCustomGroup(groupID)
-        }
+        viewModel.showCustomGroup(groupID)
     }
 
     private func selectSmartFilter(_ type: ClipboardContentType) {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            viewModel.showSmartFilter(type)
-        }
+        viewModel.showSmartFilter(type)
     }
 
     private func selectBuiltInGroup(_ group: ClipboardBuiltInGroup) {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            viewModel.showBuiltInGroup(group)
-        }
+        viewModel.showBuiltInGroup(group)
     }
 
     private func handleItemDrop(

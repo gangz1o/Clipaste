@@ -55,7 +55,8 @@ struct ClipboardHorizontalView: View {
                     guard !viewModel.selectedItemIDs.isEmpty else { return }
                     viewModel.batchDelete()
                 }
-                .onAppear {
+                .task {
+                    await Task.yield()
                     scrollToPrimarySelection(with: proxy, animated: false)
                 }
                 .onChange(of: viewModel.listScrollRequest) { _, request in
@@ -106,14 +107,12 @@ struct ClipboardHorizontalView: View {
     }
 
     private func scrollToItem(with proxy: ScrollViewProxy, itemID: UUID, animated: Bool) {
-        DispatchQueue.main.async {
-            if animated {
-                withAnimation(.easeInOut(duration: 0.12)) {
-                    proxy.scrollTo(itemID, anchor: .center)
-                }
-            } else {
+        if animated {
+            withAnimation(.easeInOut(duration: 0.12)) {
                 proxy.scrollTo(itemID, anchor: .center)
             }
+        } else {
+            proxy.scrollTo(itemID, anchor: .center)
         }
     }
 }
