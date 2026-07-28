@@ -3,6 +3,40 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.6</title>
+            <pubDate>Tue, 28 Jul 2026 14:42:12 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.6</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20206</sparkle:version>
+            <sparkle:shortVersionString>2.2.6</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
+
+### ⭐️ 新增收藏快捷按钮
+
+- 列表项新增收藏快捷按钮，支持一键标记常用内容。
+
+### 🛠 修复与体验优化
+
+- 修复切换分组时历史记录重复渲染的问题。
+- 修复搜索时部分场景下列表闪烁问题
+
+---
+
+## ✨ What's New
+
+### ⭐️ Quick Favorite Button
+
+- Added a quick favorite button to list items for one-tap bookmarking.
+
+### 🛠 Fixes & Improvements
+
+- Fixed duplicate rendering of history items when switching groups.
+- Fixed the issue where the list flickers in some scenarios during search.
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.6/Clipaste-v2.2.6.zip" length="6737477" type="application/octet-stream" sparkle:edSignature="UejT+HfZwezgPZbK8lgyA5PznSW/dceb/SFL++BKl/ZX11nEXjMZ3zlc/PqwGVLAAwftXBG8yVUvon/r49p1Dg=="/>
+        </item>
+        <item>
             <title>2.2.5</title>
             <pubDate>Tue, 28 Jul 2026 14:17:35 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -69,56 +103,6 @@
 -   Once enabled, simply drag the source icon to place content anywhere on your screen.
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.4/Clipaste-v2.2.4.zip" length="6720911" type="application/octet-stream" sparkle:edSignature="EL0eSFbvpRK9PD+a32i9kFU4ihG7GADaLDk5hDA1qwgUKz1s50Aqrpj6vcNBlF8Uibq4jO3e/a4JLk7GfrViCA=="/>
-        </item>
-        <item>
-            <title>2.2.3</title>
-            <pubDate>Tue, 14 Jul 2026 03:56:04 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.3</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20203</sparkle:version>
-            <sparkle:shortVersionString>2.2.3</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
-
-### 📌 新增贴图功能
-
-- 支持将剪贴板内容以“贴图”形式悬浮在屏幕上，方便随时对照参考。
-- 该功能默认关闭，请前往「高级 - 界面 - 贴图」手动开启。
-- 开启后，拖动来源图标即可将内容随意贴在屏幕任意位置，打造你的专属桌面便签。
-
-### ☁️ iCloud 同步提速
-
-- 优化 iCloud 同步速度，大幅减少多端数据同步的等待时间。
-- 提升同步响应效率，让剪贴板历史在不同设备间流转更迅速、更及时。
-
-### 📱 移动端新版本发布
-
-- iOS 新版本已上架，带来更流畅的使用体验。
-- 针对移动端深度优化了 iCloud 同步速度与同步策略，弱网环境下表现更稳定。
-- 与 Mac 端协同更紧密，确保跨设备剪贴板内容实时一致。
-
----
-
-## ✨ What's New
-
-### 📌 Pin to Screen
-
-- You can now pin clipboard items as floating overlays on your screen for easy reference.
-- This feature is disabled by default. Enable it via Advanced → Interface → Pin to Screen.
-- Once enabled, simply drag the source icon to place content anywhere on your screen.
-
-### ☁️ Faster iCloud Sync
-
-- Improved iCloud sync speed to significantly reduce waiting time across devices.
-- Enhanced sync responsiveness so clipboard history transfers more quickly and reliably.
-
-### 📱 Mobile App Update
-
-- A new version of the IOS app is now available with a smoother experience.
-- Optimized iCloud sync speed and strategy on mobile for better performance, even on slower connections.
-- Tighter integration with Mac ensures real-time consistency of clipboard history across all devices.
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.3/Clipaste-v2.2.3.zip" length="6702280" type="application/octet-stream" sparkle:edSignature="nW6xMjQrU+ydB3RRV+QmyLeCIKrcQUzY7G9sq926CvbgPrLsYcrUUhRQveV7WK4TBcHMI7one5BxserCv9abAQ=="/>
         </item>
     </channel>
 </rss>
