@@ -70,3 +70,36 @@ Added themed hover-only favorite controls to horizontal and non-compact vertical
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: Fix horizontal bounce when switching groups
+
+**Date**: 2026-07-28
+**Task**: Fix horizontal bounce when switching groups
+**Branch**: `master`
+
+### Summary
+
+Removed broad spring transactions from group scope changes, consumed horizontal list scroll requests in the current SwiftUI update cycle, preserved local tab and keyboard animations, added a red-green regression contract, and passed a clean macOS Debug build.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `60e8349` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
