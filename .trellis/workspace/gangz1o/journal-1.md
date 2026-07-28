@@ -103,3 +103,36 @@ Removed broad spring transactions from group scope changes, consumed horizontal 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 4: 修复搜索结果尾部闪烁
+
+**Date**: 2026-07-28
+**Task**: 修复搜索结果尾部闪烁
+**Branch**: `master`
+
+### Summary
+
+修复数据库补充搜索与内存列表去重不一致造成的重复搜索和尾部列表重建；仅发布实际合并的条目 ID，并跳过相同结果序列的重复发布。新增去重策略回归测试并通过 macOS Debug 干净构建。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `a310488` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
