@@ -136,3 +136,37 @@ Removed broad spring transactions from group scope changes, consumed horizontal 
 ### Next Steps
 
 - None - task complete
+
+
+## Session 5: 收藏补同步与移动端分组加载优化
+
+**Date**: 2026-07-30
+**Task**: 收藏补同步与移动端分组加载优化
+**Branch**: `master`
+
+### Summary
+
+为 macOS 增加版本化 pinned-only 本地收藏云端补偿；iOS 使用全部缓存即时推导分组、显示非阻塞加载态，并把键盘图片快照移出首屏刷新关键路径。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `0e2c0b7` | (see git log) |
+| `62f67eb` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
