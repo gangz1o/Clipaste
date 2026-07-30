@@ -580,6 +580,10 @@ final class StorageManager {
         }
     }
 
+    func exportPinnedRecords() async throws -> ClipboardStoreExport {
+        try await storeActor.exportPinnedRecords()
+    }
+
     func importStoreExport(_ payload: ClipboardStoreExport) async throws {
         try await storeActor.importStoreExport(payload)
     }
@@ -1607,53 +1611,38 @@ actor ClipboardStoreActor {
     }
 
     func exportStore() -> ClipboardStoreExport {
-        let records = ((try? modelContext.fetch(FetchDescriptor<ClipboardRecord>())) ?? []).map {
-            ClipboardRecordExport(
-                id: $0.id,
-                timestamp: $0.timestamp,
-                contentHash: $0.contentHash,
-                typeRawValue: $0.typeRawValue,
-                plainText: $0.plainText,
-                fullTextData: $0.fullTextData,
-                isPlainTextTruncated: $0.isPlainTextTruncated,
-                previewImageData: $0.previewImageData,
-                imageData: $0.imageData,
-                imageUTType: $0.imageUTType,
-                imageByteCount: $0.imageByteCount,
-                imagePixelWidth: $0.imagePixelWidth,
-                imagePixelHeight: $0.imagePixelHeight,
-                appBundleID: $0.appBundleID,
-                appLocalizedName: $0.appLocalizedName,
-                appIconDominantColorHex: $0.appIconDominantColorHex,
-                appIconData: $0.appIconData,
-                groupId: $0.groupId,
-                groupIdsRaw: $0.groupIdsRaw,
-                customTitle: $0.customTitle,
-                linkTitle: $0.linkTitle,
-                linkIconData: $0.linkIconData,
-                isPinned: $0.isPinned,
-                rtfData: $0.rtfData,
-                richTextArchiveData: $0.richTextArchiveData,
-                sourcePlatformRawValue: $0.sourcePlatformRawValue,
-                sourceDeviceName: $0.sourceDeviceName,
-                captureMethodRawValue: $0.captureMethodRawValue,
-                captureSessionID: $0.captureSessionID
-            )
-        }
-
-        let groups = ((try? modelContext.fetch(FetchDescriptor<ClipboardGroupModel>())) ?? []).map {
-            ClipboardGroupExport(
-                id: $0.id,
-                name: $0.name,
-                createdAt: $0.createdAt,
-                systemIconName: $0.resolvedSystemIconName,
-                sortOrder: $0.sortOrder,
-                deletedAt: $0.deletedAt,
-                deletedByDevice: $0.deletedByDevice
-            )
-        }
+        let records = ((try? modelContext.fetch(FetchDescriptor<ClipboardRecord>())) ?? [])
+            .map(Self.makeRecordExport(from:))
+        let groups = ((try? modelContext.fetch(FetchDescriptor<ClipboardGroupModel>())) ?? [])
+            .map(Self.makeGroupExport(from:))
 
         return ClipboardStoreExport(records: records, groups: groups)
+    }
+
+    func exportPinnedRecords() throws -> ClipboardStoreExport {
+        let descriptor = FetchDescriptor<ClipboardRecord>(
+            predicate: #Predicate<ClipboardRecord> { $0.isPinned }
+        )
+        let pinnedRecords = try modelContext.fetch(descriptor)
+        let referencedGroupIDs = Set(
+            pinnedRecords.flatMap {
+                normalizedGroupIDs(primaryGroupID: $0.groupId, groupIdsRaw: $0.groupIdsRaw)
+            }
+        )
+        let groups: [ClipboardGroupExport]
+
+        if referencedGroupIDs.isEmpty {
+            groups = []
+        } else {
+            groups = try modelContext.fetch(FetchDescriptor<ClipboardGroupModel>())
+                .filter { referencedGroupIDs.contains($0.id) }
+                .map(Self.makeGroupExport(from:))
+        }
+
+        return ClipboardStoreExport(
+            records: pinnedRecords.map(Self.makeRecordExport(from:)),
+            groups: groups
+        )
     }
 
     func importStoreExport(_ payload: ClipboardStoreExport) throws {
@@ -1786,6 +1775,52 @@ actor ClipboardStoreActor {
         }
 
         try modelContext.save()
+    }
+
+    private nonisolated static func makeRecordExport(from record: ClipboardRecord) -> ClipboardRecordExport {
+        ClipboardRecordExport(
+            id: record.id,
+            timestamp: record.timestamp,
+            contentHash: record.contentHash,
+            typeRawValue: record.typeRawValue,
+            plainText: record.plainText,
+            fullTextData: record.fullTextData,
+            isPlainTextTruncated: record.isPlainTextTruncated,
+            previewImageData: record.previewImageData,
+            imageData: record.imageData,
+            imageUTType: record.imageUTType,
+            imageByteCount: record.imageByteCount,
+            imagePixelWidth: record.imagePixelWidth,
+            imagePixelHeight: record.imagePixelHeight,
+            appBundleID: record.appBundleID,
+            appLocalizedName: record.appLocalizedName,
+            appIconDominantColorHex: record.appIconDominantColorHex,
+            appIconData: record.appIconData,
+            groupId: record.groupId,
+            groupIdsRaw: record.groupIdsRaw,
+            customTitle: record.customTitle,
+            linkTitle: record.linkTitle,
+            linkIconData: record.linkIconData,
+            isPinned: record.isPinned,
+            rtfData: record.rtfData,
+            richTextArchiveData: record.richTextArchiveData,
+            sourcePlatformRawValue: record.sourcePlatformRawValue,
+            sourceDeviceName: record.sourceDeviceName,
+            captureMethodRawValue: record.captureMethodRawValue,
+            captureSessionID: record.captureSessionID
+        )
+    }
+
+    private nonisolated static func makeGroupExport(from group: ClipboardGroupModel) -> ClipboardGroupExport {
+        ClipboardGroupExport(
+            id: group.id,
+            name: group.name,
+            createdAt: group.createdAt,
+            systemIconName: group.resolvedSystemIconName,
+            sortOrder: group.sortOrder,
+            deletedAt: group.deletedAt,
+            deletedByDevice: group.deletedByDevice
+        )
     }
 
     func loadPreviewImageData(id: UUID) -> Data? {

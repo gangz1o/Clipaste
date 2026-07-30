@@ -445,6 +445,7 @@ final class ClipboardRuntimeStore {
 
         do {
             try await bootstrapper.importLegacyStoreIfNeeded(into: currentRuntime.storage)
+            try await recoverLocalFavoritesIfNeeded()
             let repairedCount = await currentRuntime.storage.repairImportedMigrationTimestampsIfNeeded()
             let repairedClassificationCount = await repairTextClassificationsIfNeeded(using: currentRuntime.storage)
             let repairedAppIconColorCount = await repairAppIconColorsIfNeeded(using: currentRuntime.storage)
@@ -527,7 +528,7 @@ final class ClipboardRuntimeStore {
             appendDiagnostic(
                 level: .error,
                 message: ClipboardSyncDiagnosticMessage(
-                    "Startup legacy-store import failed: %@",
+                    "Startup bootstrap failed: %@",
                     arguments: [.string(message)]
                 )
             )
@@ -1140,6 +1141,52 @@ final class ClipboardRuntimeStore {
         return repairedCount
     }
 
+    private func recoverLocalFavoritesIfNeeded() async throws {
+        guard currentRuntime.syncEnabled else { return }
+        guard defaults.integer(forKey: Keys.favoriteRecoveryVersion) < FavoriteRecovery.currentVersion else {
+            return
+        }
+
+        appendDiagnostic(
+            level: .info,
+            message: ClipboardSyncDiagnosticMessage("Starting local favorite recovery for the cloud route")
+        )
+
+        do {
+            let sourceRuntime: ClipboardRuntime
+            if let localRuntime {
+                sourceRuntime = localRuntime
+            } else {
+                let runtime = try await makeRuntimeOffMain(syncEnabled: false)
+                localRuntime = runtime
+                sourceRuntime = runtime
+            }
+
+            let payload = try await sourceRuntime.storage.exportPinnedRecords()
+            if payload.records.isEmpty == false {
+                try await currentRuntime.storage.importStoreExport(payload)
+            }
+
+            defaults.set(FavoriteRecovery.currentVersion, forKey: Keys.favoriteRecoveryVersion)
+            appendDiagnostic(
+                level: .info,
+                message: ClipboardSyncDiagnosticMessage(
+                    "Local favorite recovery completed. Records: %@, groups: %@",
+                    arguments: [.count(payload.records.count), .count(payload.groups.count)]
+                )
+            )
+        } catch {
+            appendDiagnostic(
+                level: .error,
+                message: ClipboardSyncDiagnosticMessage(
+                    "Local favorite recovery failed and will retry: %@",
+                    arguments: [.string(CloudSyncErrorFormatter.message(for: error))]
+                )
+            )
+            throw error
+        }
+    }
+
     private func repairDuplicateRecordsIfThrottled(using storage: StorageManager) async -> Int {
         if let lastDuplicateRepairDate,
            Date().timeIntervalSince(lastDuplicateRepairDate) < DedupThrottle.minimumInterval {
@@ -1584,6 +1631,11 @@ private extension ClipboardRuntimeStore {
         static let appIconDataRepairVersion = "clipboard_app_icon_data_repair_version"
         static let duplicateRepairVersion = "clipboard_duplicate_repair_version"
         static let oversizedTextRepairVersion = "clipboard_oversized_text_repair_version"
+        static let favoriteRecoveryVersion = "clipboard_favorite_cloud_recovery_version"
+    }
+
+    enum FavoriteRecovery {
+        static let currentVersion = 1
     }
 
     enum DedupThrottle {
