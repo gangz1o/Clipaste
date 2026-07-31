@@ -3,6 +3,30 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.7</title>
+            <pubDate>Fri, 31 Jul 2026 03:46:02 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.7</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20207</sparkle:version>
+            <sparkle:shortVersionString>2.2.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
+
+### 🛠 修复与体验优化
+
+- 修复了 iCloud 同步时收藏分组未能正常生效的问题，确保多设备间的分组状态保持一致。
+
+---
+
+## ✨ What's New
+
+### 🛠 Fixes & Improvements
+
+- Fixed an issue where favorite groups did not take effect during iCloud sync, ensuring consistent group status across all devices.
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.7/Clipaste-v2.2.7.zip" length="6745424" type="application/octet-stream" sparkle:edSignature="tbQgp4Z06XJXmV9PI9C7NJodNGjxmF746CxT1FNvfEw/Nua4BOj90H7qHaVkLIrVqKap+vYrc5woRqhAs1juDQ=="/>
+        </item>
+        <item>
             <title>2.2.6</title>
             <pubDate>Tue, 28 Jul 2026 14:42:12 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -67,42 +91,6 @@
 - Fixed duplicate rendering of history items when switching groups.
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.5/Clipaste-v2.2.5.zip" length="6730394" type="application/octet-stream" sparkle:edSignature="NzyCqNrIK60uQ9K4/WSVqEJNacNoDQXexTLhLvmt+REkP7yEoQYMKU/+HoQGhXwSNbcdGY+fXB6M2fJwA3O2BQ=="/>
-        </item>
-        <item>
-            <title>2.2.4</title>
-            <pubDate>Thu, 16 Jul 2026 14:38:02 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.4</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20204</sparkle:version>
-            <sparkle:shortVersionString>2.2.4</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
-
-### ⌨️ 新增历史记录快捷键复制操作
-
--   支持使用快捷键直接复制历史记录条目，无需右键菜单。
-
-### 📌 贴图功能上线
-
--   支持将剪贴板内容以“贴图”形式悬浮在屏幕上，方便随时对照参考。
--   该功能默认关闭，请前往「高级 - 界面 - 贴图」手动开启。
--   开启后，拖动来源图标即可将内容随意贴在屏幕任意位置，打造你的专属桌面便签。
-
----
-
-## ✨ What's New
-
-### ⌨️ Shortcut for Copying History Items
-
--   You can now copy history items directly via keyboard shortcut instead of right-clicking.
-
-### 📌 Pin to Screen
-
--   You can now pin clipboard items as floating overlays on your screen for easy reference.
--   This feature is disabled by default. Enable it via Advanced → Interface → Pin to Screen.
--   Once enabled, simply drag the source icon to place content anywhere on your screen.
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.4/Clipaste-v2.2.4.zip" length="6720911" type="application/octet-stream" sparkle:edSignature="EL0eSFbvpRK9PD+a32i9kFU4ihG7GADaLDk5hDA1qwgUKz1s50Aqrpj6vcNBlF8Uibq4jO3e/a4JLk7GfrViCA=="/>
         </item>
     </channel>
 </rss>
