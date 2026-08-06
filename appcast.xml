@@ -3,6 +3,35 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.8</title>
+            <pubDate>Thu, 06 Aug 2026 04:16:45 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.8</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20208</sparkle:version>
+            <sparkle:shortVersionString>2.2.8</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
+
+### 🛠 修复与体验优化
+
+- 修复链接预览可能完整下载大文件、造成异常后台流量的问题。
+- 为网页与站点图标抓取增加严格流量上限、响应类型校验和重复请求合并。
+- “默认模式”下不再自动请求链接元数据，同时保留本地语法高亮行为。
+
+---
+
+## ✨ What's New
+
+### 🛠 Fixes & Improvements
+
+- Fixed an issue where link previews could download entire large files and cause excessive background data usage.
+- Added strict transfer limits, response type validation, and in-flight request coalescing for page and favicon metadata.
+- Link metadata is no longer fetched automatically in Default Mode, while local syntax highlighting remains unchanged.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.8/Clipaste-v2.2.8.zip" length="6747517" type="application/octet-stream" sparkle:edSignature="esd96+G0+JNLD3cDld3od+Zhzn1QOene7cO2nuCPBEpWKcm9KKrWxrdyh6thNgrLgfNQ04+HfIUv7ZcB8kYsBQ=="/>
+        </item>
+        <item>
             <title>2.2.7</title>
             <pubDate>Fri, 31 Jul 2026 03:46:02 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -59,38 +88,6 @@
 - Fixed the issue where the list flickers in some scenarios during search.
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.6/Clipaste-v2.2.6.zip" length="6737477" type="application/octet-stream" sparkle:edSignature="UejT+HfZwezgPZbK8lgyA5PznSW/dceb/SFL++BKl/ZX11nEXjMZ3zlc/PqwGVLAAwftXBG8yVUvon/r49p1Dg=="/>
-        </item>
-        <item>
-            <title>2.2.5</title>
-            <pubDate>Tue, 28 Jul 2026 14:17:35 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.5</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20205</sparkle:version>
-            <sparkle:shortVersionString>2.2.5</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
-
-### ⭐️ 新增收藏快捷按钮
-
-- 列表项新增收藏快捷按钮，支持一键标记常用内容。
-
-### 🛠 修复与体验优化
-
-- 修复切换分组时历史记录重复渲染的问题。
-
----
-
-## ✨ What's New
-
-### ⭐️ Quick Favorite Button
-
-- Added a quick favorite button to list items for one-tap bookmarking.
-
-### 🛠 Fixes & Improvements
-
-- Fixed duplicate rendering of history items when switching groups.
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.5/Clipaste-v2.2.5.zip" length="6730394" type="application/octet-stream" sparkle:edSignature="NzyCqNrIK60uQ9K4/WSVqEJNacNoDQXexTLhLvmt+REkP7yEoQYMKU/+HoQGhXwSNbcdGY+fXB6M2fJwA3O2BQ=="/>
         </item>
     </channel>
 </rss>
