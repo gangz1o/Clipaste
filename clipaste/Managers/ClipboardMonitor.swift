@@ -148,6 +148,7 @@ final class ClipboardMonitor {
         let sourcePlatformRawValue = ClipboardSourceMetadata.currentPlatform
         let sourceDeviceName = ClipboardSourceMetadata.currentDeviceName
         let captureMethodRawValue = ClipboardSourceMetadata.macOSMonitorMethod
+        let shouldFetchLinkMetadata = ClipboardLinkDisplayMode.shouldFetchMetadata(defaults: defaults)
 
         if let appID, ignoredBundleIdentifiers.contains(appID) {
             return
@@ -226,7 +227,8 @@ final class ClipboardMonitor {
             await Self.persistCapturedPayloads(
                 recordPayloads: recordPayloads,
                 imagePayloads: imagePayloads,
-                sourceAppIconData: sourceAppIconData
+                sourceAppIconData: sourceAppIconData,
+                shouldFetchLinkMetadata: shouldFetchLinkMetadata
             )
         }
     }
@@ -362,7 +364,8 @@ final class ClipboardMonitor {
     private nonisolated static func persistCapturedPayloads(
         recordPayloads: [ClipboardRecordPayload],
         imagePayloads: [ClipboardImagePayload],
-        sourceAppIconData: Data?
+        sourceAppIconData: Data?,
+        shouldFetchLinkMetadata: Bool
     ) async {
         let appIconDominantColorHex = sourceAppIconData.flatMap(Self.extractDominantColorHex(from:))
 
@@ -378,7 +381,8 @@ final class ClipboardMonitor {
             await persistRecordPayload(
                 recordPayload,
                 appIconDominantColorHex: appIconDominantColorHex,
-                appIconData: sourceAppIconData
+                appIconData: sourceAppIconData,
+                shouldFetchLinkMetadata: shouldFetchLinkMetadata
             )
         }
     }
@@ -427,7 +431,8 @@ final class ClipboardMonitor {
     private nonisolated static func persistRecordPayload(
         _ payload: ClipboardRecordPayload,
         appIconDominantColorHex: String?,
-        appIconData: Data?
+        appIconData: Data?,
+        shouldFetchLinkMetadata: Bool
     ) async {
         // 同样走"已存在则跳过 icon 写入"。文本路径之前不查 recordExists，所以
         // 每次复制都把同一份 App icon PNG 重新落盘一次。
@@ -453,10 +458,12 @@ final class ClipboardMonitor {
         // 链接类型 → 触发 LinkPresentation 抓取，让链接变成漂亮的书签卡片
         if payload.type == ClipboardContentType.link.rawValue,
            let text = payload.text {
-            StorageManager.shared.processLinkMetadata(
-                hash: payload.hash,
-                urlString: text.trimmingCharacters(in: .whitespacesAndNewlines)
-            )
+            if shouldFetchLinkMetadata {
+                StorageManager.shared.processLinkMetadata(
+                    hash: payload.hash,
+                    urlString: text.trimmingCharacters(in: .whitespacesAndNewlines)
+                )
+            }
             if payload.richTextArchive == nil, payload.rtfData == nil {
                 StorageManager.shared.processSyntaxHighlight(hash: payload.hash, text: text)
             }
@@ -468,7 +475,8 @@ final class ClipboardMonitor {
            payload.rtfData == nil,
            let text = payload.text {
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-            if trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
+            if shouldFetchLinkMetadata,
+               trimmed.hasPrefix("http://") || trimmed.hasPrefix("https://") {
                 StorageManager.shared.processLinkMetadata(
                     hash: payload.hash,
                     urlString: text.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -4,32 +4,45 @@ import Foundation
 /// 不依赖 LinkPresentation / WebKit，避免把网页加载工作放进 UI 层。
 struct LinkMetadataEngine {
     nonisolated private static let userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15"
-    nonisolated private static let maxIconByteCount = 256 * 1024
+    nonisolated static let maxHTMLByteCount = 512 * 1024
+    nonisolated static let maxIconByteCount = 256 * 1024
+    nonisolated static let maxIconCandidateCount = 4
 
-    nonisolated static func fetchMetadata(for urlString: String) async -> (title: String?, iconData: Data?) {
+    nonisolated static func fetchMetadata(
+        for urlString: String,
+        session: URLSession = .shared
+    ) async -> (title: String?, iconData: Data?) {
         let trimmed = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard let pageURL = validatedHTTPURL(from: trimmed),
-              let page = await fetchHTML(url: pageURL) else {
+              let page = await fetchHTML(url: pageURL, session: session) else {
             return (nil, nil)
         }
 
         async let title = extractTitle(from: page.html)
-        async let iconData = fetchIconData(from: page.html, pageURL: page.finalURL)
+        async let iconData = fetchIconData(
+            from: page.html,
+            pageURL: page.finalURL,
+            session: session
+        )
 
         return await (title, iconData)
     }
 
     // MARK: - HTML Fetch
 
-    nonisolated private static func fetchHTML(url: URL) async -> HTMLPage? {
+    nonisolated private static func fetchHTML(url: URL, session: URLSession) async -> HTMLPage? {
         var request = URLRequest(url: url, timeoutInterval: 5)
         request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
         request.setValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
+        request.setValue("bytes=0-\(Self.maxHTMLByteCount)", forHTTPHeaderField: "Range")
 
-        guard let (data, response) = try? await URLSession.shared.data(for: request),
-              let httpResponse = response as? HTTPURLResponse,
-              200..<300 ~= httpResponse.statusCode else {
+        guard let (data, response) = await fetchLimitedData(
+            request: request,
+            session: session,
+            maximumByteCount: Self.maxHTMLByteCount,
+            resourceKind: .html
+        ) else {
             return nil
         }
 
@@ -40,7 +53,7 @@ struct LinkMetadataEngine {
             return nil
         }
 
-        return HTMLPage(html: html, finalURL: httpResponse.url ?? url)
+        return HTMLPage(html: html, finalURL: response.url ?? url)
     }
 
     // MARK: - Title Parser
@@ -64,13 +77,17 @@ struct LinkMetadataEngine {
 
     // MARK: - Icon Fetch
 
-    nonisolated private static func fetchIconData(from html: String, pageURL: URL) async -> Data? {
+    nonisolated private static func fetchIconData(
+        from html: String,
+        pageURL: URL,
+        session: URLSession
+    ) async -> Data? {
         let candidates = iconCandidates(from: html, pageURL: pageURL)
 
         for iconURL in candidates {
             guard Task.isCancelled == false else { return nil }
 
-            if let data = await fetchIconData(url: iconURL) {
+            if let data = await fetchIconData(url: iconURL, session: session) {
                 return data
             }
         }
@@ -78,24 +95,20 @@ struct LinkMetadataEngine {
         return nil
     }
 
-    nonisolated private static func fetchIconData(url: URL) async -> Data? {
+    nonisolated private static func fetchIconData(url: URL, session: URLSession) async -> Data? {
         guard isAllowedHTTPURL(url) else { return nil }
 
         var request = URLRequest(url: url, timeoutInterval: 4)
         request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
         request.setValue("image/avif,image/webp,image/png,image/svg+xml,image/*,*/*;q=0.8", forHTTPHeaderField: "Accept")
+        request.setValue("bytes=0-\(Self.maxIconByteCount)", forHTTPHeaderField: "Range")
 
-        guard let (data, response) = try? await URLSession.shared.data(for: request),
-              let httpResponse = response as? HTTPURLResponse,
-              200..<300 ~= httpResponse.statusCode,
-              data.isEmpty == false,
-              data.count <= Self.maxIconByteCount else {
-            return nil
-        }
-
-        if let mimeType = httpResponse.mimeType?.lowercased(),
-           mimeType.hasPrefix("image/") == false,
-           mimeType != "application/octet-stream" {
+        guard let (data, _) = await fetchLimitedData(
+            request: request,
+            session: session,
+            maximumByteCount: Self.maxIconByteCount,
+            resourceKind: .icon
+        ), data.isEmpty == false else {
             return nil
         }
 
@@ -108,7 +121,10 @@ struct LinkMetadataEngine {
             .filter(isAllowedHTTPURL)
 
         let fallback = URL(string: "/favicon.ico", relativeTo: pageURL)?.absoluteURL
-        return uniqueURLs(linkCandidates + [fallback].compactMap { $0 })
+        return Array(
+            uniqueURLs(linkCandidates + [fallback].compactMap { $0 })
+                .prefix(Self.maxIconCandidateCount)
+        )
     }
 
     nonisolated private static func extractIconHrefs(from html: String) -> [String] {
@@ -200,6 +216,58 @@ struct LinkMetadataEngine {
         return result
     }
 
+    nonisolated private static func fetchLimitedData(
+        request: URLRequest,
+        session: URLSession,
+        maximumByteCount: Int,
+        resourceKind: LinkMetadataResourceKind
+    ) async -> (Data, HTTPURLResponse)? {
+        let bytes: URLSession.AsyncBytes
+        let response: URLResponse
+
+        do {
+            (bytes, response) = try await session.bytes(for: request)
+        } catch {
+            return nil
+        }
+
+        var completed = false
+        defer {
+            if completed == false {
+                bytes.task.cancel()
+            }
+        }
+
+        guard let httpResponse = response as? HTTPURLResponse,
+              200..<300 ~= httpResponse.statusCode,
+              let finalURL = httpResponse.url,
+              isAllowedHTTPURL(finalURL),
+              resourceKind.accepts(mimeType: httpResponse.mimeType),
+              httpResponse.expectedContentLength <= Int64(maximumByteCount) else {
+            return nil
+        }
+
+        var data = Data()
+        if httpResponse.expectedContentLength > 0 {
+            data.reserveCapacity(Int(httpResponse.expectedContentLength))
+        }
+
+        do {
+            for try await byte in bytes {
+                try Task.checkCancellation()
+                guard data.count < maximumByteCount else {
+                    return nil
+                }
+                data.append(byte)
+            }
+        } catch {
+            return nil
+        }
+
+        completed = true
+        return (data, httpResponse)
+    }
+
     nonisolated private static func shouldSkip(host: String) -> Bool {
         host == "localhost"
             || host == "::1"
@@ -226,3 +294,18 @@ private struct HTMLPage: Sendable {
     let finalURL: URL
 }
 
+private nonisolated enum LinkMetadataResourceKind: Sendable {
+    case html
+    case icon
+
+    func accepts(mimeType: String?) -> Bool {
+        guard let mimeType = mimeType?.lowercased() else { return true }
+
+        switch self {
+        case .html:
+            return mimeType == "text/html" || mimeType == "application/xhtml+xml"
+        case .icon:
+            return mimeType.hasPrefix("image/") || mimeType == "application/octet-stream"
+        }
+    }
+}

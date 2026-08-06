@@ -174,6 +174,7 @@ final class StorageManager {
     private let cleanupActor: ClipboardStoreActor
     nonisolated private let taskLock = NSLock()
     nonisolated(unsafe) private var activeTasks: [UUID: Task<Void, Never>] = [:]
+    nonisolated(unsafe) private var activeLinkMetadataHashes: Set<String> = []
     nonisolated(unsafe) private var isShuttingDown = false
 
     nonisolated init(modelContainer: ModelContainer) {
@@ -340,7 +341,7 @@ final class StorageManager {
 
     nonisolated
     func processLinkMetadata(hash: String, urlString: String) {
-        spawnTrackedTask(priority: .background) {
+        spawnTrackedTask(priority: .background, linkMetadataHash: hash) {
             let (title, iconData) = await LinkMetadataEngine.fetchMetadata(for: urlString)
             guard title != nil || iconData != nil else { return }
             guard Task.isCancelled == false else { return }
@@ -723,6 +724,7 @@ final class StorageManager {
 
     nonisolated private func spawnTrackedTask(
         priority: TaskPriority,
+        linkMetadataHash: String? = nil,
         operation: @escaping @Sendable () async -> Void
     ) {
         let taskID = UUID()
@@ -733,8 +735,19 @@ final class StorageManager {
             return
         }
 
+        if let linkMetadataHash,
+           activeLinkMetadataHashes.insert(linkMetadataHash).inserted == false {
+            taskLock.unlock()
+            return
+        }
+
         let task = Task.detached(priority: priority) { [weak self] in
-            defer { self?.finishTrackedTask(id: taskID) }
+            defer {
+                self?.finishTrackedTask(
+                    id: taskID,
+                    linkMetadataHash: linkMetadataHash
+                )
+            }
             await operation()
         }
 
@@ -742,9 +755,12 @@ final class StorageManager {
         taskLock.unlock()
     }
 
-    nonisolated private func finishTrackedTask(id: UUID) {
+    nonisolated private func finishTrackedTask(id: UUID, linkMetadataHash: String?) {
         taskLock.lock()
         activeTasks.removeValue(forKey: id)
+        if let linkMetadataHash {
+            activeLinkMetadataHashes.remove(linkMetadataHash)
+        }
         taskLock.unlock()
     }
 

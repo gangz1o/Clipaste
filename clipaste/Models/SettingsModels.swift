@@ -319,6 +319,8 @@ enum ClipboardLinkDisplayMode: String, CaseIterable, Identifiable {
     case rich
     case plain
 
+    nonisolated static let defaultsKey = "linkDisplayMode"
+
     var id: String { rawValue }
 
     var localizedTitle: LocalizedStringResource {
@@ -326,6 +328,15 @@ enum ClipboardLinkDisplayMode: String, CaseIterable, Identifiable {
         case .rich: return LocalizedStringResource("Rich Mode")
         case .plain: return LocalizedStringResource("Default Mode")
         }
+    }
+
+    nonisolated static func shouldFetchMetadata(defaults: UserDefaults = .standard) -> Bool {
+        guard let rawValue = defaults.string(forKey: defaultsKey),
+              let mode = Self(rawValue: rawValue) else {
+            return true
+        }
+
+        return mode == .rich
     }
 }
 

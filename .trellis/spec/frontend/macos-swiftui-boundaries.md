@@ -1,5 +1,28 @@
 # macOS SwiftUI Feature Boundaries
 
+## Scenario: Automatic remote enrichment for clipboard content
+
+### 1. Scope / Trigger
+
+Use this contract when clipboard capture or history loading automatically fetches remote metadata such as a page title or favicon.
+
+### 2. Contracts
+
+- Automatic enrichment must use a streaming response body with a hard byte limit. Checking `Data.count` after `URLSession.data(for:)` does not limit network transfer or peak memory.
+- Reject known oversized `Content-Length` values before consuming the body. Unknown or incorrect lengths must still stop at the streaming limit and cancel the underlying task.
+- Validate HTTP status, final redirect URL, and declared MIME type before reading the body. Missing MIME types may use a bounded compatibility path.
+- Bound both the size of each secondary resource and the number of candidates. A per-favicon limit alone does not bound total traffic when a page declares many icons.
+- Every automatic entry point must honor the same persisted opt-out. Apply the gate to the network call only; local enrichment such as syntax highlighting must keep its existing behavior.
+- Coalesce concurrent enrichment for the same content hash and clear the in-flight marker on success, failure, timeout, and cancellation.
+- Never log the full clipboard URL, query, response body, or metadata content.
+
+### 3. Tests Required
+
+- A mock transport that ignores `Range` must prove an unknown-length response is cancelled at the body limit.
+- A declared oversized response must be rejected without consuming body bytes.
+- Tests must cover valid metadata, invalid MIME types, candidate-count limits, and the persisted opt-out.
+- Run the full macOS build after changing capture, storage-task, or settings boundaries.
+
 ## Scenario: Interactive floating media windows
 
 ### 1. Scope / Trigger
