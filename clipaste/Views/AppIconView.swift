@@ -7,10 +7,15 @@ struct AppIconView: View {
 
     var body: some View {
         Group {
-            if let icon = resolvedIcon {
+            if let icon = sourceIcon {
                 Image(nsImage: icon)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
+            } else if let fallbackIcon = AppIconResolver.clipasteFallbackIcon {
+                Image(nsImage: fallbackIcon)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: size * 0.84, height: size * 0.84)
             } else {
                 Image(systemName: "macwindow")
                     .resizable()
@@ -21,8 +26,8 @@ struct AppIconView: View {
         .frame(width: size, height: size)
     }
 
-    private var resolvedIcon: NSImage? {
-        AppIconResolver.icon(for: appBundleID) ?? AppIconResolver.clipasteFallbackIcon
+    private var sourceIcon: NSImage? {
+        AppIconResolver.icon(for: appBundleID)
     }
 }
 
@@ -37,7 +42,7 @@ private enum AppIconResolver {
     static func icon(for bundleIdentifier: String?) -> NSImage? {
         guard let bundleIdentifier = bundleIdentifier?.trimmingCharacters(in: .whitespacesAndNewlines),
               bundleIdentifier.isEmpty == false else {
-            return clipasteFallbackIcon
+            return nil
         }
 
         if let cached = cache.object(forKey: bundleIdentifier as NSString) {
@@ -46,7 +51,7 @@ private enum AppIconResolver {
 
         guard let applicationURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier),
               applicationDeclaresIcon(at: applicationURL) else {
-            return clipasteFallbackIcon
+            return nil
         }
 
         let icon = NSWorkspace.shared.icon(forFile: applicationURL.path)
