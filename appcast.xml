@@ -3,6 +3,31 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.10</title>
+            <pubDate>Thu, 13 Aug 2026 07:54:10 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.10</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20210</sparkle:version>
+            <sparkle:shortVersionString>2.2.10</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
+
+### 🛠 修复与体验优化
+
+- 优化来源应用图标缺失时的兜底图标尺寸，使其与其他图标保持一致。
+
+---
+
+## ✨ What's New
+
+### 🛠 Fixes & Improvements
+
+- Adjusted the fallback app icon size for visual consistency with other app icons.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.10/Clipaste-v2.2.10.zip" length="6765293" type="application/octet-stream" sparkle:edSignature="9JawNX+ItCumKN5AW+IAbk8VHfoY8fzZLB20AAhcXRssahlbPOmLiwdVNv873H/9rtpc3bT4BAP7/x6I2/C3BQ=="/>
+        </item>
+        <item>
             <title>2.2.9</title>
             <pubDate>Thu, 13 Aug 2026 06:48:41 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -57,30 +82,6 @@
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.8/Clipaste-v2.2.8.zip" length="6747517" type="application/octet-stream" sparkle:edSignature="esd96+G0+JNLD3cDld3od+Zhzn1QOene7cO2nuCPBEpWKcm9KKrWxrdyh6thNgrLgfNQ04+HfIUv7ZcB8kYsBQ=="/>
-        </item>
-        <item>
-            <title>2.2.7</title>
-            <pubDate>Fri, 31 Jul 2026 03:46:02 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.7</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20207</sparkle:version>
-            <sparkle:shortVersionString>2.2.7</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
-
-### 🛠 修复与体验优化
-
-- 修复了 iCloud 同步时收藏分组未能正常生效的问题，确保多设备间的分组状态保持一致。
-
----
-
-## ✨ What's New
-
-### 🛠 Fixes & Improvements
-
-- Fixed an issue where favorite groups did not take effect during iCloud sync, ensuring consistent group status across all devices.
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.7/Clipaste-v2.2.7.zip" length="6745424" type="application/octet-stream" sparkle:edSignature="tbQgp4Z06XJXmV9PI9C7NJodNGjxmF746CxT1FNvfEw/Nua4BOj90H7qHaVkLIrVqKap+vYrc5woRqhAs1juDQ=="/>
         </item>
     </channel>
 </rss>
