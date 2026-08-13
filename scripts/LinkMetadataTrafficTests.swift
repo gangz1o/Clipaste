@@ -5,13 +5,15 @@ private struct MockHTTPPlan {
     let headers: [String: String]
     let chunks: [Data]
     let delay: Duration
+    let tracksConcurrency: Bool
 
     init(
         statusCode: Int = 200,
         mimeType: String? = nil,
         contentLength: Int? = nil,
         chunks: [Data] = [],
-        delay: Duration = .zero
+        delay: Duration = .zero,
+        tracksConcurrency: Bool = false
     ) {
         self.statusCode = statusCode
         var headers: [String: String] = [:]
@@ -24,6 +26,7 @@ private struct MockHTTPPlan {
         self.headers = headers
         self.chunks = chunks
         self.delay = delay
+        self.tracksConcurrency = tracksConcurrency
     }
 }
 
@@ -34,6 +37,8 @@ private final class MockHTTPState: @unchecked Sendable {
     private var requestPaths: [String] = []
     private var deliveredByteCount = 0
     private var stopCount = 0
+    private var activeRequestCount = 0
+    private var peakActiveRequestCount = 0
 
     func reset(plans: [String: MockHTTPPlan]) {
         lock.withLock {
@@ -42,6 +47,8 @@ private final class MockHTTPState: @unchecked Sendable {
             requestPaths = []
             deliveredByteCount = 0
             stopCount = 0
+            activeRequestCount = 0
+            peakActiveRequestCount = 0
         }
     }
 
@@ -68,6 +75,21 @@ private final class MockHTTPState: @unchecked Sendable {
         }
     }
 
+    func recordStart(generation: Int) {
+        lock.withLock {
+            guard generation == self.generation else { return }
+            activeRequestCount += 1
+            peakActiveRequestCount = max(peakActiveRequestCount, activeRequestCount)
+        }
+    }
+
+    func recordFinish(generation: Int) {
+        lock.withLock {
+            guard generation == self.generation else { return }
+            activeRequestCount -= 1
+        }
+    }
+
     func requestCount(prefix: String) -> Int {
         lock.withLock {
             requestPaths.count { $0.hasPrefix(prefix) }
@@ -78,6 +100,10 @@ private final class MockHTTPState: @unchecked Sendable {
         lock.withLock {
             (deliveredByteCount, stopCount)
         }
+    }
+
+    func peakConcurrency() -> Int {
+        lock.withLock { peakActiveRequestCount }
     }
 }
 
@@ -112,6 +138,14 @@ private final class MockURLProtocol: URLProtocol, @unchecked Sendable {
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         loadingTask = Task { [weak self] in
             guard let self else { return }
+            if plan.tracksConcurrency {
+                Self.state.recordStart(generation: generation)
+            }
+            defer {
+                if plan.tracksConcurrency {
+                    Self.state.recordFinish(generation: generation)
+                }
+            }
 
             for chunk in plan.chunks {
                 if Task.isCancelled { return }
@@ -145,6 +179,8 @@ enum LinkMetadataTrafficTests {
         await testWrongMIMETypeIsRejected()
         await testKnownOversizedIconStopsBeforeBody()
         await testIconCandidateLimit()
+        await testConcurrentFetchLimit()
+        await testQueuedFetchCancellation()
         testDisplayModePolicy()
         print("LinkMetadataTrafficTests passed")
     }
@@ -309,6 +345,83 @@ enum LinkMetadataTrafficTests {
             MockURLProtocol.state.requestCount(prefix: "/candidate-")
                 == LinkMetadataEngine.maxIconCandidateCount
         )
+    }
+
+    private static func testConcurrentFetchLimit() async {
+        let html = Data("<html><head><title>Concurrent</title></head></html>".utf8)
+        var plans: [String: MockHTTPPlan] = [
+            "/favicon.ico": MockHTTPPlan(statusCode: 404)
+        ]
+        for index in 0..<12 {
+            plans["/concurrent-\(index)"] = MockHTTPPlan(
+                mimeType: "text/html",
+                contentLength: html.count,
+                chunks: [html],
+                delay: .milliseconds(40),
+                tracksConcurrency: true
+            )
+        }
+        MockURLProtocol.state.reset(plans: plans)
+        let session = makeSession()
+
+        await withTaskGroup(of: String?.self) { group in
+            for index in 0..<12 {
+                group.addTask {
+                    await LinkMetadataEngine.fetchMetadata(
+                        for: "https://metadata.test/concurrent-\(index)",
+                        session: session
+                    ).title
+                }
+            }
+
+            for await title in group {
+                precondition(title == "Concurrent")
+            }
+        }
+
+        let peakConcurrency = MockURLProtocol.state.peakConcurrency()
+        precondition(peakConcurrency > 1)
+        precondition(peakConcurrency <= LinkMetadataEngine.maxConcurrentFetchCount)
+    }
+
+    private static func testQueuedFetchCancellation() async {
+        let html = Data("<html><head><title>Cancelled</title></head></html>".utf8)
+        var plans: [String: MockHTTPPlan] = [:]
+        for index in 0..<8 {
+            plans["/cancel-\(index)"] = MockHTTPPlan(
+                mimeType: "text/html",
+                contentLength: html.count,
+                chunks: [html],
+                delay: .seconds(2),
+                tracksConcurrency: true
+            )
+        }
+        MockURLProtocol.state.reset(plans: plans)
+        let session = makeSession()
+        let tasks = (0..<8).map { index in
+            Task {
+                await LinkMetadataEngine.fetchMetadata(
+                    for: "https://metadata.test/cancel-\(index)",
+                    session: session
+                )
+            }
+        }
+
+        for _ in 0..<100 {
+            if MockURLProtocol.state.peakConcurrency() == LinkMetadataEngine.maxConcurrentFetchCount {
+                break
+            }
+            try? await Task.sleep(for: .milliseconds(5))
+        }
+        precondition(
+            MockURLProtocol.state.peakConcurrency() == LinkMetadataEngine.maxConcurrentFetchCount
+        )
+
+        tasks.forEach { $0.cancel() }
+        for task in tasks {
+            let result = await task.value
+            precondition(result.title == nil && result.iconData == nil)
+        }
     }
 
     private static func testDisplayModePolicy() {
