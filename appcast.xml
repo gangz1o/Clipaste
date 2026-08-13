@@ -3,6 +3,33 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.9</title>
+            <pubDate>Thu, 13 Aug 2026 06:48:41 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.9</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20209</sparkle:version>
+            <sparkle:shortVersionString>2.2.9</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
+
+### 🛠 修复与体验优化
+
+- 修复链接预览可能导致应用卡顿或无响应的问题。
+- 来源应用图标不可用时，改为显示 Clipaste 图标。
+
+---
+
+## ✨ What's New
+
+### 🛠 Fixes & Improvements
+
+- Fixed an issue where link previews could cause the app to lag or become unresponsive.
+- Clipaste's icon is now shown when the source app icon is unavailable.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.9/Clipaste-v2.2.9.zip" length="6763227" type="application/octet-stream" sparkle:edSignature="x+LccQITUxwFLpMXATNLz24/EQkCehJ81xgaUgyL5XAA8PRxCfTXaYbpAoJyK7+TKfhDRPObjz1Jfr0OaQMkDQ=="/>
+        </item>
+        <item>
             <title>2.2.8</title>
             <pubDate>Thu, 06 Aug 2026 04:16:45 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -54,40 +81,6 @@
 - Fixed an issue where favorite groups did not take effect during iCloud sync, ensuring consistent group status across all devices.
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.7/Clipaste-v2.2.7.zip" length="6745424" type="application/octet-stream" sparkle:edSignature="tbQgp4Z06XJXmV9PI9C7NJodNGjxmF746CxT1FNvfEw/Nua4BOj90H7qHaVkLIrVqKap+vYrc5woRqhAs1juDQ=="/>
-        </item>
-        <item>
-            <title>2.2.6</title>
-            <pubDate>Tue, 28 Jul 2026 14:42:12 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.6</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20206</sparkle:version>
-            <sparkle:shortVersionString>2.2.6</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
-
-### ⭐️ 新增收藏快捷按钮
-
-- 列表项新增收藏快捷按钮，支持一键标记常用内容。
-
-### 🛠 修复与体验优化
-
-- 修复切换分组时历史记录重复渲染的问题。
-- 修复搜索时部分场景下列表闪烁问题
-
----
-
-## ✨ What's New
-
-### ⭐️ Quick Favorite Button
-
-- Added a quick favorite button to list items for one-tap bookmarking.
-
-### 🛠 Fixes & Improvements
-
-- Fixed duplicate rendering of history items when switching groups.
-- Fixed the issue where the list flickers in some scenarios during search.
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.6/Clipaste-v2.2.6.zip" length="6737477" type="application/octet-stream" sparkle:edSignature="UejT+HfZwezgPZbK8lgyA5PznSW/dceb/SFL++BKl/ZX11nEXjMZ3zlc/PqwGVLAAwftXBG8yVUvon/r49p1Dg=="/>
         </item>
     </channel>
 </rss>
