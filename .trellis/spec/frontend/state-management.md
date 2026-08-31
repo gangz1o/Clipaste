@@ -1,5 +1,32 @@
 # State Management
 
+## Scenario: Observation-driven clipboard filtering
+
+### Contracts
+
+- Shared clipboard screen state uses `@MainActor @Observable`. SwiftUI views hold or receive the reference directly and use `@Bindable` only where a projected binding is required.
+- Do not place `@AppStorage` inside an `@Observable` model. Read and write `UserDefaults` explicitly, and subscribe to external preference changes only when the UI must react immediately.
+- Filtering operates on immutable `Sendable` snapshots containing identifiers and scalar metadata, never live SwiftData models, `NSImage`, or AppKit view objects.
+- Search debounce and filtering use cancellable Swift tasks. Each request advances a generation; only the latest generation can publish item identifiers or supplemental database results.
+- Check cancellation during long in-memory scans and before every MainActor publication.
+- Views render precomputed state. Per-card database queries, image-derived color analysis, and unconditional next-run-loop dispatches are forbidden in `body` or appearance handlers.
+
+### Validation & Error Matrix
+
+| Condition | Required behavior |
+| --- | --- |
+| Query changes during a scan | Cancel or supersede the old task; publish only the newest generation |
+| Search query needs database supplementation | Deduplicate against in-memory IDs and preserve deterministic ordering |
+| View disappears | Cancel owned debounce/filter work without publishing stale state |
+| Card icon color is unavailable | Use a stable fallback color; do not query storage or decode an image from the card |
+| Preference changes outside the ViewModel | Update observed state through a bounded subscription when live reaction is required |
+
+### Tests Required
+
+- A large snapshot filter test changes the query mid-scan and asserts stale IDs are never published.
+- Source checks reject `ObservableObject`/`@Published`, `@AppStorage` in the clipboard ViewModel, and per-card storage tasks.
+- Run a clean macOS build with MainActor-by-default and complete strict concurrency checking.
+
 ## Scenario: Cached-first scoped clipboard lists
 
 ### 1. Scope / Trigger

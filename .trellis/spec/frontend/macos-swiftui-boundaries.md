@@ -15,6 +15,8 @@ Use this contract when clipboard capture or history loading automatically fetche
 - Every automatic entry point must honor the same persisted opt-out. Apply the gate to the network call only; local enrichment such as syntax highlighting must keep its existing behavior.
 - Coalesce concurrent enrichment for the same content hash and clear the in-flight marker on success, failure, timeout, and cancellation.
 - Limit total concurrent automatic enrichment sequences. Waiting for a permit must be cancellation-aware so shutdown cannot hang behind queued network work.
+- Apply one network-destination policy to the initial page, every redirect response, and every favicon request. Resolve hostnames off-main and reject the request unless every returned address is public.
+- Reject loopback, private, link-local, carrier-grade NAT, documentation/reserved, multicast, IPv4-mapped IPv6, and mixed public/private DNS answers. A public initial URL does not authorize a private redirect.
 - Never log the full clipboard URL, query, response body, or metadata content.
 
 ### 3. Tests Required
@@ -23,6 +25,7 @@ Use this contract when clipboard capture or history loading automatically fetche
 - A declared oversized response must be rejected without consuming body bytes.
 - Tests must cover valid metadata, invalid MIME types, candidate-count limits, and the persisted opt-out.
 - Tests must cover the global concurrency ceiling and cancellation of both active and permit-waiting requests.
+- Tests must cover IPv4 and IPv6 special ranges, mixed DNS answers, public-to-private redirects, and a normal public hostname.
 - Run the full macOS build after changing capture, storage-task, or settings boundaries.
 
 ## Scenario: Interactive floating media windows
@@ -54,6 +57,8 @@ protocol FloatingWindowCoordinating: AnyObject {
 - Do not place `@AppStorage` inside an `@Observable` type. Read and write `UserDefaults` explicitly in the ViewModel, and expose a bindable property to SwiftUI.
 - SwiftUI Views render state and forward interaction only. File I/O, eligibility decisions, cancellation, and window lifecycle belong outside the View.
 - Extend `ClipboardImagePipeline` for image display workloads. Reuse its background ImageIO path and bounded `NSCache` instead of synchronously constructing full-resolution images.
+- Enforce byte and pixel ceilings before decoding clipboard image data. File URLs use metadata inspection and ImageIO thumbnailing; they must not be copied into an unbounded `Data` value first.
+- OCR and AI image inputs use separate, smaller pixel budgets and are created off-main. Re-encoding a full-resolution clipboard image for OCR or base64 upload is forbidden.
 - When one source gesture has two product intents, use separate hit targets and separate drag sessions. A source-app icon can act as the dedicated pin target without adding another visible control. Do not infer intent from a failed external drop.
 - Modifier order is part of the drag contract: apply the card's external `.onDrag` before adding the dedicated icon-target overlay. If `.onDrag` wraps the overlay, SwiftUI wins the drag sequence even when the embedded AppKit view wins initial hit testing.
 - AppKit bridges are allowed only for capabilities unavailable in the deployment-target SwiftUI API, such as drag-ended screen coordinates and borderless window movement.
@@ -71,6 +76,7 @@ protocol FloatingWindowCoordinating: AnyObject {
 | Missing or invalid image | Do not create an empty window; show localized feedback |
 | Task cancelled after decode | Do not create a delayed window or publish stale UI state |
 | Large source image | Downsample off-main to the display pixel budget |
+| Source exceeds byte or pixel policy | Reject it or retain only a safe file-reference record; never decode it at full resolution |
 | Window moves to another screen | Refresh size limits without clamping every move event |
 | Dedicated icon target starts dragging | Its AppKit drag source receives `mouseDragged`; the enclosing card drag provider is not requested |
 | Screen changes during live resize | Defer size-constraint refresh until `windowDidEndLiveResize` |
@@ -88,6 +94,7 @@ protocol FloatingWindowCoordinating: AnyObject {
 
 - Pure geometry tests assert aspect ratio, configured original-image scale, release-point anchoring, screen margins, and min/max sizes.
 - Render-budget tests assert backing-scale calculation and hard pixel caps.
+- Resource-policy tests assert byte/pixel rejection, bounded file reads, OCR thumbnail limits, and screen-pin thumbnail limits.
 - ViewModel tests inject fake image/window services and assert default settings, persistence, type filtering, cancellation, and no delayed window creation.
 - Full app build must compile String Catalog entries for every supported locale.
 - A window-backed drag harness must exercise mouse down, drag, and mouse up with the same modifier ordering used by the production card.

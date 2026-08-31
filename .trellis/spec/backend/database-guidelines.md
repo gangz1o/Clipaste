@@ -87,14 +87,14 @@ Use this contract when a cloud-backed SwiftData route must compensate selected r
 ### 2. Signatures
 
 ```swift
-func exportPinnedRecords() async throws -> ClipboardStoreExport
+func exportPinnedRecordBatch(offset: Int, limit: Int) async throws -> ClipboardStoreExport
 private func recoverLocalFavoritesIfNeeded() async throws
 ```
 
 ### 3. Contracts
 
 - Filter `ClipboardRecord.isPinned` in the SwiftData fetch descriptor; never call the full-store export and filter the result in memory.
-- Export the complete existing `ClipboardRecordExport` payload for each pinned record.
+- Export complete `ClipboardRecordExport` payloads in count- and byte-bounded batches; a short batch is not EOF because the byte budget may cut it early.
 - Include only group definitions referenced by the pinned records' normalized group IDs.
 - Import through `importStoreExport(_:)` so `contentHash` deduplication and logical-OR favorite merging remain the single merge contract.
 - Gate startup compensation with a versioned `UserDefaults` key and write the version only after export and import complete successfully.
@@ -138,9 +138,29 @@ try await cloudStorage.importStoreExport(payload)
 #### Correct
 
 ```swift
-let payload = try await localStorage.exportPinnedRecords()
-if payload.records.isEmpty == false {
+var offset = 0
+while true {
+    let payload = try await localStorage.exportPinnedRecordBatch(offset: offset, limit: 128)
+    guard payload.records.isEmpty == false else { break }
     try await cloudStorage.importStoreExport(payload)
+    offset += payload.records.count
 }
 defaults.set(version, forKey: recoveryKey)
 ```
+
+## Scenario: Runtime route transitions and bounded store transfer
+
+### Contracts
+
+- A clipboard capture resolves one `StorageManager` before asynchronous persistence and uses that instance through every derived write.
+- Route changes stop and drain capture, cancel route maintenance, drain the source store, then drain the target before merge or activation.
+- Cloud-cache reset shuts down the retiring store and releases its runtime references before deleting SQLite artifacts.
+- Full-history transfer is forbidden. Fetch fixed-count batches with an aggregate payload-byte ceiling and continue after non-empty short batches.
+- Import preserves the `contentHash` merge contract without preloading the destination table; look up only incoming hashes.
+- Upgrade and dedup maintenance uses `fetchLimit`/`fetchOffset` pages. Never materialize external-storage payloads for the whole table.
+
+### Tests Required
+
+- An injected transition spy asserts capture drain → maintenance cancellation → source drain ordering.
+- A stress transfer larger than one page preserves order/count and proves loaded and consumed batch maxima.
+- Source checks reject full-store export APIs and unbounded pinned recovery.

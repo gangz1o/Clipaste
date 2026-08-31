@@ -14,7 +14,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 
 | Guide | Description | Status |
 |-------|-------------|--------|
-| [Directory Structure](./directory-structure.md) | Module organization and file layout | To fill |
+| [Directory Structure](./directory-structure.md) | Runtime/storage module boundaries and the 300-line guard | Active |
 | [Database Guidelines](./database-guidelines.md) | SwiftData model-actor snapshot and isolation contracts | Active |
 | [Error Handling](./error-handling.md) | Error types, handling strategies | To fill |
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
