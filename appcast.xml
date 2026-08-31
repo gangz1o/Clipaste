@@ -3,6 +3,50 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.11</title>
+            <pubDate>Mon, 31 Aug 2026 04:54:41 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.11</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20211</sparkle:version>
+            <sparkle:shortVersionString>2.2.11</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
+
+### 🛡 稳定性与安全
+
+- 为图片解码、屏幕贴图、OCR 与跨库存储迁移增加严格的资源和批次上限，降低大内容导致的卡顿与内存崩溃。
+- 修复本地与 iCloud 存储切换、缓存重置期间的任务竞态；持久化初始化失败时可安全降级运行。
+- 将 AI API 密钥迁移到 macOS Keychain，并限制不安全的服务端点。
+- 完整校验链接元数据请求、DNS 解析和重定向目标，阻断 SSRF 与私网访问。
+
+### ⚡ 性能与架构
+
+- 搜索改为可取消的 Swift Concurrency 任务，减少过期计算和无关 SwiftUI 重绘。
+- 移除卡片热路径中的逐项数据库与图片颜色分析。
+- 按职责拆分存储、运行时、迁移、服务、ViewModel 和 SwiftUI 组件；所有手写 Swift 文件均不超过 300 行。
+- 新增稳定性、安全、并发和文件规模回归守门。
+
+---
+
+## ✨ What’s New
+
+### 🛡 Stability & Security
+
+- Added strict resource and batch limits for image decoding, screen pinning, OCR, and cross-store migration to reduce stalls and memory-pressure crashes.
+- Fixed task races during local and iCloud store transitions and cache resets, with safe runtime fallback when persistent storage initialization fails.
+- Migrated AI API keys to macOS Keychain and restricted unsafe service endpoints.
+- Validated link metadata requests, DNS results, and redirect targets to block SSRF and private-network access.
+
+### ⚡ Performance & Architecture
+
+- Moved search to cancellable Swift Concurrency tasks and narrowed unnecessary SwiftUI invalidation.
+- Removed per-item database work and image color analysis from card rendering hot paths.
+- Split storage, runtime, migration, services, ViewModels, and SwiftUI views by responsibility; every hand-written Swift file is now at most 300 lines.
+- Added regression guards for stability, security, concurrency, and source file size.
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.11/Clipaste-v2.2.11.zip" length="6887637" type="application/octet-stream" sparkle:edSignature="8P6Apz96GygLGbQZ/D6XqTngEwV9sbikkTonjicoRvjOsZSJuhy54NXL4vsqBh5b6Z7io02XEb7zGZfq+1efAw=="/>
+        </item>
+        <item>
             <title>2.2.10</title>
             <pubDate>Thu, 13 Aug 2026 07:54:10 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -53,35 +97,6 @@
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.9/Clipaste-v2.2.9.zip" length="6763227" type="application/octet-stream" sparkle:edSignature="x+LccQITUxwFLpMXATNLz24/EQkCehJ81xgaUgyL5XAA8PRxCfTXaYbpAoJyK7+TKfhDRPObjz1Jfr0OaQMkDQ=="/>
-        </item>
-        <item>
-            <title>2.2.8</title>
-            <pubDate>Thu, 06 Aug 2026 04:16:45 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.8</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20208</sparkle:version>
-            <sparkle:shortVersionString>2.2.8</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
-
-### 🛠 修复与体验优化
-
-- 修复链接预览可能完整下载大文件、造成异常后台流量的问题。
-- 为网页与站点图标抓取增加严格流量上限、响应类型校验和重复请求合并。
-- “默认模式”下不再自动请求链接元数据，同时保留本地语法高亮行为。
-
----
-
-## ✨ What's New
-
-### 🛠 Fixes & Improvements
-
-- Fixed an issue where link previews could download entire large files and cause excessive background data usage.
-- Added strict transfer limits, response type validation, and in-flight request coalescing for page and favicon metadata.
-- Link metadata is no longer fetched automatically in Default Mode, while local syntax highlighting remains unchanged.
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.8/Clipaste-v2.2.8.zip" length="6747517" type="application/octet-stream" sparkle:edSignature="esd96+G0+JNLD3cDld3od+Zhzn1QOene7cO2nuCPBEpWKcm9KKrWxrdyh6thNgrLgfNQ04+HfIUv7ZcB8kYsBQ=="/>
         </item>
     </channel>
 </rss>
