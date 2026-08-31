@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ClipboardQuickLookView: View {
     let item: ClipboardItem
-    @ObservedObject var viewModel: ClipboardViewModel
+    var viewModel: ClipboardViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {

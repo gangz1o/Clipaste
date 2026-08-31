@@ -48,6 +48,7 @@ enum ImageOCRService {
 
         if resolvedEngine == .ai {
             guard let activeConfig else {
+                guard Task.isCancelled == false else { return cancelledResult }
                 let text = await runVision(imageData: imageData)
                 return OCRResult(
                     text: text,
@@ -57,6 +58,7 @@ enum ImageOCRService {
             }
 
             if activeConfig.supportsImage == false {
+                guard Task.isCancelled == false else { return cancelledResult }
                 let text = await runVision(imageData: imageData)
                 return OCRResult(
                     text: text,
@@ -65,19 +67,35 @@ enum ImageOCRService {
                 )
             }
 
-            do {
-                let text = try await AIExecutionService.shared.runVisionOCR(imageData: imageData, configuration: activeConfig)
-                return OCRResult(text: text, engine: .ai(configurationTitle: activeConfig.displayTitle), notice: nil)
-            } catch {
-                let text = await runVision(imageData: imageData)
-                let format = String(localized: "AI OCR Failed Fallback Notice %@")
-                let notice = String(format: format, error.localizedDescription)
-                return OCRResult(text: text, engine: .vision, notice: notice)
-            }
+            let result = await OCRFallbackCoordinator.run(
+                primary: {
+                    let text = try await AIExecutionService.shared.runVisionOCR(
+                        imageData: imageData,
+                        configuration: activeConfig
+                    )
+                    return OCRResult(
+                        text: text,
+                        engine: .ai(configurationTitle: activeConfig.displayTitle),
+                        notice: nil
+                    )
+                },
+                fallback: { error in
+                    let text = await runVision(imageData: imageData)
+                    let format = String(localized: "AI OCR Failed Fallback Notice %@")
+                    let notice = String(format: format, error.localizedDescription)
+                    return OCRResult(text: text, engine: .vision, notice: notice)
+                }
+            )
+            return result ?? cancelledResult
         } else {
+            guard Task.isCancelled == false else { return cancelledResult }
             let text = await runVision(imageData: imageData)
             return OCRResult(text: text, engine: .vision, notice: nil)
         }
+    }
+
+    private static var cancelledResult: OCRResult {
+        OCRResult(text: "", engine: .vision, notice: nil)
     }
 
     private static func runVision(imageData: Data) async -> String {

@@ -11,7 +11,7 @@ class EditorContext {
 
 struct StandaloneEditView: View {
     let item: ClipboardItem
-    @ObservedObject var viewModel: ClipboardViewModel
+    var viewModel: ClipboardViewModel
     let windowId: String
     @AppStorage("appLanguage") private var appLanguage: AppLanguage = .auto
 

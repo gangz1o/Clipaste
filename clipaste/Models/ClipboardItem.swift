@@ -7,8 +7,7 @@ struct ClipboardGroup: Identifiable, Hashable {
     var name: String
     var iconName: String
 }
-
-enum ClipboardContentType: String, Codable {
+enum ClipboardContentType: String, Codable, Sendable {
     case text
     case image
     case fileURL
@@ -83,6 +82,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
     let appName: String
     let appIcon: NSImage?
     let appIconName: String // Or you can use NSImage, but keeping it simple for now
+    let appIconDominantColorHex: String?
     let timestamp: Date
     let rawText: String?
     let hasImagePreview: Bool
@@ -121,6 +121,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         appName: String,
         appIcon: NSImage? = nil,
         appIconName: String,
+        appIconDominantColorHex: String? = nil,
         timestamp: Date = Date(),
         rawText: String? = nil,
         hasImagePreview: Bool = false,
@@ -152,6 +153,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         self.appName = appName
         self.appIcon = appIcon
         self.appIconName = appIconName
+        self.appIconDominantColorHex = appIconDominantColorHex
         self.timestamp = timestamp
         self.rawText = rawText
         self.hasImagePreview = hasImagePreview
@@ -201,133 +203,6 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
             self.previewText = nil
             self.isFastLink = false
             self.fastParsedColor = nil
-        }
-    }
-}
-
-extension ClipboardItem {
-    // ⚠️ 等价性收窄：只比较"身份 + 易变标志"。
-    // 1. `id` + `contentHash` 锁定身份；包含 contentHash 是因为编辑/迁移可能在同一
-    //    UUID 下替换内容，UI 需要触发 diff。
-    // 2. `timestamp` 反映置顶/重排序。
-    // 3. 剩余字段是"会驱动 UI 重渲染"的可变标志（标题、链接元数据、固定、分组）。
-    // 4. 大字段（linkIconData、rawText、fileDisplayPath 等）从比较和哈希中移除：
-    //    这些要么由 id+contentHash 隐含锁定，要么会让 Published diff / Set / SwiftUI
-    //    自带 .id() 路径在每次刷新时跑昂贵的字节级比较。
-    static func == (lhs: ClipboardItem, rhs: ClipboardItem) -> Bool {
-        lhs.id == rhs.id &&
-        lhs.contentHash == rhs.contentHash &&
-        lhs.timestamp == rhs.timestamp &&
-        lhs.isPinned == rhs.isPinned &&
-        lhs.customTitle == rhs.customTitle &&
-        lhs.linkTitle == rhs.linkTitle &&
-        lhs.groupIDs == rhs.groupIDs &&
-        lhs.hasRTF == rhs.hasRTF &&
-        lhs.hasImagePreview == rhs.hasImagePreview &&
-        lhs.hasImageData == rhs.hasImageData
-    }
-
-    func hash(into hasher: inout Hasher) {
-        hasher.combine(id)
-        hasher.combine(contentHash)
-        hasher.combine(timestamp)
-        hasher.combine(isPinned)
-    }
-}
-
-extension ClipboardItem {
-    /// 卡片角标等内容类型文案（与筛选标签共用同一套 String Catalog 键）。
-    @MainActor
-    func typeBadgeTitle() -> LocalizedStringResource {
-        switch contentType {
-        case .text: return LocalizedStringResource("Smart Filter Text")
-        case .image: return LocalizedStringResource("Smart Filter Image")
-        case .fileURL: return LocalizedStringResource("Smart Filter File")
-        case .color: return LocalizedStringResource("Smart Filter Color")
-        case .link: return LocalizedStringResource("Smart Filter Link")
-        case .code: return LocalizedStringResource("Smart Filter Code")
-        }
-    }
-
-    var groupId: String? {
-        groupIDs.first
-    }
-
-    var trimmedCustomTitle: String? {
-        let normalized = customTitle?
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let normalized, normalized.isEmpty == false else {
-            return nil
-        }
-        return normalized
-    }
-
-    var hasCustomTitle: Bool {
-        trimmedCustomTitle != nil
-    }
-
-    var imagePixelSize: CGSize? {
-        guard let imagePixelWidth, let imagePixelHeight else { return nil }
-        guard imagePixelWidth > 0, imagePixelHeight > 0 else { return nil }
-        return CGSize(width: imagePixelWidth, height: imagePixelHeight)
-    }
-
-    var isScreenPinEligible: Bool {
-        contentType == .image || (contentType == .fileURL && fileRepresentsImage)
-    }
-
-    private nonisolated static func normalizedGroupIDs(primaryGroupID: String?, groupIDs: [String]) -> [String] {
-        var result: [String] = []
-
-        if let primaryGroupID, !primaryGroupID.isEmpty {
-            result.append(primaryGroupID)
-        }
-
-        for id in groupIDs where !id.isEmpty && result.contains(id) == false {
-            result.append(id)
-        }
-
-        return result
-    }
-}
-
-extension ClipboardItem {
-    nonisolated static func searchableTextValue(
-        plainText: String?,
-        customTitle: String?,
-        linkTitle: String?
-    ) -> String? {
-        let candidates = [customTitle, plainText, linkTitle]
-            .compactMap {
-                $0?.trimmingCharacters(in: .whitespacesAndNewlines)
-            }
-            .filter { $0.isEmpty == false }
-
-        guard candidates.isEmpty == false else {
-            return nil
-        }
-
-        return candidates.joined(separator: "\n")
-    }
-}
-
-// 计算属性已迁移至 init 中的存储属性，此处不再需要 extension
-
-extension ClipboardItem {
-    nonisolated static func appIconName(for bundleIdentifier: String?) -> String {
-        switch bundleIdentifier {
-        case "com.apple.Safari":
-            return "safari"
-        case "com.apple.dt.Xcode":
-            return "chevron.left.forwardslash.chevron.right"
-        case "com.apple.Terminal":
-            return "terminal"
-        case "com.apple.Notes":
-            return "note.text"
-        case "com.apple.MobileSMS":
-            return "message"
-        default:
-            return "app.fill"
         }
     }
 }

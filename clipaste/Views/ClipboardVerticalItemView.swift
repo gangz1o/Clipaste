@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ClipboardVerticalItemView: View {
-    private enum Layout {
+    enum Layout {
         static let rowHorizontalPadding: CGFloat = 12
         static let appIconSize: CGFloat = 42
         static let contentSpacing: CGFloat = 12
@@ -13,35 +13,35 @@ struct ClipboardVerticalItemView: View {
     }
 
     let item: ClipboardItem
-    @ObservedObject var viewModel: ClipboardViewModel
+    var viewModel: ClipboardViewModel
     let quickPasteIndex: Int?
     let usesPreviewPanel: Bool
     let allowsAutoPreview: Bool
     let onHoverChange: ((Bool) -> Void)?
 
-    @Environment(ScreenPinViewModel.self) private var screenPinViewModel
-    @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
-    @AppStorage("appAccentColor") private var appAccentColor: AppAccentColor = .defaultValue
-    @AppStorage("singleClickPaste") private var singleClickPaste = false
-    @AppStorage("autoPreview") private var autoPreview = true
+    @Environment(ScreenPinViewModel.self) var screenPinViewModel
+    @AppStorage("clipboardLayout") var clipboardLayout: AppLayoutMode = .horizontal
+    @AppStorage("appAccentColor") var appAccentColor: AppAccentColor = .defaultValue
+    @AppStorage("singleClickPaste") var singleClickPaste = false
+    @AppStorage("autoPreview") var autoPreview = true
 
-    @State private var isHovering = false
-    @State private var richPreviewText: AttributedString?
+    @State var isHovering = false
+    @State var richPreviewText: AttributedString?
 
-    private var isCompact: Bool {
+    var isCompact: Bool {
         clipboardLayout == .compact
     }
 
-    private var isSelected: Bool {
+    var isSelected: Bool {
         viewModel.selectedItemIDs.contains(item.id)
     }
 
     /// 颜色嗅探结果：使用极速短路版本，超过 100 字符跳过正则
-    private var parsedColor: Color? {
+    var parsedColor: Color? {
         item.fastParsedColor
     }
 
-    private var previewText: String {
+    var previewText: String {
         if let preview = item.previewText, !preview.isEmpty {
             return preview
         }
@@ -49,19 +49,19 @@ struct ClipboardVerticalItemView: View {
         return item.textPreview.isEmpty ? String(localized: "(Empty)") : item.textPreview
     }
 
-    private var quickPasteNumber: Int? {
+    var quickPasteNumber: Int? {
         quickPasteIndex.map { $0 + 1 }
     }
 
-    private var showsQuickPasteBadge: Bool {
+    var showsQuickPasteBadge: Bool {
         quickPasteNumber != nil && viewModel.isQuickPasteModifierHeld
     }
 
-    private var richTextTaskKey: String {
+    var richTextTaskKey: String {
         "\(item.id.uuidString)-\(item.contentHash)-\(item.hasRTF)"
     }
 
-    private var rowFillStyle: AnyShapeStyle {
+    var rowFillStyle: AnyShapeStyle {
         if let parsedColor {
             return AnyShapeStyle(parsedColor)
         }
@@ -75,7 +75,7 @@ struct ClipboardVerticalItemView: View {
         )
     }
 
-    private var rowBorderColor: Color {
+    var rowBorderColor: Color {
         if parsedColor != nil {
             return Color.primary.opacity(0.12)
         }
@@ -91,17 +91,17 @@ struct ClipboardVerticalItemView: View {
         return .clear
     }
 
-    private var timeTextColor: Color {
+    var timeTextColor: Color {
         parsedColor.map { $0.isDark ? .white.opacity(0.6) : .black.opacity(0.45) }
             ?? .secondary
     }
 
-    private var dateTextColor: Color {
+    var dateTextColor: Color {
         parsedColor.map { $0.isDark ? .white.opacity(0.4) : .black.opacity(0.3) }
             ?? .secondary.opacity(0.7)
     }
 
-    private var customTitleTextColor: Color {
+    var customTitleTextColor: Color {
         parsedColor.map { $0.isDark ? .white.opacity(0.96) : .black.opacity(0.9) }
         ?? .black.opacity(0.9)
     }
@@ -173,301 +173,4 @@ struct ClipboardVerticalItemView: View {
             }
     }
 
-    @ViewBuilder
-    private var rowContent: some View {
-        HStack(spacing: isCompact ? 6 : Layout.contentSpacing) {
-            // 1. 左侧：App 图标
-            AppIconView(appBundleID: item.sourceBundleIdentifier, size: isCompact ? Layout.compactAppIconSize : Layout.appIconSize)
-                .shadow(color: Color.black.opacity(0.1), radius: isCompact ? 1 : 2, y: isCompact ? 1 : 1)
-
-            // 2. 中间：内容预览
-            VStack(alignment: .leading, spacing: isCompact ? 0 : 4) {
-                if item.contentType == .fileURL, let fileURL = item.resolvedFileURL {
-                    let displayPath = item.fileDisplayPath ?? fileURL.path
-
-                    if item.fileRepresentsImage {
-                        if !isCompact {
-                            ClipboardFileThumbnailView(fileURL: fileURL, maxPixelSize: 160) {
-                                Image(nsImage: NSWorkspace.shared.icon(forFile: displayPath))
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 36, height: 36)
-                            }
-                            .frame(maxHeight: 44)
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 4)
-                                    .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
-                            )
-                            .frame(maxWidth: .infinity, alignment: .center)
-                        } else {
-                            // Compact: just show file name
-                            Text(item.fileDisplayName ?? (displayPath as NSString).lastPathComponent)
-                                .font(.system(size: 11))
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                        }
-                    } else {
-                        // ── 文件类型：系统原生图标 + 文件名 + 路径 ──────────────
-                        if !isCompact {
-                            HStack(spacing: 10) {
-                                Image(nsImage: NSWorkspace.shared.icon(forFile: displayPath))
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: 36, height: 36)
-                                VStack(alignment: .leading, spacing: 2) {
-                                    Text(item.fileDisplayName ?? (displayPath as NSString).lastPathComponent)
-                                        .font(.system(size: 13, weight: .medium))
-                                        .lineLimit(1)
-                                    Text(displayPath)
-                                        .font(.system(size: 10))
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(1)
-                                        .truncationMode(.middle)
-                                }
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        } else {
-                            // Compact: just show file name
-                            Text(item.fileDisplayName ?? (displayPath as NSString).lastPathComponent)
-                                .font(.system(size: 11))
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                        }
-                    }
-                } else if item.contentType == .image {
-                    if !isCompact {
-                        ClipboardThumbnailView(itemID: item.id, maxPixelSize: 160) {
-                            Image(systemName: "photo")
-                                .foregroundColor(.secondary)
-                                .frame(height: 44)
-                        }
-                        .frame(maxHeight: 44)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 4)
-                                .stroke(Color.secondary.opacity(0.1), lineWidth: 1)
-                        )
-                        .frame(maxWidth: .infinity, alignment: .center)
-                    } else {
-                        // Compact: just show image indicator
-                        Text("Image")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                    }
-                } else {
-                    if parsedColor != nil {
-                        // 颜色条目：只居中展示等宽色值，背景由卡片层处理
-                        Text(previewText)
-                            .font(.system(size: 11, weight: .bold, design: .monospaced))
-                            .foregroundColor(parsedColor!.isDark ? .white : .black)
-                            .shadow(
-                                color: parsedColor!.isDark
-                                    ? Color.black.opacity(0.3)
-                                    : Color.white.opacity(0.3),
-                                radius: 1, x: 0, y: 1
-                            )
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                    } else if item.isFastLink {
-                        switch viewModel.settingsViewModel.linkDisplayMode {
-                        case .rich:
-                            ClipboardLinkPreviewRowView(
-                                viewModel: ClipboardLinkPreviewViewModel(item: item),
-                                highlight: viewModel.activeSearchQuery,
-                                isCompact: isCompact
-                            )
-                        case .plain:
-                            ClipboardLinkPlainRowView(
-                                viewModel: ClipboardLinkPreviewViewModel(item: item),
-                                highlight: viewModel.activeSearchQuery,
-                                isCompact: isCompact
-                            )
-                        }
-                    } else {
-                        // ⚠️ 渲染核心：ListRenderEngine 缓存优先
-                        // 缓存命中 → 0 延迟渲染高亮文本
-                        // 缓存未命中 → 瞬间使用纯文本垫底 + onAppear 触发后台缓存
-                        if let richPreviewText {
-                            Text(richPreviewText)
-                                .lineLimit(isCompact ? 1 : 2)
-                                .multilineTextAlignment(.leading)
-                        } else {
-                            HighlightedText(text: previewText, highlight: viewModel.activeSearchQuery)
-                                .lineLimit(isCompact ? 1 : 2)
-                                .multilineTextAlignment(.leading)
-                        }
-                    }
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-
-            // 3. 右侧：时间 + 日期双行排版（弱化处理）
-            if !isCompact {
-                VStack(alignment: .trailing, spacing: 0) {
-                    VStack(alignment: .trailing, spacing: 1) {
-                        Text(item.timestamp.timeString)
-                            .font(.system(size: 11))
-                            .foregroundColor(timeTextColor)
-
-                        Text(item.timestamp.dateString)
-                            .font(.system(size: 9))
-                            .foregroundColor(dateTextColor)
-                    }
-
-                    Spacer(minLength: 4)
-
-                    bottomInlineAction
-                }
-                .padding(.top, 4)
-                .help(item.timestamp.formatted(date: .complete, time: .standard))
-                .frame(minWidth: 44, maxHeight: .infinity, alignment: .topTrailing)
-            } else {
-                // Compact: just show time on the right
-                Text(item.timestamp.timeString)
-                    .font(.system(size: 10))
-                    .foregroundColor(timeTextColor)
-                    .help(item.timestamp.formatted(date: .complete, time: .standard))
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var quickPasteShortcutBackground: some View {
-        if let quickPasteIndex {
-            QuickPasteShortcutHost(
-                shortcutIndex: quickPasteIndex,
-                modifierKey: viewModel.quickPasteModifier,
-                plainTextModifierKey: viewModel.plainTextModifier
-            ) {
-                viewModel.pasteToActiveApp(item: item)
-            } plainTextAction: {
-                viewModel.pasteAsPlainText(item: item)
-            }
-        }
-    }
-
-    @ViewBuilder
-    private var bottomInlineAction: some View {
-        if let quickPasteNumber, showsQuickPasteBadge {
-            QuickPasteShortcutBadge(
-                modifierKey: viewModel.quickPasteModifier,
-                number: quickPasteNumber,
-                color: timeTextColor
-            )
-            .transition(.opacity)
-        } else if showsInlineActions {
-            HStack(spacing: 4) {
-                ClipboardFavoriteButton(
-                    isFavorite: item.isPinned,
-                    accentColor: appAccentColor.color,
-                    action: toggleFavorite
-                )
-
-                if showsAIShortcut {
-                    ClipboardAIActionMenu(item: item, viewModel: viewModel) {
-                        ClipboardAIBadgeView(size: 20)
-                    }
-                    .menuStyle(.borderlessButton)
-                    .menuIndicator(.hidden)
-                    .fixedSize()
-                    .help(Text("AI"))
-                }
-            }
-            .fixedSize()
-            .transition(.opacity.combined(with: .scale(scale: 0.96)))
-        }
-    }
-
-    private var showsInlineActions: Bool {
-        (isHovering || isSelected)
-            && viewModel.isQuickPasteModifierHeld == false
-    }
-
-    private var showsAIShortcut: Bool {
-        viewModel.aiSettingsViewModel.isAIEnabled
-            && showsInlineActions
-    }
-
-    private var isScreenPinDragActive: Bool {
-        screenPinViewModel.isEnabled && item.isScreenPinEligible
-    }
-
-    private func toggleFavorite() {
-        if singleClickPaste {
-            viewModel.handlePrimaryClickSelection(for: item.id)
-        }
-        viewModel.suppressNextPaste(for: item.id)
-        viewModel.pinItem(item: item)
-    }
-
-    @ViewBuilder
-    private var customTitleOverlay: some View {
-        if item.hasCustomTitle && !isCompact {
-            ClipboardItemCustomTitleView(
-                item: item,
-                viewModel: viewModel,
-                font: .system(size: 11, weight: .semibold),
-                textColor: customTitleTextColor
-            )
-            .frame(
-                width: Layout.customTitleWidth,
-                height: Layout.customTitleHeight,
-                alignment: .topLeading
-            )
-            .clipped()
-            .padding(.leading, Layout.customTitleLeading)
-            .padding(.top, Layout.customTitleTop)
-        }
-    }
-
-    @MainActor
-    private func refreshRichPreviewText() async {
-        richPreviewText = ListRenderEngine.shared.cachedText(for: item.id)
-
-        guard richPreviewText == nil else {
-            return
-        }
-
-        richPreviewText = await ListRenderEngine.shared.prepareText(for: item)
-    }
-}
-
-// MARK: - Drag Preview
-
-struct ClipboardDragPreview: View {
-    let item: ClipboardItem
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(nsColor: .windowBackgroundColor).opacity(0.95))
-                .shadow(color: Color.black.opacity(0.2), radius: 6, y: 3)
-
-            if item.contentType == .image {
-                ClipboardThumbnailView(itemID: item.id, maxPixelSize: 120) {
-                    Image(systemName: "photo")
-                        .foregroundColor(.secondary)
-                }
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 56, height: 56)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
-            } else if item.contentType == .fileURL, let fileURL = item.resolvedFileURL {
-                // File type: show native file icon
-                let displayPath = item.fileDisplayPath ?? fileURL.path
-                Image(nsImage: NSWorkspace.shared.icon(forFile: displayPath))
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 40, height: 40)
-            } else if item.isFastLink {
-                // Link type: link badge
-                Image(systemName: "link.circle.fill")
-                    .resizable()
-                    .frame(width: 32, height: 32)
-                    .foregroundColor(.blue)
-            } else {
-                AppIconView(appBundleID: item.sourceBundleIdentifier, size: 36)
-            }
-        }
-        .frame(width: 64, height: 64)
-    }
 }

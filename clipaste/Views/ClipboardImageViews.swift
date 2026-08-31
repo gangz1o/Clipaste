@@ -84,7 +84,7 @@ struct ClipboardFileThumbnailView<Placeholder: View>: View {
 }
 
 struct ClipboardQuickLookImageView: View {
-    @ObservedObject var viewModel: ClipboardViewModel
+    var viewModel: ClipboardViewModel
 
     var body: some View {
         Group {

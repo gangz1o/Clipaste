@@ -7,20 +7,6 @@ struct ClipboardRuntime: @unchecked Sendable {
     let storage: StorageManager
 }
 
-enum ClipboardContainerFactoryError: LocalizedError {
-    case cloudStoreResetFailed(initialError: Error, resetError: Error)
-    case cloudStoreRecoveryFailed(initialError: Error, retryError: Error)
-
-    var errorDescription: String? {
-        switch self {
-        case let .cloudStoreResetFailed(initialError, resetError):
-            return "iCloud 本地缓存重置失败。初始错误：\(initialError.localizedDescription)；重置错误：\(resetError.localizedDescription)"
-        case let .cloudStoreRecoveryFailed(initialError, retryError):
-            return "iCloud 本地缓存已重建，但云容器仍无法启动。初始错误：\(initialError.localizedDescription)；重试错误：\(retryError.localizedDescription)"
-        }
-    }
-}
-
 final class ClipboardModelContainerFactory: @unchecked Sendable {
     nonisolated static let shared = ClipboardModelContainerFactory()
     nonisolated static let cloudKitContainerIdentifier = "iCloud.com.gangz1o.clipaste"
@@ -33,31 +19,7 @@ final class ClipboardModelContainerFactory: @unchecked Sendable {
     private nonisolated init() {}
 
     nonisolated func makeRuntime(syncEnabled: Bool) throws -> ClipboardRuntime {
-        do {
-            return try buildRuntime(syncEnabled: syncEnabled)
-        } catch {
-            guard syncEnabled else { throw error }
-
-            let initialError = error
-
-            do {
-                try Self.resetStoreArtifacts(at: Self.cloudStoreURL)
-            } catch {
-                throw ClipboardContainerFactoryError.cloudStoreResetFailed(
-                    initialError: initialError,
-                    resetError: error
-                )
-            }
-
-            do {
-                return try buildRuntime(syncEnabled: syncEnabled)
-            } catch {
-                throw ClipboardContainerFactoryError.cloudStoreRecoveryFailed(
-                    initialError: initialError,
-                    retryError: error
-                )
-            }
-        }
+        try buildRuntime(syncEnabled: syncEnabled)
     }
 
     nonisolated func makeContainer(syncEnabled: Bool) throws -> ModelContainer {
@@ -70,6 +32,19 @@ final class ClipboardModelContainerFactory: @unchecked Sendable {
         )
 
         return try ModelContainer(for: schema, configurations: [configuration])
+    }
+
+    nonisolated func makeInMemoryRuntime() throws -> ClipboardRuntime {
+        let schema = Schema([ClipboardRecord.self, ClipboardGroupModel.self, SyncAnchor.self])
+        let configuration = ModelConfiguration(
+            "ClipboardRecoveryStore",
+            schema: schema,
+            isStoredInMemoryOnly: true,
+            cloudKitDatabase: .none
+        )
+        let container = try ModelContainer(for: schema, configurations: [configuration])
+        let storage = StorageManager(modelContainer: container)
+        return ClipboardRuntime(syncEnabled: false, container: container, storage: storage)
     }
 
     private nonisolated func buildRuntime(syncEnabled: Bool) throws -> ClipboardRuntime {

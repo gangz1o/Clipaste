@@ -174,8 +174,9 @@ extension ClipboardViewModel {
     func setupSmartGroupsGuard() {
         UserDefaults.standard.publisher(for: \.enable_smart_groups)
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
+            .sink { [weak self] isEnabled in
                 guard let self else { return }
+                self.isSmartGroupsEnabled = isEnabled
                 let slots = self.unifiedGroups
                 if !slots.contains(self.currentSlot), let first = slots.first {
                     self.applySlot(first)

@@ -182,13 +182,10 @@ private extension ClipboardViewModel {
             .prefix(24)
 
         for item in candidates {
-            guard pendingLinkMetadataHashes.contains(item.contentHash) == false else { continue }
-
             let urlText = (item.rawText ?? item.previewText ?? item.textPreview)
                 .trimmingCharacters(in: .whitespacesAndNewlines)
             guard urlText.isEmpty == false else { continue }
 
-            pendingLinkMetadataHashes.insert(item.contentHash)
             StorageManager.shared.processLinkMetadata(hash: item.contentHash, urlString: urlText)
         }
     }

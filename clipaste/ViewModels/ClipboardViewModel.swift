@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import Observation
 import SwiftUI
 
 extension Notification.Name {
@@ -26,7 +27,8 @@ extension UserDefaults {
 }
 
 @MainActor
-final class ClipboardViewModel: ObservableObject {
+@Observable
+final class ClipboardViewModel {
     enum DataLoadMode {
         case visibleFirst
         case fullRefresh
@@ -45,50 +47,72 @@ final class ClipboardViewModel: ObservableObject {
         let targetSize: CGSize
     }
 
-    @Published var items: [ClipboardItem] = []
-    @Published var displayedItemIDs: [UUID] = []
-    @Published var searchInput: String = ""
-    @Published var activeSearchQuery: String = ""
-    @Published var currentFilter: ClipboardContentType? = nil
-    @Published var selectedBuiltInGroup: ClipboardBuiltInGroup? = nil
-    @Published var selectedItemIDs: Set<UUID> = []
-    @Published var listScrollRequest: ClipboardListScrollRequest? = nil
-    @Published var isInitialHistoryLoading = false
-    @Published var isLoadingMoreHistory = false
+    var items: [ClipboardItem] = [] {
+        didSet { refreshFilterForDataOrScopeChange() }
+    }
+    var displayedItemIDs: [UUID] = []
+    var searchInput: String = "" {
+        didSet { scheduleFilterForSearchInput() }
+    }
+    var activeSearchQuery: String = ""
+    var currentFilter: ClipboardContentType? = nil {
+        didSet { refreshFilterForDataOrScopeChange() }
+    }
+    var selectedBuiltInGroup: ClipboardBuiltInGroup? = nil {
+        didSet { refreshFilterForDataOrScopeChange() }
+    }
+    var selectedItemIDs: Set<UUID> = []
+    var listScrollRequest: ClipboardListScrollRequest? = nil
+    var isInitialHistoryLoading = false
+    var isLoadingMoreHistory = false
     var lastSelectedID: UUID? = nil
-    @Published var quickLookItem: ClipboardItem? = nil
-    @Published var operationNotice: String? = nil
-    @Published var highResImage: NSImage? = nil
-    @Published var previewTargetSize: CGSize = .zero
-    @Published var sharingItem: ClipboardItem? = nil
-    @Published var draggedItemId: UUID? = nil
-    @Published var groups: [ClipboardGroup] = []
-    @Published var selectedGroupID: UUID? = nil
-    @Published var customGroups: [ClipboardGroupItem] = []
-    @Published var selectedGroupId: String? = nil
-    @Published var draggedGroup: ClipboardGroupItem? = nil
-    @Published var titleEditorItem: ClipboardItem? = nil
-    @Published var quickPasteModifier: ModifierKey = ModifierKey.quickPastePreference()
-    @Published var plainTextModifier: ModifierKey = ModifierKey.plainTextPreference()
-    @Published var isQuickPasteModifierHeld: Bool = false
-    @Published var isPlainTextModifierHeld: Bool = false
-    @AppStorage("enable_smart_groups") var isSmartGroupsEnabled: Bool = true
-    @AppStorage("pasteTextFormat") var pasteTextFormat: PasteTextFormat = .original
+    var quickLookItem: ClipboardItem? = nil
+    var operationNotice: String? = nil
+    var highResImage: NSImage? = nil
+    var previewTargetSize: CGSize = .zero
+    var sharingItem: ClipboardItem? = nil
+    var draggedItemId: UUID? = nil
+    var groups: [ClipboardGroup] = []
+    var selectedGroupID: UUID? = nil
+    var customGroups: [ClipboardGroupItem] = []
+    var selectedGroupId: String? = nil {
+        didSet { refreshFilterForDataOrScopeChange() }
+    }
+    var draggedGroup: ClipboardGroupItem? = nil
+    var titleEditorItem: ClipboardItem? = nil
+    var quickPasteModifier: ModifierKey = ModifierKey.quickPastePreference()
+    var plainTextModifier: ModifierKey = ModifierKey.plainTextPreference()
+    var isQuickPasteModifierHeld: Bool = false
+    var isPlainTextModifierHeld: Bool = false
+    var isSmartGroupsEnabled: Bool = UserDefaults.standard.object(forKey: "enable_smart_groups") as? Bool ?? true
+    var pasteTextFormat: PasteTextFormat {
+        get {
+            guard let rawValue = UserDefaults.standard.string(forKey: "pasteTextFormat") else {
+                return .original
+            }
+            return PasteTextFormat(rawValue: rawValue) ?? .original
+        }
+        set {
+            UserDefaults.standard.set(newValue.rawValue, forKey: "pasteTextFormat")
+        }
+    }
     var panelFocusField: ClipboardPanelFocusField? = nil
 
     // Shared implementation state for the split partial ViewModel files.
     var cancellables: Set<AnyCancellable> = []
     var filterGeneration: UInt = 0
+    @ObservationIgnored nonisolated(unsafe) var filterTask: Task<Void, Never>? = nil
+    @ObservationIgnored nonisolated(unsafe) var searchDebounceTask: Task<Void, Never>? = nil
     var listScrollGeneration: UInt = 0
-    var quickLookLoadTask: Task<Void, Never>? = nil
+    @ObservationIgnored nonisolated(unsafe) var quickLookLoadTask: Task<Void, Never>? = nil
     var quickLookLoadGeneration: UInt = 0
     var quickLookRequestedItemID: UUID? = nil
-    var autoPreviewTask: Task<Void, Never>? = nil
+    @ObservationIgnored nonisolated(unsafe) var autoPreviewTask: Task<Void, Never>? = nil
     var autoPreviewPendingItemID: UUID? = nil
     var autoPreviewPresentedItemID: UUID? = nil
     var shouldAutoSelectFirstItemAfterNextRefresh = false
-    nonisolated(unsafe) var keyDownMonitor: Any?
-    nonisolated(unsafe) var flagsChangedMonitor: Any?
+    @ObservationIgnored nonisolated(unsafe) var keyDownMonitor: Any?
+    @ObservationIgnored nonisolated(unsafe) var flagsChangedMonitor: Any?
     var currentModifierFlags: NSEvent.ModifierFlags = []
     var shouldResetSelectionToFirstDisplayedItem = false
     var hasPreparedPanelData = false
@@ -97,11 +121,10 @@ final class ClipboardViewModel: ObservableObject {
     var dataLoadGeneration: UInt = 0
     var loadedHistoryCount = 0
     var hasLoadedFullHistory = false
-    var historyLoadTask: Task<Void, Never>? = nil
+    @ObservationIgnored nonisolated(unsafe) var historyLoadTask: Task<Void, Never>? = nil
     var itemIndexByID: [UUID: Int] = [:]
     var itemIndexByHash: [String: Int] = [:]
-    var pendingLinkMetadataHashes: Set<String> = []
-    var operationNoticeHideTask: Task<Void, Never>? = nil
+    @ObservationIgnored nonisolated(unsafe) var operationNoticeHideTask: Task<Void, Never>? = nil
     var suppressedPasteItemIDs: Set<UUID> = []
     let settingsViewModel: SettingsViewModel
     let aiSettingsViewModel: AISettingsViewModel
@@ -132,6 +155,8 @@ final class ClipboardViewModel: ObservableObject {
 
     deinit {
         operationNoticeHideTask?.cancel()
+        filterTask?.cancel()
+        searchDebounceTask?.cancel()
         autoPreviewTask?.cancel()
         if let keyDownMonitor {
             NSEvent.removeMonitor(keyDownMonitor)

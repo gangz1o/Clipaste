@@ -16,18 +16,20 @@ enum FavoriteCloudRecoverySourceTests {
         }
 
         let rootURL = URL(fileURLWithPath: CommandLine.arguments[1], isDirectory: true)
-        let storageSource = try String(
-            contentsOf: rootURL.appending(path: "clipaste/Managers/StorageManager.swift"),
-            encoding: .utf8
+        let storageSource = try moduleSources(
+            rootURL,
+            directory: "clipaste/Managers",
+            prefixes: ["StorageManager", "ClipboardStoreActor"]
         )
-        let runtimeSource = try String(
-            contentsOf: rootURL.appending(path: "clipaste/Managers/ClipboardRuntimeStore.swift"),
-            encoding: .utf8
+        let runtimeSource = try moduleSources(
+            rootURL,
+            directory: "clipaste/Managers",
+            prefixes: ["ClipboardRuntimeStore"]
         )
 
         expect(
-            storageSource.contains("func exportPinnedRecords() async throws -> ClipboardStoreExport"),
-            "storage facade must expose a throwing pinned-only export"
+            storageSource.contains("func exportPinnedRecordBatch(offset: Int, limit: Int) async throws -> ClipboardStoreExport"),
+            "storage facade must expose a throwing, bounded pinned export"
         )
         expect(
             storageSource.contains("#Predicate<ClipboardRecord> { $0.isPinned }"),
@@ -38,6 +40,10 @@ enum FavoriteCloudRecoverySourceTests {
             "pinned recovery must retain referenced group definitions"
         )
         expect(
+            storageSource.contains("makeBoundedRecordExports"),
+            "pinned recovery must apply the shared payload-byte budget"
+        )
+        expect(
             runtimeSource.contains("recoverLocalFavoritesIfNeeded"),
             "cloud startup must invoke the local favorite recovery"
         )
@@ -46,9 +52,9 @@ enum FavoriteCloudRecoverySourceTests {
             "favorite recovery must have a versioned completion marker"
         )
 
-        guard let recoveryStart = runtimeSource.range(of: "private func recoverLocalFavoritesIfNeeded() async throws"),
+        guard let recoveryStart = runtimeSource.range(of: "func recoverLocalFavoritesIfNeeded() async throws"),
               let recoveryEnd = runtimeSource.range(
-                of: "private func repairDuplicateRecordsIfThrottled",
+                of: "func repairDuplicateRecordsIfThrottled",
                 range: recoveryStart.upperBound..<runtimeSource.endIndex
               ) else {
             fputs("FAIL: favorite recovery implementation body must exist\n", stderr)
@@ -69,5 +75,24 @@ enum FavoriteCloudRecoverySourceTests {
         )
 
         print("FavoriteCloudRecoverySourceTests passed")
+    }
+
+    private static func moduleSources(
+        _ root: URL,
+        directory: String,
+        prefixes: [String]
+    ) throws -> String {
+        let directoryURL = root.appendingPathComponent(directory, isDirectory: true)
+        return try FileManager.default.contentsOfDirectory(
+            at: directoryURL,
+            includingPropertiesForKeys: nil
+        )
+        .filter { url in
+            url.pathExtension == "swift"
+                && prefixes.contains { url.lastPathComponent.hasPrefix($0) }
+        }
+        .sorted { $0.lastPathComponent < $1.lastPathComponent }
+        .map { try String(contentsOf: $0, encoding: .utf8) }
+        .joined(separator: "\n")
     }
 }

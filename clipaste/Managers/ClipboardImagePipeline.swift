@@ -1,7 +1,7 @@
 import AppKit
 import Foundation
 
-private final class ScreenPinLoadCancellation: @unchecked Sendable {
+nonisolated final class ScreenPinLoadCancellation: @unchecked Sendable {
     private let lock = NSLock()
     private var cancelled = false
 
@@ -22,7 +22,7 @@ private final class ScreenPinLoadCancellation: @unchecked Sendable {
 final class ClipboardImagePipeline {
     static let shared = ClipboardImagePipeline()
 
-    private static let thumbnailQueue = DispatchQueue(
+    static let thumbnailQueue = DispatchQueue(
         label: "clipaste.thumbnail-pipeline",
         qos: .userInitiated,
         attributes: .concurrent
@@ -149,7 +149,7 @@ final class ClipboardImagePipeline {
             return await screenPinImage(forFileURL: fileURL, maxPixelSize: maxPixelSize)
         }
 
-        let boundedPixelSize = Self.boundedScreenPinPixelSize(maxPixelSize)
+        let boundedPixelSize = ClipboardImageResourcePolicy.boundedScreenPinPixelSize(maxPixelSize)
         let taskKey = "screen-pin-\(item.id.uuidString)-\(boundedPixelSize)"
         let cacheKey = taskKey as NSString
         if let cached = cache.object(forKey: cacheKey) {
@@ -207,7 +207,7 @@ final class ClipboardImagePipeline {
     }
 
     private func screenPinImage(forFileURL fileURL: URL, maxPixelSize: Int) async -> NSImage? {
-        let boundedPixelSize = Self.boundedScreenPinPixelSize(maxPixelSize)
+        let boundedPixelSize = ClipboardImageResourcePolicy.boundedScreenPinPixelSize(maxPixelSize)
         let taskKey = "screen-pin-file-\(fileURL.standardizedFileURL.path)-\(boundedPixelSize)"
         let cacheKey = taskKey as NSString
         if let cached = cache.object(forKey: cacheKey) {
@@ -221,15 +221,8 @@ final class ClipboardImagePipeline {
         let cancellation = ScreenPinLoadCancellation()
         let loadTask = Task<NSImage?, Never> {
             guard Task.isCancelled == false, cancellation.isCancelled == false else { return nil }
-            guard let data = await Self.loadScreenPinFileDataOffMain(
+            let image = await Self.loadAndDownsampleFileImageOffMain(
                 fileURL: fileURL,
-                cancellation: cancellation
-            ) else {
-                return nil
-            }
-            guard Task.isCancelled == false, cancellation.isCancelled == false else { return nil }
-            let image = await Self.downsampleImageOffMain(
-                data,
                 maxPixelSize: boundedPixelSize,
                 cancellation: cancellation
             )
@@ -267,91 +260,4 @@ final class ClipboardImagePipeline {
     }
 
     /// NSCache cost must track decoded memory, not compressed source bytes.
-    private static func estimatedCost(for image: NSImage) -> Int {
-        let width = max(1, Int(image.size.width.rounded(.up)))
-        let height = max(1, Int(image.size.height.rounded(.up)))
-        let (pixelCount, pixelOverflow) = width.multipliedReportingOverflow(by: height)
-        guard pixelOverflow == false else { return Int.max }
-        let (byteCount, byteOverflow) = pixelCount.multipliedReportingOverflow(by: 4)
-        return byteOverflow ? Int.max : byteCount
-    }
-
-    private static func boundedScreenPinPixelSize(_ requestedSize: Int) -> Int {
-        max(256, min(requestedSize, 4096))
-    }
-
-    private static func downsampleImageOffMain(
-        _ data: Data,
-        maxPixelSize: Int,
-        cancellation: ScreenPinLoadCancellation? = nil
-    ) async -> NSImage? {
-        await withCheckedContinuation { continuation in
-            thumbnailQueue.async {
-                guard cancellation?.isCancelled != true else {
-                    continuation.resume(returning: nil)
-                    return
-                }
-                let image = ImageProcessor.downsampleImage(from: data, maxPixelSize: maxPixelSize)
-                continuation.resume(returning: cancellation?.isCancelled == true ? nil : image)
-            }
-        }
-    }
-
-    private static func loadScreenPinFileDataOffMain(
-        fileURL: URL,
-        cancellation: ScreenPinLoadCancellation
-    ) async -> Data? {
-        await withCheckedContinuation { continuation in
-            thumbnailQueue.async {
-                guard cancellation.isCancelled == false,
-                      ClipboardFileReference.isLikelyImageFileURL(fileURL) else {
-                    continuation.resume(returning: nil)
-                    return
-                }
-
-                let didStartSecurityScope = fileURL.startAccessingSecurityScopedResource()
-                defer {
-                    if didStartSecurityScope {
-                        fileURL.stopAccessingSecurityScopedResource()
-                    }
-                }
-
-                guard let handle = try? FileHandle(forReadingFrom: fileURL) else {
-                    continuation.resume(returning: nil)
-                    return
-                }
-                defer { try? handle.close() }
-
-                var data = Data()
-                do {
-                    while cancellation.isCancelled == false {
-                        guard let chunk = try handle.read(upToCount: 1024 * 1024),
-                              chunk.isEmpty == false else {
-                            break
-                        }
-                        data.append(chunk)
-                    }
-                } catch {
-                    continuation.resume(returning: nil)
-                    return
-                }
-
-                continuation.resume(returning: cancellation.isCancelled ? nil : data)
-            }
-        }
-    }
-
-    private static func loadAndDownsampleFileImageOffMain(fileURL: URL, maxPixelSize: Int) async -> NSImage? {
-        await withCheckedContinuation { continuation in
-            thumbnailQueue.async {
-                guard let data = ClipboardFileReference.loadImageData(from: fileURL) else {
-                    continuation.resume(returning: nil)
-                    return
-                }
-
-                let image = ImageProcessor.downsampleImage(from: data, maxPixelSize: maxPixelSize)
-                continuation.resume(returning: image)
-            }
-        }
-    }
 }

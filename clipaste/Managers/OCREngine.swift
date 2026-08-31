@@ -5,8 +5,14 @@ struct OCREngine {
     // 异步提取图片文字，绝不阻塞主线程
     static func extractText(from imageData: Data) async -> String? {
         await Task.detached(priority: .utility) {
-            guard let imageSource = CGImageSourceCreateWithData(imageData as CFData, nil),
-                  let cgImage = CGImageSourceCreateImageAtIndex(imageSource, 0, nil) else {
+            guard Task.isCancelled == false else { return nil }
+            let metadata = ImageProcessor.metadata(for: imageData)
+            guard ClipboardImageResourcePolicy.allowsStoredImage(metadata),
+                  let cgImage = ImageProcessor.downsampledCGImage(
+                    from: imageData,
+                    maxPixelSize: ClipboardImageResourcePolicy.maximumOCRPixelSize
+                  ),
+                  Task.isCancelled == false else {
                 return nil
             }
 
@@ -28,7 +34,7 @@ struct OCREngine {
                 return nil
             }
 
-            guard let observations = request.results else {
+            guard Task.isCancelled == false, let observations = request.results else {
                 return nil
             }
 

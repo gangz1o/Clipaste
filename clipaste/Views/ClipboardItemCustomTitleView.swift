@@ -3,7 +3,7 @@ import SwiftUI
 
 struct ClipboardItemCustomTitleView: View {
     let item: ClipboardItem
-    @ObservedObject var viewModel: ClipboardViewModel
+    var viewModel: ClipboardViewModel
     let font: Font
     let textColor: Color
     @State private var isHovering = false

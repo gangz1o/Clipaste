@@ -9,7 +9,7 @@ import AppKit
 /// 确保分享面板精确弹出在卡片上方。
 struct ShareableModifier: ViewModifier {
     let item: ClipboardItem
-    @ObservedObject var viewModel: ClipboardViewModel
+    var viewModel: ClipboardViewModel
 
     /// 存储捕获到的 NSView 引用
     private class AnchorStore {

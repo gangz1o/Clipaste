@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ClipboardVerticalView: View {
     let items: [ClipboardItem]
-    @ObservedObject var viewModel: ClipboardViewModel
+    var viewModel: ClipboardViewModel
     @AppStorage("singleClickPaste") private var singleClickPaste = false
     @AppStorage("autoPreview") private var autoPreview = true
 

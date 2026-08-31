@@ -11,7 +11,7 @@ import SwiftData
 ///   Clipaste.app/Contents/MacOS/Clipaste --initialize-cloudkit-schema
 ///
 /// 使用独立的临时 store,不触碰正式数据;成功后进程直接退出。
-enum CloudKitSchemaInitializer {
+nonisolated enum CloudKitSchemaInitializer {
     static let launchArgument = "--initialize-cloudkit-schema"
 
     static func runIfRequested() {
@@ -90,7 +90,7 @@ enum CloudKitSchemaInitializer {
         try container.initializeCloudKitSchema(options: [])
     }
 
-    private enum SchemaInitializationError: LocalizedError {
+    private nonisolated enum SchemaInitializationError: LocalizedError {
         case modelConversionFailed
 
         var errorDescription: String? {
@@ -99,7 +99,7 @@ enum CloudKitSchemaInitializer {
     }
 }
 
-private final class SchemaInitializationResultBox: @unchecked Sendable {
+private nonisolated final class SchemaInitializationResultBox: @unchecked Sendable {
     private let lock = NSLock()
     private var result: Result<Void, Error>?
 

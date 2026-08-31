@@ -14,25 +14,31 @@ struct LinkMetadataEngine {
 
     nonisolated static func fetchMetadata(
         for urlString: String,
-        session: URLSession = .shared
+        session: URLSession = .shared,
+        resolver: any LinkMetadataHostResolving = SystemLinkMetadataHostResolver()
     ) async -> (title: String?, iconData: Data?) {
         guard await concurrencyLimiter.acquire() else {
             return (nil, nil)
         }
 
-        let result = await fetchMetadataWithinPermit(for: urlString, session: session)
+        let result = await fetchMetadataWithinPermit(
+            for: urlString,
+            session: session,
+            resolver: resolver
+        )
         await concurrencyLimiter.release()
         return result
     }
 
     nonisolated private static func fetchMetadataWithinPermit(
         for urlString: String,
-        session: URLSession
+        session: URLSession,
+        resolver: any LinkMetadataHostResolving
     ) async -> (title: String?, iconData: Data?) {
         let trimmed = urlString.trimmingCharacters(in: .whitespacesAndNewlines)
 
         guard let pageURL = validatedHTTPURL(from: trimmed),
-              let page = await fetchHTML(url: pageURL, session: session) else {
+              let page = await fetchHTML(url: pageURL, session: session, resolver: resolver) else {
             return (nil, nil)
         }
 
@@ -40,7 +46,8 @@ struct LinkMetadataEngine {
         async let iconData = fetchIconData(
             from: page.html,
             pageURL: page.finalURL,
-            session: session
+            session: session,
+            resolver: resolver
         )
 
         return await (title, iconData)
@@ -48,7 +55,14 @@ struct LinkMetadataEngine {
 
     // MARK: - HTML Fetch
 
-    nonisolated private static func fetchHTML(url: URL, session: URLSession) async -> HTMLPage? {
+    nonisolated private static func fetchHTML(
+        url: URL,
+        session: URLSession,
+        resolver: any LinkMetadataHostResolving
+    ) async -> HTMLPage? {
+        guard await LinkMetadataNetworkPolicy.isAllowedURL(url, resolver: resolver) else {
+            return nil
+        }
         var request = URLRequest(url: url, timeoutInterval: 5)
         request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
         request.setValue("text/html,application/xhtml+xml", forHTTPHeaderField: "Accept")
@@ -58,7 +72,8 @@ struct LinkMetadataEngine {
             request: request,
             session: session,
             maximumByteCount: Self.maxHTMLByteCount,
-            resourceKind: .html
+            resourceKind: .html,
+            resolver: resolver
         ) else {
             return nil
         }
@@ -97,14 +112,15 @@ struct LinkMetadataEngine {
     nonisolated private static func fetchIconData(
         from html: String,
         pageURL: URL,
-        session: URLSession
+        session: URLSession,
+        resolver: any LinkMetadataHostResolving
     ) async -> Data? {
         let candidates = iconCandidates(from: html, pageURL: pageURL)
 
         for iconURL in candidates {
             guard Task.isCancelled == false else { return nil }
 
-            if let data = await fetchIconData(url: iconURL, session: session) {
+            if let data = await fetchIconData(url: iconURL, session: session, resolver: resolver) {
                 return data
             }
         }
@@ -112,8 +128,12 @@ struct LinkMetadataEngine {
         return nil
     }
 
-    nonisolated private static func fetchIconData(url: URL, session: URLSession) async -> Data? {
-        guard isAllowedHTTPURL(url) else { return nil }
+    nonisolated private static func fetchIconData(
+        url: URL,
+        session: URLSession,
+        resolver: any LinkMetadataHostResolving
+    ) async -> Data? {
+        guard await LinkMetadataNetworkPolicy.isAllowedURL(url, resolver: resolver) else { return nil }
 
         var request = URLRequest(url: url, timeoutInterval: 4)
         request.setValue(Self.userAgent, forHTTPHeaderField: "User-Agent")
@@ -124,7 +144,8 @@ struct LinkMetadataEngine {
             request: request,
             session: session,
             maximumByteCount: Self.maxIconByteCount,
-            resourceKind: .icon
+            resourceKind: .icon,
+            resolver: resolver
         ), data.isEmpty == false else {
             return nil
         }
@@ -135,7 +156,7 @@ struct LinkMetadataEngine {
     nonisolated private static func iconCandidates(from html: String, pageURL: URL) -> [URL] {
         let linkCandidates = extractIconHrefs(from: html)
             .compactMap { absoluteURL(from: $0, relativeTo: pageURL) }
-            .filter(isAllowedHTTPURL)
+            .filter(LinkMetadataNetworkPolicy.syntacticallyAllowedURL)
 
         let fallback = URL(string: "/favicon.ico", relativeTo: pageURL)?.absoluteURL
         return Array(
@@ -195,9 +216,6 @@ struct LinkMetadataEngine {
         guard let components = URLComponents(string: string),
               let scheme = components.scheme?.lowercased(),
               ["http", "https"].contains(scheme),
-              let host = components.host?.lowercased(),
-              host.isEmpty == false,
-              shouldSkip(host: host) == false,
               let url = components.url else {
             return nil
         }
@@ -206,14 +224,7 @@ struct LinkMetadataEngine {
     }
 
     nonisolated fileprivate static func isAllowedHTTPURL(_ url: URL) -> Bool {
-        guard let scheme = url.scheme?.lowercased(),
-              ["http", "https"].contains(scheme),
-              let host = url.host?.lowercased(),
-              shouldSkip(host: host) == false else {
-            return false
-        }
-
-        return true
+        LinkMetadataNetworkPolicy.syntacticallyAllowedURL(url)
     }
 
     nonisolated private static func absoluteURL(from rawValue: String, relativeTo baseURL: URL) -> URL? {
@@ -237,237 +248,15 @@ struct LinkMetadataEngine {
         request: URLRequest,
         session: URLSession,
         maximumByteCount: Int,
-        resourceKind: LinkMetadataResourceKind
+        resourceKind: LinkMetadataResourceKind,
+        resolver: any LinkMetadataHostResolving
     ) async -> (Data, HTTPURLResponse)? {
         let loader = LinkMetadataDataLoader(
             configuration: session.configuration,
             maximumByteCount: maximumByteCount,
-            resourceKind: resourceKind
+            resourceKind: resourceKind,
+            resolver: resolver
         )
         return await loader.load(request: request)
-    }
-
-    nonisolated private static func shouldSkip(host: String) -> Bool {
-        host == "localhost"
-            || host == "::1"
-            || host.hasPrefix("127.")
-            || host.hasPrefix("10.")
-            || host.hasPrefix("192.168.")
-            || isPrivate172Host(host)
-    }
-
-    nonisolated private static func isPrivate172Host(_ host: String) -> Bool {
-        let parts = host.split(separator: ".")
-        guard parts.count >= 2,
-              parts[0] == "172",
-              let second = Int(parts[1]) else {
-            return false
-        }
-
-        return 16...31 ~= second
-    }
-}
-
-private struct HTMLPage: Sendable {
-    let html: String
-    let finalURL: URL
-}
-
-private nonisolated enum LinkMetadataResourceKind: Sendable {
-    case html
-    case icon
-
-    func accepts(mimeType: String?) -> Bool {
-        guard let mimeType = mimeType?.lowercased() else { return true }
-
-        switch self {
-        case .html:
-            return mimeType == "text/html" || mimeType == "application/xhtml+xml"
-        case .icon:
-            return mimeType.hasPrefix("image/") || mimeType == "application/octet-stream"
-        }
-    }
-}
-
-private actor LinkMetadataConcurrencyLimiter {
-    private struct Waiter {
-        let id: UUID
-        let continuation: CheckedContinuation<Bool, Never>
-    }
-
-    private var availablePermits: Int
-    private var waiters: [Waiter] = []
-
-    init(limit: Int) {
-        availablePermits = limit
-    }
-
-    func acquire() async -> Bool {
-        let waiterID = UUID()
-
-        return await withTaskCancellationHandler {
-            guard Task.isCancelled == false else { return false }
-
-            if availablePermits > 0 {
-                availablePermits -= 1
-                return true
-            }
-
-            return await withCheckedContinuation { continuation in
-                waiters.append(Waiter(id: waiterID, continuation: continuation))
-            }
-        } onCancel: {
-            Task { await self.cancelWaiter(id: waiterID) }
-        }
-    }
-
-    func release() {
-        guard waiters.isEmpty == false else {
-            availablePermits += 1
-            return
-        }
-
-        let waiter = waiters.removeFirst()
-        waiter.continuation.resume(returning: true)
-    }
-
-    private func cancelWaiter(id: UUID) {
-        guard let index = waiters.firstIndex(where: { $0.id == id }) else { return }
-        let waiter = waiters.remove(at: index)
-        waiter.continuation.resume(returning: false)
-    }
-}
-
-private final class LinkMetadataDataLoader: NSObject, URLSessionDataDelegate, @unchecked Sendable {
-    private let stateLock = NSLock()
-    private let maximumByteCount: Int
-    private let resourceKind: LinkMetadataResourceKind
-    private var session: URLSession!
-    private var task: URLSessionDataTask?
-    private var continuation: CheckedContinuation<(Data, HTTPURLResponse)?, Never>?
-    private var response: HTTPURLResponse?
-    private var receivedData = Data()
-    private var isCompleted = false
-
-    init(
-        configuration: URLSessionConfiguration,
-        maximumByteCount: Int,
-        resourceKind: LinkMetadataResourceKind
-    ) {
-        self.maximumByteCount = maximumByteCount
-        self.resourceKind = resourceKind
-        super.init()
-        session = URLSession(configuration: configuration, delegate: self, delegateQueue: nil)
-    }
-
-    func load(request: URLRequest) async -> (Data, HTTPURLResponse)? {
-        await withTaskCancellationHandler {
-            await withCheckedContinuation { continuation in
-                stateLock.lock()
-                guard isCompleted == false else {
-                    stateLock.unlock()
-                    continuation.resume(returning: nil)
-                    return
-                }
-
-                self.continuation = continuation
-                let task = session.dataTask(with: request)
-                self.task = task
-                stateLock.unlock()
-
-                if Task.isCancelled {
-                    finish(result: nil, cancelTask: true)
-                } else {
-                    task.resume()
-                }
-            }
-        } onCancel: {
-            self.finish(result: nil, cancelTask: true)
-        }
-    }
-
-    func urlSession(
-        _ session: URLSession,
-        dataTask: URLSessionDataTask,
-        didReceive response: URLResponse,
-        completionHandler: @escaping (URLSession.ResponseDisposition) -> Void
-    ) {
-        guard let httpResponse = response as? HTTPURLResponse,
-              200..<300 ~= httpResponse.statusCode,
-              let finalURL = httpResponse.url,
-              LinkMetadataEngine.isAllowedHTTPURL(finalURL),
-              resourceKind.accepts(mimeType: httpResponse.mimeType),
-              httpResponse.expectedContentLength <= Int64(maximumByteCount) else {
-            completionHandler(.cancel)
-            finish(result: nil, cancelTask: true)
-            return
-        }
-
-        stateLock.lock()
-        guard isCompleted == false else {
-            stateLock.unlock()
-            completionHandler(.cancel)
-            return
-        }
-
-        self.response = httpResponse
-        if httpResponse.expectedContentLength > 0 {
-            receivedData.reserveCapacity(Int(httpResponse.expectedContentLength))
-        }
-        stateLock.unlock()
-        completionHandler(.allow)
-    }
-
-    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
-        stateLock.lock()
-        guard isCompleted == false,
-              data.count <= maximumByteCount - receivedData.count else {
-            stateLock.unlock()
-            finish(result: nil, cancelTask: true)
-            return
-        }
-
-        receivedData.append(data)
-        stateLock.unlock()
-    }
-
-    func urlSession(
-        _ session: URLSession,
-        task: URLSessionTask,
-        didCompleteWithError error: Error?
-    ) {
-        stateLock.lock()
-        let result: (Data, HTTPURLResponse)?
-        if error == nil, let response {
-            result = (receivedData, response)
-        } else {
-            result = nil
-        }
-        stateLock.unlock()
-
-        finish(result: result, cancelTask: false)
-    }
-
-    private func finish(result: (Data, HTTPURLResponse)?, cancelTask: Bool) {
-        stateLock.lock()
-        guard isCompleted == false else {
-            stateLock.unlock()
-            return
-        }
-
-        isCompleted = true
-        let continuation = self.continuation
-        self.continuation = nil
-        let task = self.task
-        self.task = nil
-        stateLock.unlock()
-
-        if cancelTask {
-            task?.cancel()
-            session.invalidateAndCancel()
-        } else {
-            session.finishTasksAndInvalidate()
-        }
-        continuation?.resume(returning: result)
     }
 }

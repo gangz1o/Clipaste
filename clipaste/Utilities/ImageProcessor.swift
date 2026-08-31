@@ -73,10 +73,75 @@ struct ImageProcessor {
     }
 
     nonisolated
+    static func metadata(for fileURL: URL, byteCount: Int) -> ClipboardImageMetadata {
+        guard let source = CGImageSourceCreateWithURL(fileURL as CFURL, nil) else {
+            return ClipboardImageMetadata(
+                utTypeIdentifier: nil,
+                byteCount: byteCount,
+                pixelWidth: nil,
+                pixelHeight: nil
+            )
+        }
+
+        let utTypeIdentifier = CGImageSourceGetType(source) as String?
+        let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+
+        return ClipboardImageMetadata(
+            utTypeIdentifier: utTypeIdentifier,
+            byteCount: byteCount,
+            pixelWidth: properties?[kCGImagePropertyPixelWidth] as? Int,
+            pixelHeight: properties?[kCGImagePropertyPixelHeight] as? Int
+        )
+    }
+
+    nonisolated
     static func downsampleImage(from data: Data, maxPixelSize: Int) -> NSImage? {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil) else {
             return nil
         }
+
+        return downsampleImage(from: source, maxPixelSize: maxPixelSize)
+    }
+
+    nonisolated
+    static func downsampleImage(from fileURL: URL, maxPixelSize: Int) -> NSImage? {
+        guard let source = CGImageSourceCreateWithURL(fileURL as CFURL, nil) else {
+            return nil
+        }
+
+        return downsampleImage(from: source, maxPixelSize: maxPixelSize)
+    }
+
+    nonisolated
+    static func downsampledCGImage(from data: Data, maxPixelSize: Int) -> CGImage? {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil) else {
+            return nil
+        }
+
+        return makeThumbnail(from: source, maxPixelSize: maxPixelSize)
+    }
+
+    nonisolated
+    private static func downsampleImage(
+        from source: CGImageSource,
+        maxPixelSize: Int
+    ) -> NSImage? {
+        guard let cgImage = makeThumbnail(from: source, maxPixelSize: maxPixelSize) else {
+            return nil
+        }
+
+        return NSImage(
+            cgImage: cgImage,
+            size: NSSize(width: cgImage.width, height: cgImage.height)
+        )
+    }
+
+    nonisolated
+    private static func makeThumbnail(
+        from source: CGImageSource,
+        maxPixelSize: Int
+    ) -> CGImage? {
+        guard maxPixelSize > 0 else { return nil }
 
         let options: CFDictionary = [
             kCGImageSourceCreateThumbnailFromImageAlways: true,
@@ -85,14 +150,7 @@ struct ImageProcessor {
             kCGImageSourceThumbnailMaxPixelSize: maxPixelSize
         ] as CFDictionary
 
-        guard let cgImage = CGImageSourceCreateThumbnailAtIndex(source, 0, options) else {
-            return nil
-        }
-
-        return NSImage(
-            cgImage: cgImage,
-            size: NSSize(width: cgImage.width, height: cgImage.height)
-        )
+        return CGImageSourceCreateThumbnailAtIndex(source, 0, options)
     }
 
     nonisolated

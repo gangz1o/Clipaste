@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ClipboardVerticalListView: View {
-    @ObservedObject var viewModel: ClipboardViewModel
+    var viewModel: ClipboardViewModel
     let items: [ClipboardItem]
     @FocusState var focusedField: ClipboardPanelFocusField?
     @AppStorage("clipboardLayout") private var clipboardLayout: AppLayoutMode = .horizontal
@@ -200,14 +200,12 @@ struct ClipboardVerticalListView: View {
     }
 
     private func scrollToItem(with proxy: ScrollViewProxy, itemID: UUID, animated: Bool) {
-        DispatchQueue.main.async {
-            if animated {
-                withAnimation(.easeInOut(duration: 0.12)) {
-                    proxy.scrollTo(itemID, anchor: .center)
-                }
-            } else {
+        if animated {
+            withAnimation(.easeInOut(duration: 0.12)) {
                 proxy.scrollTo(itemID, anchor: .center)
             }
+        } else {
+            proxy.scrollTo(itemID, anchor: .center)
         }
     }
 }

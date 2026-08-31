@@ -4,8 +4,7 @@ import ApplicationServices
 enum AccessibilityPermissionCoordinator {
     @discardableResult
     static func requestPermissionPrompt() -> Bool {
-        let promptKey = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
-        let options: NSDictionary = [promptKey: true]
+        let options: NSDictionary = ["AXTrustedCheckOptionPrompt": true]
         return AXIsProcessTrustedWithOptions(options)
     }
 

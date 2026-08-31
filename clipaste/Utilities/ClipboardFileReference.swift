@@ -55,13 +55,22 @@ enum ClipboardFileReference {
         }()
 
         guard isImageByType || isLikelyImageFileURL(fileURL) else { return nil }
-        guard let data = accessibleData(from: fileURL) else { return nil }
-        guard CGImageSourceCreateWithData(data as CFData, nil) != nil else { return nil }
+        guard let data = accessibleData(
+            from: fileURL,
+            maximumByteCount: ClipboardImageResourcePolicy.maximumStoredImageByteCount
+        ) else {
+            return nil
+        }
+        let metadata = ImageProcessor.metadata(for: data)
+        guard ClipboardImageResourcePolicy.allowsStoredImage(metadata) else { return nil }
         return data
     }
 
     nonisolated
-    static func accessibleData(from fileURL: URL) -> Data? {
+    static func accessibleData(
+        from fileURL: URL,
+        maximumByteCount: Int
+    ) -> Data? {
         let didStartSecurityScope = fileURL.startAccessingSecurityScopedResource()
         defer {
             if didStartSecurityScope {
@@ -69,6 +78,15 @@ enum ClipboardFileReference {
             }
         }
 
-        return try? Data(contentsOf: fileURL)
+        guard maximumByteCount > 0,
+              let fileSize = try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize,
+              fileSize > 0,
+              fileSize <= maximumByteCount,
+              let data = try? Data(contentsOf: fileURL, options: [.mappedIfSafe, .uncached]),
+              data.count <= maximumByteCount else {
+            return nil
+        }
+
+        return data
     }
 }

@@ -2,7 +2,7 @@ import SwiftUI
 
 struct ClipboardAIActionMenu<MenuLabel: View>: View {
     let item: ClipboardItem
-    @ObservedObject var viewModel: ClipboardViewModel
+    var viewModel: ClipboardViewModel
     @ViewBuilder var label: () -> MenuLabel
 
     var body: some View {

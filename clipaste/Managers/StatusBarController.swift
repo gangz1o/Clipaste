@@ -19,7 +19,8 @@ final class StatusBarController: NSObject, NSMenuDelegate {
         configureContextMenu()
     }
 
-    deinit {
+    func invalidate() {
+        statusItem.menu = nil
         NSStatusBar.system.removeStatusItem(statusItem)
     }
 

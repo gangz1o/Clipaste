@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct ClipboardHorizontalView: View {
-    @ObservedObject var viewModel: ClipboardViewModel
+    var viewModel: ClipboardViewModel
     let items: [ClipboardItem]
     @FocusState var focusedField: ClipboardPanelFocusField?
     @AppStorage("requireCmdToDelete") private var requireCmdToDelete: Bool = false

@@ -28,7 +28,7 @@ final class AISettingsViewModel {
     var isAIEnabled: Bool = true {
         didSet {
             guard oldValue != isAIEnabled else { return }
-            UserDefaults.standard.set(isAIEnabled, forKey: aiEnabledKey)
+            defaults.set(isAIEnabled, forKey: aiEnabledKey)
         }
     }
 
@@ -38,7 +38,7 @@ final class AISettingsViewModel {
     var isAIOCREnabled: Bool = false {
         didSet {
             guard oldValue != isAIOCREnabled else { return }
-            UserDefaults.standard.set(isAIOCREnabled, forKey: aiOCREnabledKey)
+            defaults.set(isAIOCREnabled, forKey: aiOCREnabledKey)
         }
     }
 
@@ -64,9 +64,18 @@ final class AISettingsViewModel {
     var isTesting: Bool = false
     var testResult: AITestResult? = nil
 
+    let defaults: UserDefaults
+    let credentialStore: any AICredentialStoring
+    var canPersistSanitizedConfigurations = true
+
     // MARK: - Init
 
-    init() {
+    init(
+        defaults: UserDefaults = .standard,
+        credentialStore: any AICredentialStoring = AIKeychainCredentialStore.shared
+    ) {
+        self.defaults = defaults
+        self.credentialStore = credentialStore
         load()
     }
 
@@ -87,6 +96,34 @@ final class AISettingsViewModel {
     }
 
     func saveEditing() {
+        let endpoint = editingConfiguration.endpoint.isEmpty
+            ? editingConfiguration.providerType.defaultEndpoint
+            : editingConfiguration.endpoint
+        guard AIEndpointPolicy.validatedURL(from: endpoint) != nil else {
+            testResult = .failure("Invalid Endpoint URL")
+            return
+        }
+
+        guard let preparedConfigurations = configurationsReadyForSanitizedPersistence(
+            configurations
+        ) else {
+            testResult = .failure("Existing API keys could not be migrated to Keychain. No configuration changes were saved.")
+            return
+        }
+
+        do {
+            try credentialStore.setCredential(
+                editingConfiguration.apiKey,
+                for: editingConfiguration.id
+            )
+        } catch {
+            testResult = .failure(error.localizedDescription)
+            return
+        }
+
+        configurations = preparedConfigurations
+        canPersistSanitizedConfigurations = true
+
         if isEditingExisting {
             if let index = configurations.firstIndex(where: { $0.id == editingConfiguration.id }) {
                 configurations[index] = editingConfiguration
@@ -99,18 +136,33 @@ final class AISettingsViewModel {
             }
         }
         isEditorPresented = false
-        save()
+        save(includeConfigurations: true)
     }
 
     func delete(_ config: AIConfiguration) {
-        configurations.removeAll { $0.id == config.id }
+        guard let remainingConfigurations = configurationsReadyForSanitizedPersistence(
+            configurations.filter { $0.id != config.id }
+        ) else {
+            testResult = .failure("Existing API keys could not be migrated to Keychain. The configuration was not deleted.")
+            return
+        }
+
+        do {
+            try credentialStore.deleteCredential(for: config.id)
+        } catch {
+            testResult = .failure(error.localizedDescription)
+            return
+        }
+
+        configurations = remainingConfigurations
+        canPersistSanitizedConfigurations = true
         if activeConfigurationID == config.id {
             activeConfigurationID = configurations.first?.id
         }
         if configurations.isEmpty {
             isAIOCREnabled = false
         }
-        save()
+        save(includeConfigurations: true)
     }
 
     func setActive(_ config: AIConfiguration) {
@@ -218,171 +270,15 @@ final class AISettingsViewModel {
 
     func markSkillUsed(_ skill: AISkill) {
         lastUsedSkillID = skill.id
-        UserDefaults.standard.set(skill.id.uuidString, forKey: lastUsedSkillIDKey)
+        defaults.set(skill.id.uuidString, forKey: lastUsedSkillIDKey)
     }
 
     // MARK: - Persistence
 
-    private let configurationsKey = "ai_configurations"
-    private let activeIDKey = "ai_active_configuration_id"
-    private let skillsKey = "ai_skills"
-    private let aiEnabledKey = "ai_enabled"
-    private let aiOCREnabledKey = "ai_ocr_enabled"
-    private let lastUsedSkillIDKey = "ai_last_used_skill_id"
-
-    private func save() {
-        if let data = try? JSONEncoder().encode(configurations) {
-            UserDefaults.standard.set(data, forKey: configurationsKey)
-        }
-        if let data = try? JSONEncoder().encode(skills) {
-            UserDefaults.standard.set(data, forKey: skillsKey)
-        }
-        UserDefaults.standard.set(activeConfigurationID?.uuidString, forKey: activeIDKey)
-    }
-
-    private func load() {
-        var shouldPersistDefaultSkills = false
-
-        if let data = UserDefaults.standard.data(forKey: configurationsKey),
-           let decoded = try? JSONDecoder().decode([AIConfiguration].self, from: data) {
-            configurations = decoded
-        }
-        if let data = UserDefaults.standard.data(forKey: skillsKey),
-           let decoded = try? JSONDecoder().decode([AISkill].self, from: data) {
-            skills = decoded.sorted { $0.sortOrder < $1.sortOrder }
-        } else {
-            skills = Self.defaultSkills()
-            shouldPersistDefaultSkills = true
-        }
-        if let idString = UserDefaults.standard.string(forKey: activeIDKey),
-           let uuid = UUID(uuidString: idString) {
-            activeConfigurationID = uuid
-        }
-        if let idString = UserDefaults.standard.string(forKey: lastUsedSkillIDKey),
-           let uuid = UUID(uuidString: idString) {
-            lastUsedSkillID = uuid
-        }
-
-        if UserDefaults.standard.object(forKey: aiEnabledKey) != nil {
-            isAIEnabled = UserDefaults.standard.bool(forKey: aiEnabledKey)
-        }
-        if UserDefaults.standard.object(forKey: aiOCREnabledKey) != nil {
-            isAIOCREnabled = UserDefaults.standard.bool(forKey: aiOCREnabledKey)
-        }
-        if configurations.isEmpty {
-            isAIOCREnabled = false
-        }
-
-        if shouldPersistDefaultSkills {
-            save()
-        }
-    }
-
-    private func normalizeSkillSortOrder() {
-        for index in skills.indices {
-            skills[index].sortOrder = index
-        }
-    }
-
-    private static func defaultSkills(startingSortOrder: Int = 0) -> [AISkill] {
-        let presets: [DefaultAISkillPreset] = [
-            .extractEmails,
-            .summarizeText,
-            .translateToEnglish,
-            .improveWriting,
-            .formatJSON,
-            .minifyJSON,
-            .jsonToTypeScript,
-            .explainCode
-        ]
-
-        return presets.enumerated().map { offset, preset in
-            AISkill(
-                name: preset.localizedName,
-                promptTemplate: preset.localizedPrompt,
-                supportedContentTypes: preset.supportedContentTypes,
-                outputMode: preset.outputMode,
-                opensConversation: preset.opensConversation,
-                sortOrder: startingSortOrder + offset,
-                presetIdentifier: preset.rawValue
-            )
-        }
-    }
-
-    // MARK: - Connection Test
-
-    @MainActor
-    func testConnection() async {
-        let config = editingConfiguration
-        isTesting = true
-        testResult = nil
-
-        let token = config.apiKey
-        if token.isEmpty {
-            testResult = .failure("API Key is missing")
-            isTesting = false
-            return
-        }
-
-        var urlString = config.endpoint.isEmpty ? config.providerType.defaultEndpoint : config.endpoint
-        let model = config.model.isEmpty ? (config.providerType.defaultModels.first ?? "") : config.model
-
-        if config.providerType == .gemini {
-            if !urlString.hasSuffix("/") { urlString += "/" }
-            urlString += "\(model):generateContent?key=\(token)"
-        }
-
-        guard let url = URL(string: urlString) else {
-            testResult = .failure("Invalid Endpoint URL")
-            isTesting = false
-            return
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.timeoutInterval = 15
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        do {
-            if config.providerType == .claude {
-                request.addValue(token, forHTTPHeaderField: "x-api-key")
-                request.addValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
-                let body: [String: Any] = [
-                    "model": model, "max_tokens": 10,
-                    "messages": [["role": "user", "content": "Hi"]]
-                ]
-                request.httpBody = try JSONSerialization.data(withJSONObject: body)
-            } else if config.providerType == .gemini {
-                let body: [String: Any] = [
-                    "contents": [["parts": [["text": "Hi"]]]],
-                    "generationConfig": ["maxOutputTokens": 10]
-                ]
-                request.httpBody = try JSONSerialization.data(withJSONObject: body)
-            } else {
-                request.addValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-                let body: [String: Any] = [
-                    "model": model, "max_tokens": 10,
-                    "messages": [["role": "user", "content": "Hi"]]
-                ]
-                request.httpBody = try JSONSerialization.data(withJSONObject: body)
-            }
-
-            let (data, response) = try await URLSession.shared.data(for: request)
-            guard let httpResponse = response as? HTTPURLResponse else {
-                testResult = .failure("Invalid response from server")
-                isTesting = false
-                return
-            }
-            if (200...299).contains(httpResponse.statusCode) {
-                testResult = .success("Connection successful!")
-            } else {
-                let errStr = String(data: data, encoding: .utf8) ?? "Unknown Error"
-                testResult = .failure("Failed (\(httpResponse.statusCode)): \(errStr)")
-            }
-        } catch {
-            testResult = .failure(error.localizedDescription)
-        }
-
-        isTesting = false
-    }
+    let configurationsKey = "ai_configurations"
+    let activeIDKey = "ai_active_configuration_id"
+    let skillsKey = "ai_skills"
+    let aiEnabledKey = "ai_enabled"
+    let aiOCREnabledKey = "ai_ocr_enabled"
+    let lastUsedSkillIDKey = "ai_last_used_skill_id"
 }

@@ -39,7 +39,7 @@ struct AIConfiguration: Identifiable, Codable, Equatable, Hashable {
         let id = try container.decode(UUID.self, forKey: .id)
         let name = try container.decode(String.self, forKey: .name)
         let providerType = try container.decode(AIProviderType.self, forKey: .providerType)
-        let apiKey = try container.decode(String.self, forKey: .apiKey)
+        let apiKey = try container.decodeIfPresent(String.self, forKey: .apiKey) ?? ""
         let endpoint = try container.decode(String.self, forKey: .endpoint)
         let model = try container.decode(String.self, forKey: .model)
         let supportsImage = try container.decodeIfPresent(Bool.self, forKey: .supportsImage)
@@ -51,6 +51,16 @@ struct AIConfiguration: Identifiable, Codable, Equatable, Hashable {
         self.endpoint = endpoint
         self.model = model
         self.supportsImage = supportsImage
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(name, forKey: .name)
+        try container.encode(providerType, forKey: .providerType)
+        try container.encode(endpoint, forKey: .endpoint)
+        try container.encode(model, forKey: .model)
+        try container.encode(supportsImage, forKey: .supportsImage)
     }
 
     /// A short display label shown in the clipboard panel picker.
