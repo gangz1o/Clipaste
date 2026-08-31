@@ -71,3 +71,38 @@ Replaced byte-at-a-time metadata streaming with bounded chunk delivery, capped c
 ### Next Steps
 
 - None - task complete
+
+
+## Session 3: Stability, security, and performance hardening
+
+**Date**: 2026-08-31
+**Task**: Stability, security, and performance hardening
+**Branch**: `master`
+
+### Summary
+
+Hardened bounded image and OCR processing, transactional storage transitions, Keychain-backed AI credentials, SSRF-safe link metadata, cancellable search, and SwiftUI hot paths; split all hand-written Swift files to at most 300 lines and added regression guards.
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `d53dff8` | (see git log) |
+| `885b43f` | (see git log) |
+| `2ea758a` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
