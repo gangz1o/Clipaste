@@ -3,6 +3,42 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.12</title>
+            <pubDate>Wed, 02 Sep 2026 05:02:09 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.12</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20212</sparkle:version>
+            <sparkle:shortVersionString>2.2.12</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
+
+### 🛠 启动稳定性
+
+- 修复系统重启后由登录项冷启动时，CloudKit 每次开机初始化与账户查询竞争而导致主线程卡死的问题。
+- 启动阶段不再执行仅用于诊断的 CloudKit 账户查询，并确保 CloudKit 可用性检查脱离 MainActor。
+
+### ⚡ 性能
+
+- 仅在按住快速粘贴修饰键时计算条目可见区域，修复面板隐藏时仍持续 SwiftUI 布局循环和高 CPU 占用的问题。
+- 松开修饰键时立即清理快速粘贴索引，避免保留陈旧布局状态。
+
+---
+
+## ✨ What’s New
+
+### 🛠 Launch Stability
+
+- Fixed a cold-start hang after system restarts caused by contention between the login-item launch and CloudKit per-boot initialization.
+- Removed the diagnostics-only CloudKit account lookup from startup and moved availability checks away from MainActor.
+
+### ⚡ Performance
+
+- Visible-item frames are now measured only while the quick-paste modifier is held, preventing persistent SwiftUI layout loops and high CPU usage while the panel is hidden.
+- Quick-paste indexes are cleared as soon as the modifier is released to avoid stale layout state.
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.12/Clipaste-v2.2.12.zip" length="6886234" type="application/octet-stream" sparkle:edSignature="SzT51xTil6puoO55Z0hvNBW2UeZkVG8jMSoCslf4iGNlZk91qN2+eUhuUMpBul1brMhmfQ8krD6o3B2UDB54Dg=="/>
+        </item>
+        <item>
             <title>2.2.11</title>
             <pubDate>Mon, 31 Aug 2026 04:54:41 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -70,33 +106,6 @@
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.10/Clipaste-v2.2.10.zip" length="6765293" type="application/octet-stream" sparkle:edSignature="9JawNX+ItCumKN5AW+IAbk8VHfoY8fzZLB20AAhcXRssahlbPOmLiwdVNv873H/9rtpc3bT4BAP7/x6I2/C3BQ=="/>
-        </item>
-        <item>
-            <title>2.2.9</title>
-            <pubDate>Thu, 13 Aug 2026 06:48:41 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.9</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20209</sparkle:version>
-            <sparkle:shortVersionString>2.2.9</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
-
-### 🛠 修复与体验优化
-
-- 修复链接预览可能导致应用卡顿或无响应的问题。
-- 来源应用图标不可用时，改为显示 Clipaste 图标。
-
----
-
-## ✨ What's New
-
-### 🛠 Fixes & Improvements
-
-- Fixed an issue where link previews could cause the app to lag or become unresponsive.
-- Clipaste's icon is now shown when the source app icon is unavailable.
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.9/Clipaste-v2.2.9.zip" length="6763227" type="application/octet-stream" sparkle:edSignature="x+LccQITUxwFLpMXATNLz24/EQkCehJ81xgaUgyL5XAA8PRxCfTXaYbpAoJyK7+TKfhDRPObjz1Jfr0OaQMkDQ=="/>
         </item>
     </channel>
 </rss>
