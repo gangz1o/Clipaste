@@ -1,2 +1,0 @@
-{"file":".trellis/spec/frontend/macos-swiftui-boundaries.md","reason":"Review cancellation, bounded background I/O, shared state, and required regression coverage."}
-{"file":".trellis/spec/backend/quality-guidelines.md","reason":"Review implementation scope, code quality, and verification evidence."}

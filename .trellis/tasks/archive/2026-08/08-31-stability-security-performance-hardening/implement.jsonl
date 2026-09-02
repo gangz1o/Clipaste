@@ -1,5 +1,0 @@
-{"file": ".trellis/spec/frontend/macos-swiftui-boundaries.md", "reason": "SwiftUI、图片、链接元数据与滚动边界"}
-{"file": ".trellis/spec/frontend/state-management.md", "reason": "列表缓存、搜索和状态发布合同"}
-{"file": ".trellis/spec/backend/database-guidelines.md", "reason": "SwiftData、CloudKit、快照与迁移合同"}
-{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "跨捕获、存储、服务和视图的数据边界"}
-{"file": ".trellis/tasks/08-31-stability-security-performance-hardening/research/audit-baseline.md", "reason": "审计证据和版本基线"}
