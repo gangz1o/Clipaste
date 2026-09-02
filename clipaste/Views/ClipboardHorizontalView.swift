@@ -28,7 +28,8 @@ struct ClipboardHorizontalView: View {
                                 .clipboardQuickPasteVisibleFrame(
                                     id: item.id,
                                     sourceIndex: index,
-                                    coordinateSpaceName: quickPasteCoordinateSpaceName
+                                    coordinateSpaceName: quickPasteCoordinateSpaceName,
+                                    isEnabled: viewModel.isQuickPasteModifierHeld
                                 )
                         }
                     }
@@ -72,6 +73,10 @@ struct ClipboardHorizontalView: View {
                 }
                 .onChange(of: autoPreview) { _, _ in
                     viewModel.presentAutoPreviewForSelectionIfNeeded(isEnabled: autoPreview)
+                }
+                .onChange(of: viewModel.isQuickPasteModifierHeld) { _, isHeld in
+                    guard !isHeld, !quickPasteIndexesByItemID.isEmpty else { return }
+                    quickPasteIndexesByItemID = [:]
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }

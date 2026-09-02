@@ -132,7 +132,8 @@ struct ClipboardVerticalListView: View {
                                 .clipboardQuickPasteVisibleFrame(
                                     id: item.id,
                                     sourceIndex: index,
-                                    coordinateSpaceName: quickPasteCoordinateSpaceName
+                                    coordinateSpaceName: quickPasteCoordinateSpaceName,
+                                    isEnabled: viewModel.isQuickPasteModifierHeld
                                 )
                         }
                     }
@@ -170,6 +171,10 @@ struct ClipboardVerticalListView: View {
                         itemID: request.id,
                         animated: request.animated
                     )
+                }
+                .onChange(of: viewModel.isQuickPasteModifierHeld) { _, isHeld in
+                    guard !isHeld, !quickPasteIndexesByItemID.isEmpty else { return }
+                    quickPasteIndexesByItemID = [:]
                 }
                 .frame(maxHeight: .infinity)
             }

@@ -13,10 +13,14 @@ enum StabilityHardeningSourceTests {
             prefixes: ["StorageManager", "ClipboardStoreActor"]
         )
         let bootstrapper = try source(root, "clipaste/Managers/ClipboardStoreBootstrapper.swift")
+        let startupBootstrap = try source(root, "clipaste/Managers/ClipboardRuntimeStore+Bootstrap.swift")
+        let cloudAvailability = try source(root, "clipaste/Managers/CloudSyncAvailabilityService.swift")
         let card = try source(root, "clipaste/Views/ClipboardCardView.swift")
         let viewModel = try source(root, "clipaste/ViewModels/ClipboardViewModel.swift")
         let filtering = try source(root, "clipaste/ViewModels/ClipboardViewModel+Filtering.swift")
         let filterEngine = try source(root, "clipaste/Services/ClipboardFilterEngine.swift")
+        let quickPasteVisibility = try source(root, "clipaste/Views/ClipboardQuickPasteVisibility.swift")
+        let horizontalList = try source(root, "clipaste/Views/ClipboardHorizontalView.swift")
         let verticalList = try source(root, "clipaste/Views/ClipboardVerticalListView.swift")
 
         precondition(monitor.contains("let storage = StorageManager.shared"))
@@ -33,6 +37,9 @@ enum StabilityHardeningSourceTests {
         precondition(storage.contains("try export.validatedPayloadByteCount()"))
         precondition(bootstrapper.contains("try export.validatedPayloadByteCount()"))
         precondition(bootstrapper.contains("min(\n                        export.estimatedPayloadByteCount") == false)
+        precondition(startupBootstrap.contains("CloudSyncAvailabilityService.accountRecordName") == false)
+        precondition(cloudAvailability.contains("nonisolated enum CloudSyncAvailabilityService"))
+        precondition(cloudAvailability.components(separatedBy: "@concurrent").count == 3)
 
         precondition(card.contains("loadAppIconDominantColorHex") == false)
         precondition(card.contains("dominantColorHex()") == false)
@@ -43,6 +50,9 @@ enum StabilityHardeningSourceTests {
         precondition(filterEngine.contains("ClipboardFilterSnapshot: Sendable"))
         precondition(filterEngine.contains("Task.isCancelled"))
         precondition(filterEngine.contains("case cancelled"))
+        precondition(quickPasteVisibility.contains("if isEnabled"))
+        precondition(horizontalList.contains("isEnabled: viewModel.isQuickPasteModifierHeld"))
+        precondition(verticalList.contains("isEnabled: viewModel.isQuickPasteModifierHeld"))
 
         let scrollFunction = verticalList.components(separatedBy: "private func scrollToItem").last ?? ""
         precondition(scrollFunction.contains("DispatchQueue.main.async") == false)

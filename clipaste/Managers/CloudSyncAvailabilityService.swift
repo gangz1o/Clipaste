@@ -4,7 +4,7 @@ import Foundation
 import os
 import SwiftData
 
-enum CloudSyncPreflightError: LocalizedError {
+nonisolated enum CloudSyncPreflightError: LocalizedError {
     case noAccount
     case restricted
     case temporarilyUnavailable
@@ -30,7 +30,8 @@ enum CloudSyncPreflightError: LocalizedError {
     }
 }
 
-enum CloudSyncAvailabilityService {
+nonisolated enum CloudSyncAvailabilityService {
+    @concurrent
     static func preflight(containerIdentifier: String) async throws {
         let container = CKContainer(identifier: containerIdentifier)
 
@@ -60,6 +61,7 @@ enum CloudSyncAvailabilityService {
         }
     }
 
+    @concurrent
     static func accountRecordName(containerIdentifier: String) async throws -> String {
         let container = CKContainer(identifier: containerIdentifier)
         return try await fetchUserRecordID(from: container).recordName

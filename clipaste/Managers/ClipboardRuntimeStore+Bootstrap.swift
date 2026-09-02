@@ -24,9 +24,8 @@ extension ClipboardRuntimeStore {
             let repairedDuplicateCount = await repairDuplicateRecordsIfNeeded(using: currentRuntime.storage)
             let repairedOversizedTextCount = await repairOversizedTextRecordsIfNeeded(using: currentRuntime.storage)
             if currentRuntime.syncEnabled {
-                cloudKitAccountRecordName = try await CloudSyncAvailabilityService.accountRecordName(
-                    containerIdentifier: ClipboardModelContainerFactory.cloudKitContainerIdentifier
-                )
+                // The account record name is diagnostics-only. Querying it during login-item
+                // startup can contend with Core Data's per-boot CloudKit setup and block launch.
                 try await currentRuntime.storage.touchSyncAnchor()
                 await refreshCloudStoreDiagnostics(using: currentRuntime.storage)
                 await resetClipboardSnapshotSignature(using: currentRuntime.storage)
