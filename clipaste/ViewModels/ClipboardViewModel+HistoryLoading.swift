@@ -7,6 +7,7 @@ extension ClipboardViewModel {
         dataLoadGeneration &+= 1
         let generation = dataLoadGeneration
         historyLoadTask?.cancel()
+        let shouldDeferRefreshUntilAfterPresentation = mode == .visibleFirst && items.isEmpty == false
 
         if items.isEmpty {
             isInitialHistoryLoading = true
@@ -16,6 +17,11 @@ extension ClipboardViewModel {
         // 这里保持普通 MainActor Task 即可。
         historyLoadTask = Task(priority: .userInitiated) { [weak self] in
             guard let self else { return }
+
+            if shouldDeferRefreshUntilAfterPresentation {
+                try? await Task.sleep(for: .milliseconds(160))
+                guard Task.isCancelled == false else { return }
+            }
 
             let firstPage = await StorageManager.shared.fetchItemsPage(
                 searchText: "",
@@ -29,53 +35,59 @@ extension ClipboardViewModel {
                 generation: generation,
                 mode: mode
             )
+        }
+    }
 
-            guard firstPage.count == Self.initialVisibleItemBatchSize else {
-                self.finishHistoryLoadingIfCurrent(generation: generation, loadedCount: firstPage.count)
-                return
-            }
+    func loadMoreHistoryIfNeeded(currentItemID: UUID) async {
+        guard isPanelPresentationActive else { return }
+        guard isLoadingMoreHistory == false, hasLoadedFullHistory == false else { return }
+        guard loadedHistoryCount < Self.backgroundLoadMaxItems else { return }
+        guard let visibleIndex = displayedItemIDs.firstIndex(of: currentItemID) else { return }
+        guard visibleIndex >= max(displayedItemIDs.count - 12, 0) else { return }
 
-            var offset = firstPage.count
-            var totalLoaded = firstPage.count
-
-            while !Task.isCancelled {
-                // 内存窗口护栏：超过上限后停止后台分页，后续搜索走 SQL 直查路径，
-                // 避免常驻数组无界增长导致的内存压力和搜索遍历放大。
-                guard totalLoaded < Self.backgroundLoadMaxItems else {
-                    self.finishHistoryLoadingIfCurrent(
-                        generation: generation,
-                        loadedCount: totalLoaded,
-                        fullyLoaded: false
-                    )
-                    return
-                }
-
-                let remainingCap = Self.backgroundLoadMaxItems - totalLoaded
-                let pageLimit = min(Self.backgroundPageBatchSize, remainingCap)
-
-                let page = await StorageManager.shared.fetchItemsPage(
-                    searchText: "",
-                    fetchLimit: pageLimit,
-                    offset: offset
-                )
-
-                guard !Task.isCancelled else { return }
-
-                if page.isEmpty {
-                    self.finishHistoryLoadingIfCurrent(generation: generation, loadedCount: totalLoaded)
-                    return
-                }
-
-                totalLoaded += page.count
-                offset += page.count
-                self.appendHistoryPage(page, generation: generation, loadedCount: totalLoaded)
-
-                if page.count < pageLimit {
-                    self.finishHistoryLoadingIfCurrent(generation: generation, loadedCount: totalLoaded)
-                    return
-                }
+        let generation = dataLoadGeneration
+        let offset = loadedHistoryCount
+        let pageLimit = min(
+            Self.backgroundPageBatchSize,
+            Self.backgroundLoadMaxItems - loadedHistoryCount
+        )
+        isLoadingMoreHistory = true
+        defer {
+            if generation == dataLoadGeneration {
+                isLoadingMoreHistory = false
             }
         }
+
+        let page = await StorageManager.shared.fetchItemsPage(
+            searchText: "",
+            fetchLimit: pageLimit,
+            offset: offset
+        )
+
+        guard Task.isCancelled == false, generation == dataLoadGeneration else { return }
+        guard page.isEmpty == false else {
+            hasLoadedFullHistory = true
+            return
+        }
+
+        let totalLoaded = offset + page.count
+        appendHistoryPage(page, generation: generation, loadedCount: totalLoaded)
+        hasLoadedFullHistory = page.count < pageLimit
+    }
+
+    func trimHistoryWindowForIdleIfNeeded() {
+        guard activeSearchQuery.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        guard currentFilter == nil, selectedBuiltInGroup == nil, selectedGroupId == nil else { return }
+        guard items.count > Self.initialVisibleItemBatchSize else { return }
+
+        historyLoadTask?.cancel()
+        dataLoadGeneration &+= 1
+        let retainedItems = Array(items.prefix(Self.initialVisibleItemBatchSize))
+        replaceItems(retainedItems)
+        refreshDisplayedItemsFromCurrentScope()
+        loadedHistoryCount = retainedItems.count
+        hasLoadedFullHistory = false
+        isLoadingMoreHistory = false
     }
 
     func applyLoadedItems(_ mappedItems: [ClipboardItem]) {
@@ -113,7 +125,7 @@ extension ClipboardViewModel {
 
             if applyDeferredAutoSelectFirstItemIfNeeded() {
                 isInitialHistoryLoading = false
-                isLoadingMoreHistory = pageItems.count == Self.initialVisibleItemBatchSize
+                isLoadingMoreHistory = false
                 loadedHistoryCount = items.count
                 hasLoadedFullHistory = pageItems.count < Self.initialVisibleItemBatchSize
                 return
@@ -125,7 +137,7 @@ extension ClipboardViewModel {
         }
 
         isInitialHistoryLoading = false
-        isLoadingMoreHistory = pageItems.count == Self.initialVisibleItemBatchSize
+        isLoadingMoreHistory = false
         loadedHistoryCount = items.count
         hasLoadedFullHistory = pageItems.count < Self.initialVisibleItemBatchSize
     }
@@ -137,19 +149,7 @@ extension ClipboardViewModel {
         mergeItems(pageItems, prepend: false)
         refreshDisplayedItemsFromCurrentScope()
         isInitialHistoryLoading = false
-        isLoadingMoreHistory = true
         loadedHistoryCount = loadedCount
-    }
-
-    @MainActor
-    func finishHistoryLoadingIfCurrent(generation: UInt, loadedCount: Int, fullyLoaded: Bool = true) {
-        guard generation == dataLoadGeneration else { return }
-        isInitialHistoryLoading = false
-        isLoadingMoreHistory = false
-        loadedHistoryCount = loadedCount
-        // 内存窗口达到上限时 hasLoadedFullHistory 维持 false，让搜索路径知道
-        // 需要回退到 SQL 直查；自然到达表尾时仍标记为 true。
-        hasLoadedFullHistory = fullyLoaded
     }
 
     @discardableResult

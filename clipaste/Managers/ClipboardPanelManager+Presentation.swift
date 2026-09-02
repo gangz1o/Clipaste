@@ -51,8 +51,12 @@ extension ClipboardPanelManager {
             hiddenFrame = visibleFrame
         }
 
-        panel.setFrame(hiddenFrame, display: true)
+        // Do not force a synchronous SwiftUI display pass on the shortcut callback.
+        // AppKit will render the already-warmed hosting view when the panel is ordered front.
+        panel.setFrame(hiddenFrame, display: false)
         panel.alphaValue = 0.0
+        isVisible = true
+        setupEventMonitor()
 
         // ⚠️ 不再调用 NSApp.activate(ignoringOtherApps:) — 那会把菜单栏切成自己的 App，
         //    导致目标 App 失去焦点，Cmd+V 无法命中正确窗口。
@@ -61,16 +65,11 @@ extension ClipboardPanelManager {
         panel.becomeFirstResponder()
 
         NSAnimationContext.runAnimationGroup({ context in
-            context.duration = 0.25
+            context.duration = 0.14
             context.timingFunction = CAMediaTimingFunction(name: .easeOut)
-            panel.animator().setFrame(visibleFrame, display: true)
+            panel.animator().setFrame(visibleFrame, display: false)
             panel.animator().alphaValue = 1.0
-        }) { [weak self] in
-            Task { @MainActor [weak self] in
-                self?.isVisible = true
-                self?.setupEventMonitor()
-            }
-        }
+        })
 
     }
 
@@ -104,9 +103,9 @@ extension ClipboardPanelManager {
     func executeHide(restorePreviousActiveApp: Bool = true) {
         guard let panel = panel else { return }
         removeEventMonitor()
+        isVisible = false
         panel.orderOut(nil)
         panel.resignKey()
-        isVisible = false
 
         // 将焦点精准归还给呼出面板前的 App（保证 Cmd+V 粘贴命中目标窗口）
         if restorePreviousActiveApp, let app = previousActiveApp, !app.isTerminated {

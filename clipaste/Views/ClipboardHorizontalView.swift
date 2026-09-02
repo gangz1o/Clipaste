@@ -31,6 +31,9 @@ struct ClipboardHorizontalView: View {
                                     coordinateSpaceName: quickPasteCoordinateSpaceName,
                                     isEnabled: viewModel.isQuickPasteModifierHeld
                                 )
+                                .task {
+                                    await viewModel.loadMoreHistoryIfNeeded(currentItemID: item.id)
+                                }
                         }
                     }
                     .padding(.horizontal, 20)
@@ -75,8 +78,11 @@ struct ClipboardHorizontalView: View {
                     viewModel.presentAutoPreviewForSelectionIfNeeded(isEnabled: autoPreview)
                 }
                 .onChange(of: viewModel.isQuickPasteModifierHeld) { _, isHeld in
-                    guard !isHeld, !quickPasteIndexesByItemID.isEmpty else { return }
-                    quickPasteIndexesByItemID = [:]
+                    guard !isHeld else { return }
+                    viewModel.clearQuickPasteTargets()
+                    if quickPasteIndexesByItemID.isEmpty == false {
+                        quickPasteIndexesByItemID = [:]
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             }
@@ -104,6 +110,7 @@ struct ClipboardHorizontalView: View {
 
         guard resolvedIndexes != quickPasteIndexesByItemID else { return }
         quickPasteIndexesByItemID = resolvedIndexes
+        viewModel.updateQuickPasteTargets(indexesByItemID: resolvedIndexes)
     }
 
     private func scrollToPrimarySelection(with proxy: ScrollViewProxy, animated: Bool) {

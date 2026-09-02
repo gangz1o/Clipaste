@@ -92,9 +92,12 @@ struct ClipboardItemPreviewView: View {
             
             // Timestamp
             VStack(alignment: .trailing, spacing: 1) {
-                Text(item.timestamp.timeString)
+                Text(
+                    item.timestamp,
+                    format: .dateTime.hour(.twoDigits(amPM: .omitted)).minute(.twoDigits)
+                )
                     .font(.system(size: 12, weight: .medium))
-                Text(item.timestamp.dateString)
+                Text(item.timestamp, format: .dateTime.month(.twoDigits).day(.twoDigits))
                     .font(.system(size: 10))
                     .foregroundColor(.secondary)
             }

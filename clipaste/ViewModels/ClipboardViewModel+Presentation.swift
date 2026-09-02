@@ -38,6 +38,9 @@ extension ClipboardViewModel {
         isPanelPresentationActive = false
         shouldAutoSelectFirstItemAfterNextRefresh = false
         dismissAutoPreviewIfNeeded()
+        if ClipboardPanelManager.shared.isVisible == false {
+            trimHistoryWindowForIdleIfNeeded()
+        }
     }
 
     func setupDataSubscriptions() {

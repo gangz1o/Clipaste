@@ -43,10 +43,6 @@ struct ClipboardCardView: View {
         return Color(nsColor: .darkGray)
     }
 
-    var headerTimestampText: String {
-        "\(item.timestamp.dateString) \(item.timestamp.timeString)"
-    }
-
     var headerShape: UnevenRoundedRectangle {
         UnevenRoundedRectangle(
             topLeadingRadius: 16,
@@ -78,19 +74,6 @@ struct ClipboardCardView: View {
         }
         .frame(width: 240, height: 240)
         .background(Color(nsColor: .windowBackgroundColor))
-        .background {
-            if let quickPasteIndex {
-                QuickPasteShortcutHost(
-                    shortcutIndex: quickPasteIndex,
-                    modifierKey: viewModel.quickPasteModifier,
-                    plainTextModifierKey: viewModel.plainTextModifier
-                ) {
-                    viewModel.pasteToActiveApp(item: item)
-                } plainTextAction: {
-                    viewModel.pasteAsPlainText(item: item)
-                }
-            }
-        }
         .overlay(alignment: .bottomTrailing) {
             bottomAccessory
         }

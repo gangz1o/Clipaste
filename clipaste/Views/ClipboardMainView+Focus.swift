@@ -32,6 +32,19 @@ extension ClipboardMainView {
         return true
     }
 
+    func applyPendingListFocusWhenReady(generation: UInt, remainingAttempts: Int) {
+        guard pendingListFocusGeneration == generation else { return }
+        guard pendingListFocusRequest != nil, isPanelKeyWindow else { return }
+        guard applyPendingListFocusIfPossible() == false, remainingAttempts > 0 else { return }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.04) {
+            applyPendingListFocusWhenReady(
+                generation: generation,
+                remainingAttempts: remainingAttempts - 1
+            )
+        }
+    }
+
     func applySearchFieldFocusIfPossible(
         generation: UInt,
         remainingAttempts: Int,

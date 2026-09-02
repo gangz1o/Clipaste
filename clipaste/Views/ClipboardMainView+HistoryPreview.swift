@@ -6,10 +6,6 @@ extension ClipboardMainView {
         viewModel.displayedItems
     }
 
-    var displayedItemIDs: [UUID] {
-        viewModel.displayedItemIDs
-    }
-
     @ViewBuilder
     var historyPreviewFooter: some View {
         HStack {

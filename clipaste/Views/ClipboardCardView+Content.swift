@@ -17,14 +17,21 @@ extension ClipboardCardView {
                     .foregroundStyle(.white)
                     .lineLimit(1)
 
-                Text(headerTimestampText)
+                Text(
+                    item.timestamp,
+                    format: .dateTime
+                        .month(.twoDigits)
+                        .day(.twoDigits)
+                        .hour(.twoDigits(amPM: .omitted))
+                        .minute(.twoDigits)
+                )
                     .font(.caption)
                     .foregroundStyle(Color.white.opacity(0.82))
                     .lineLimit(1)
             }
             .multilineTextAlignment(.trailing)
             .fixedSize(horizontal: true, vertical: false)
-            .help(item.timestamp.formatted(date: .complete, time: .standard))
+            .help(Text(item.timestamp, format: .dateTime.year().month().day().hour().minute()))
         }
         .padding(.leading, 8)
         .padding(.trailing, 12)

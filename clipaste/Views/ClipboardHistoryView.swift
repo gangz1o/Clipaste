@@ -2,8 +2,10 @@ import SwiftUI
 import SwiftData
 
 struct ClipboardHistoryView: View {
+    let viewModel: ClipboardViewModel
+
     var body: some View {
-        ClipboardMainView()
+        ClipboardMainView(viewModel: viewModel)
             .environmentObject(AppPreferencesStore.shared)
             .environment(ClipboardRuntimeStore.shared)
             .modelContainer(ClipboardRuntimeStore.shared.container)
@@ -31,5 +33,5 @@ struct VisualEffectView: NSViewRepresentable {
 }
 
 #Preview {
-    ClipboardHistoryView()
+    ClipboardHistoryView(viewModel: ClipboardViewModel())
 }

@@ -114,6 +114,7 @@ final class ClipboardViewModel {
     @ObservationIgnored nonisolated(unsafe) var keyDownMonitor: Any?
     @ObservationIgnored nonisolated(unsafe) var flagsChangedMonitor: Any?
     var currentModifierFlags: NSEvent.ModifierFlags = []
+    @ObservationIgnored var quickPasteTargetsByNumber: [UUID] = []
     var shouldResetSelectionToFirstDisplayedItem = false
     var hasPreparedPanelData = false
     var isPanelPresentationActive = false

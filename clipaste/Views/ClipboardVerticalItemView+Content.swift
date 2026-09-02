@@ -134,11 +134,14 @@ extension ClipboardVerticalItemView {
             if !isCompact {
                 VStack(alignment: .trailing, spacing: 0) {
                     VStack(alignment: .trailing, spacing: 1) {
-                        Text(item.timestamp.timeString)
+                        Text(
+                            item.timestamp,
+                            format: .dateTime.hour(.twoDigits(amPM: .omitted)).minute(.twoDigits)
+                        )
                             .font(.system(size: 11))
                             .foregroundColor(timeTextColor)
 
-                        Text(item.timestamp.dateString)
+                        Text(item.timestamp, format: .dateTime.month(.twoDigits).day(.twoDigits))
                             .font(.system(size: 9))
                             .foregroundColor(dateTextColor)
                     }
@@ -148,29 +151,17 @@ extension ClipboardVerticalItemView {
                     bottomInlineAction
                 }
                 .padding(.top, 4)
-                .help(item.timestamp.formatted(date: .complete, time: .standard))
+                .help(Text(item.timestamp, format: .dateTime.year().month().day().hour().minute()))
                 .frame(minWidth: 44, maxHeight: .infinity, alignment: .topTrailing)
             } else {
                 // Compact: just show time on the right
-                Text(item.timestamp.timeString)
+                Text(
+                    item.timestamp,
+                    format: .dateTime.hour(.twoDigits(amPM: .omitted)).minute(.twoDigits)
+                )
                     .font(.system(size: 10))
                     .foregroundColor(timeTextColor)
-                    .help(item.timestamp.formatted(date: .complete, time: .standard))
-            }
-        }
-    }
-
-    @ViewBuilder
-    var quickPasteShortcutBackground: some View {
-        if let quickPasteIndex {
-            QuickPasteShortcutHost(
-                shortcutIndex: quickPasteIndex,
-                modifierKey: viewModel.quickPasteModifier,
-                plainTextModifierKey: viewModel.plainTextModifier
-            ) {
-                viewModel.pasteToActiveApp(item: item)
-            } plainTextAction: {
-                viewModel.pasteAsPlainText(item: item)
+                    .help(Text(item.timestamp, format: .dateTime.year().month().day().hour().minute()))
             }
         }
     }

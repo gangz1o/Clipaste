@@ -9,7 +9,7 @@ struct ClipboardMainView: View {
     @Environment(ClipboardRuntimeStore.self) var runtimeStore
     @Environment(ScreenPinViewModel.self) var screenPinViewModel
     @Environment(\.openSettings) var openSettings
-    @State var viewModel = ClipboardViewModel()
+    var viewModel: ClipboardViewModel
     @AppStorage("clipboardLayout") var clipboardLayout: AppLayoutMode = .horizontal
     @AppStorage(PreviewPanelMode.defaultsKey) var previewPanelMode: PreviewPanelMode = .disabled
     @AppStorage("appTheme") var appTheme: AppTheme = .system
@@ -100,15 +100,6 @@ struct ClipboardMainView: View {
                     searchService.isTextFieldFocused = isActiveTextInputResponder
                 }
             }
-            .onChange(of: displayedItemIDs) { _, _ in
-                if applyPendingListFocusIfPossible() {
-                    return
-                }
-
-                if focusedField == .clipList {
-                    viewModel.ensureListSelection()
-                }
-            }
             .onChange(of: viewModel.searchInput) { oldValue, newValue in
                 guard !oldValue.isEmpty, newValue.isEmpty else { return }
                 requestListFocusAfterSearchExit()
@@ -154,7 +145,7 @@ struct ClipboardMainView: View {
 }
 
 #Preview {
-    ClipboardMainView()
+    ClipboardMainView(viewModel: ClipboardViewModel())
         .environmentObject(AppPreferencesStore.shared)
         .environment(ClipboardRuntimeStore.shared)
 }

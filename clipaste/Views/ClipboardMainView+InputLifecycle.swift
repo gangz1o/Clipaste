@@ -94,12 +94,13 @@ extension ClipboardMainView {
         pendingListFocusRequest = viewModel.settingsViewModel.autoFocusFirstItemOnPanelActivation
             ? .selectFirstItem
             : .preserveSelection
+        let generation = pendingListFocusGeneration
         focusedField = nil
         searchService.isTextFieldFocused = false
         resetPendingBlindTypedSearchInput()
 
         DispatchQueue.main.async {
-            _ = applyPendingListFocusIfPossible()
+            applyPendingListFocusWhenReady(generation: generation, remainingAttempts: 12)
         }
     }
 

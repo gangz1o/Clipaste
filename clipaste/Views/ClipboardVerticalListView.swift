@@ -135,6 +135,9 @@ struct ClipboardVerticalListView: View {
                                     coordinateSpaceName: quickPasteCoordinateSpaceName,
                                     isEnabled: viewModel.isQuickPasteModifierHeld
                                 )
+                                .task {
+                                    await viewModel.loadMoreHistoryIfNeeded(currentItemID: item.id)
+                                }
                         }
                     }
                     .padding(.horizontal, horizontalPadding)
@@ -173,8 +176,11 @@ struct ClipboardVerticalListView: View {
                     )
                 }
                 .onChange(of: viewModel.isQuickPasteModifierHeld) { _, isHeld in
-                    guard !isHeld, !quickPasteIndexesByItemID.isEmpty else { return }
-                    quickPasteIndexesByItemID = [:]
+                    guard !isHeld else { return }
+                    viewModel.clearQuickPasteTargets()
+                    if quickPasteIndexesByItemID.isEmpty == false {
+                        quickPasteIndexesByItemID = [:]
+                    }
                 }
                 .frame(maxHeight: .infinity)
             }
@@ -195,6 +201,7 @@ struct ClipboardVerticalListView: View {
 
         guard resolvedIndexes != quickPasteIndexesByItemID else { return }
         quickPasteIndexesByItemID = resolvedIndexes
+        viewModel.updateQuickPasteTargets(indexesByItemID: resolvedIndexes)
     }
 
     // MARK: - Scroll Management

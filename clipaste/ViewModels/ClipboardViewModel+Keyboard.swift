@@ -136,6 +136,7 @@ extension ClipboardViewModel {
 
     func resetModifierTracking() {
         currentModifierFlags = []
+        clearQuickPasteTargets()
         if isQuickPasteModifierHeld {
             isQuickPasteModifierHeld = false
         }
@@ -146,6 +147,10 @@ extension ClipboardViewModel {
 
     func handlePanelKeyDown(_ event: NSEvent) -> NSEvent? {
         updateModifierFlags(from: event.modifierFlags)
+
+        if handleQuickPasteShortcut(event) {
+            return nil
+        }
 
         let keyCode = event.keyCode
 
