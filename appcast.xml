@@ -3,6 +3,46 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.13</title>
+            <pubDate>Wed, 02 Sep 2026 07:43:07 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.13</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20213</sparkle:version>
+            <sparkle:shortVersionString>2.2.13</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
+
+### ⚡ 面板响应与性能
+
+- 修复面板根视图重复创建状态模型引发的 SwiftUI 渲染循环，消除隐藏状态下的异常 CPU 占用及快捷键呼出延迟。
+- 剪切板历史改为首屏优先、滚动分页加载，数据量增大后仍能快速呼出面板。
+- 集中处理快速粘贴数字键，移除每个卡片单独注册的隐藏快捷键控件，降低视图树和事件路由开销。
+- 优化面板显示顺序和动画时长，并移除会触发同步重绘的窗口更新。
+- 使用原生日期格式化视图，减少列表滚动和刷新时的格式化成本。
+
+### ✅ 稳定性
+
+- 增加面板状态所有权、分页加载、快速粘贴和展示路径的回归检查。
+
+---
+
+## ✨ What’s New
+
+### ⚡ Panel Responsiveness & Performance
+
+- Fixed a SwiftUI render loop caused by repeatedly constructing the panel state model, eliminating abnormal hidden-state CPU usage and shortcut presentation latency.
+- Clipboard history now prioritizes the first screen and loads additional pages on demand, keeping panel presentation fast as history grows.
+- Centralized quick-paste number-key routing and removed per-card hidden shortcut controls to reduce view-tree and event-routing overhead.
+- Optimized panel presentation ordering and animation timing while avoiding synchronous window redraws.
+- Switched timestamps to native date formatting views to reduce list refresh and scrolling work.
+
+### ✅ Stability
+
+- Added regression coverage for panel state ownership, paged history loading, quick paste, and presentation behavior.
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.13/Clipaste-v2.2.13.zip" length="6898246" type="application/octet-stream" sparkle:edSignature="5AZ9i6Nle3PptGITWDX7z1083Gjzrd7lk7uZClXKodsxyC/Hp4ZJP6DKdZKuDJ6luaIfDOjtG5ZdpxqwQmMyAg=="/>
+        </item>
+        <item>
             <title>2.2.12</title>
             <pubDate>Wed, 02 Sep 2026 05:02:09 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -81,31 +121,6 @@
 - Added regression guards for stability, security, concurrency, and source file size.
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.11/Clipaste-v2.2.11.zip" length="6887637" type="application/octet-stream" sparkle:edSignature="8P6Apz96GygLGbQZ/D6XqTngEwV9sbikkTonjicoRvjOsZSJuhy54NXL4vsqBh5b6Z7io02XEb7zGZfq+1efAw=="/>
-        </item>
-        <item>
-            <title>2.2.10</title>
-            <pubDate>Thu, 13 Aug 2026 07:54:10 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.10</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20210</sparkle:version>
-            <sparkle:shortVersionString>2.2.10</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
-
-### 🛠 修复与体验优化
-
-- 优化来源应用图标缺失时的兜底图标尺寸，使其与其他图标保持一致。
-
----
-
-## ✨ What's New
-
-### 🛠 Fixes & Improvements
-
-- Adjusted the fallback app icon size for visual consistency with other app icons.
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.10/Clipaste-v2.2.10.zip" length="6765293" type="application/octet-stream" sparkle:edSignature="9JawNX+ItCumKN5AW+IAbk8VHfoY8fzZLB20AAhcXRssahlbPOmLiwdVNv873H/9rtpc3bT4BAP7/x6I2/C3BQ=="/>
         </item>
     </channel>
 </rss>
