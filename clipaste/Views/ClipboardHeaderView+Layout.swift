@@ -48,25 +48,6 @@ extension ClipboardHeaderView {
         !viewModel.customGroups.isEmpty || !viewModel.visibleSmartFilters.isEmpty || !viewModel.visibleBuiltInGroups.isEmpty
     }
 
-    var horizontalScrollableGroupTabsWidth: CGFloat {
-        let customGroupWidth = CGFloat(viewModel.customGroups.count) * 72
-        let smartFilterWidth = CGFloat(viewModel.visibleSmartFilters.count) * 70
-        let builtInGroupWidth = CGFloat(viewModel.visibleBuiltInGroups.count) * 76
-        let customAndBuiltInDividerWidth: CGFloat =
-            (!viewModel.customGroups.isEmpty && !viewModel.visibleBuiltInGroups.isEmpty) ? 14 : 0
-        let builtInAndSmartDividerWidth: CGFloat =
-            (!viewModel.visibleBuiltInGroups.isEmpty && !viewModel.visibleSmartFilters.isEmpty) ? 14 : 0
-
-        return min(
-            680,
-            customGroupWidth
-                + builtInGroupWidth
-                + smartFilterWidth
-                + customAndBuiltInDividerWidth
-                + builtInAndSmartDividerWidth
-        )
-    }
-
     var horizontalLeadingControls: some View {
         HStack(spacing: 0) {
             pinButton

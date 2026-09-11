@@ -19,9 +19,28 @@ extension View {
 /// 用于分组导航栏等窄小横向滚动区域，让用户无需按住 Shift 即可横向滚动。
 struct FreeScrollWheelView<Content: View>: NSViewRepresentable {
     let content: Content
+    let maximumContentWidth: CGFloat?
 
-    init(@ViewBuilder content: () -> Content) {
+    init(maximumContentWidth: CGFloat? = nil, @ViewBuilder content: () -> Content) {
+        self.maximumContentWidth = maximumContentWidth
         self.content = content()
+    }
+
+    func sizeThatFits(
+        _ proposal: ProposedViewSize,
+        nsView: _FreeScrollNSScrollView,
+        context: Context
+    ) -> CGSize? {
+        guard let maximumContentWidth, let documentView = nsView.documentView else {
+            return nil
+        }
+
+        // Measure the rendered labels, including localization, icons, padding and dividers.
+        let contentSize = documentView.fittingSize
+        return CGSize(
+            width: min(contentSize.width, maximumContentWidth, proposal.width ?? maximumContentWidth),
+            height: min(contentSize.height, proposal.height ?? contentSize.height)
+        )
     }
 
     func makeNSView(context: Context) -> _FreeScrollNSScrollView {
