@@ -13780,7 +13780,44 @@
       }
     },
     "Plain Text Modifier" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zusatztaste für reinen Text"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Touche de modification pour le texte brut"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "プレーンテキスト用の修飾キー"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "일반 텍스트 보조 키"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "纯文本修饰键"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "純文字修飾鍵"
+          }
+        }
+      }
     },
     "Plain Text Quick Paste" : {
       "extractionState" : "stale",
@@ -21640,7 +21677,44 @@
       }
     },
     "Within the clipboard panel, hold the quick paste modifier to reveal 1…9 shortcuts. Add the plain text modifier while copying, pressing Return to paste, or using quick paste to strip formatting." : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Halte im Zwischenablagefenster die Zusatztaste für schnelles Einfügen gedrückt, um die Kurzbefehle 1…9 anzuzeigen. Halte beim Kopieren, beim Einfügen mit der Eingabetaste oder beim schnellen Einfügen zusätzlich die Zusatztaste für reinen Text gedrückt, um die Formatierung zu entfernen."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dans le panneau du presse-papiers, maintenez la touche de modification du collage rapide pour afficher les raccourcis 1…9. Maintenez également la touche de modification pour le texte brut lors de la copie, du collage avec la touche Retour ou du collage rapide pour supprimer la mise en forme."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "クリップボードパネル内でクイックペーストの修飾キーを押し続けると、1…9のショートカットが表示されます。コピー時、Returnキーでのペースト時、またはクイックペースト時に、プレーンテキスト用の修飾キーも押すと書式を取り除けます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "클립보드 패널에서 빠른 붙여넣기 보조 키를 누르고 있으면 1…9 단축키가 표시됩니다. 복사하거나 Return 키로 붙여넣거나 빠른 붙여넣기를 사용할 때 일반 텍스트 보조 키도 함께 누르면 서식이 제거됩니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在剪贴板面板内，按住快速粘贴修饰键可显示 1…9 快捷键。复制、按回车键粘贴或使用快速粘贴时，同时按住纯文本修饰键即可移除格式。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在剪貼簿面板內，按住快速貼上修飾鍵可顯示 1…9 快速鍵。拷貝、按 Return 鍵貼上或使用快速貼上時，同時按住純文字修飾鍵即可移除格式。"
+          }
+        }
+      }
     },
     "Yes" : {
       "extractionState" : "stale",
