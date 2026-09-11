@@ -5,6 +5,7 @@ import SwiftUI
 enum VerticalFollowMode: String, CaseIterable, Identifiable {
     case statusBar = "statusBar"
     case mouse = "mouse"
+    case screenCenter = "screenCenter"
     case lastPosition = "lastPosition"
 
     var id: String { self.rawValue }
@@ -13,6 +14,7 @@ enum VerticalFollowMode: String, CaseIterable, Identifiable {
         switch self {
         case .statusBar: return LocalizedStringResource("Near Status Bar Icon")
         case .mouse: return LocalizedStringResource("Near Mouse Cursor")
+        case .screenCenter: return LocalizedStringResource("Screen Center")
         case .lastPosition: return LocalizedStringResource("Last Position")
         }
     }

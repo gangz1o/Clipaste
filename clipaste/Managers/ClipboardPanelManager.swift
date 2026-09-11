@@ -156,6 +156,12 @@ class ClipboardPanelManager {
         let mode = VerticalFollowMode(rawValue: modeRaw) ?? .mouse
 
         switch mode {
+        case .screenCenter:
+            return ClipboardPanelGeometry.centeredFrame(
+                size: NSSize(width: width, height: height),
+                visibleFrame: sf
+            )
+
         case .statusBar:
             // Top-right safe area, just below the menu bar
             let x = sf.maxX - width - 12

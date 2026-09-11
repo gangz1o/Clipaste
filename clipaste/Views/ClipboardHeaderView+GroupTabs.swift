@@ -8,10 +8,9 @@ extension ClipboardHeaderView {
             allGroupTabButton
 
             if hasHorizontalScrollableGroupTabs {
-                FreeScrollWheelView {
+                FreeScrollWheelView(maximumContentWidth: 680) {
                     scrollableGroupTabsStrip
                 }
-                .frame(width: horizontalScrollableGroupTabsWidth, alignment: .leading)
             }
 
             Divider()

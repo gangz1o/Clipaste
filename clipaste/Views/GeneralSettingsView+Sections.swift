@@ -64,6 +64,14 @@ extension GeneralSettingsView {
                 }
             }
 
+            if clipboardLayout.isVertical {
+                Picker("Window Position", selection: $viewModel.verticalFollowMode) {
+                    ForEach(VerticalFollowMode.allCases) { mode in
+                        Text(mode.localizedTitle).tag(mode)
+                    }
+                }
+            }
+
             PreviewPanelToggle()
         } header: {
             SettingsSectionHeader(title: "Window")
