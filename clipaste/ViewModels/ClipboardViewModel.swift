@@ -20,12 +20,6 @@ enum UnifiedGroupSlot: Equatable {
     case userGroup(String)
 }
 
-extension UserDefaults {
-    @objc dynamic var enable_smart_groups: Bool {
-        bool(forKey: "enable_smart_groups")
-    }
-}
-
 @MainActor
 @Observable
 final class ClipboardViewModel {
@@ -84,7 +78,7 @@ final class ClipboardViewModel {
     var plainTextModifier: ModifierKey = ModifierKey.plainTextPreference()
     var isQuickPasteModifierHeld: Bool = false
     var isPlainTextModifierHeld: Bool = false
-    var isSmartGroupsEnabled: Bool = UserDefaults.standard.object(forKey: "enable_smart_groups") as? Bool ?? true
+    var isSmartGroupsEnabled: Bool = UserDefaults.standard.enable_smart_groups
     var pasteTextFormat: PasteTextFormat {
         get {
             guard let rawValue = UserDefaults.standard.string(forKey: "pasteTextFormat") else {
