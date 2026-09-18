@@ -3,6 +3,29 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.15</title>
+            <pubDate>Fri, 18 Sep 2026 07:51:45 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.15</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20215</sparkle:version>
+            <sparkle:shortVersionString>2.2.15</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## 本次更新
+
+- 升级构建环境至 Xcode 27.0（27A266a）和 macOS 27 SDK，继续支持 macOS 14 及以上版本，提供 Intel 与 Apple Silicon 通用应用。
+- 修复 Xcode 27 下键盘搜索回调的闭包捕获警告。
+- 补齐纯文本粘贴修饰键设置的多语言翻译。
+
+## What's New
+
+- Built with Xcode 27.0 (27A266a) and the macOS 27 SDK. Continues to support macOS 14 and later with a universal app for Intel and Apple Silicon.
+- Fixed a closure capture warning in the keyboard search callback when building with Xcode 27.
+- Completed translations for the plain-text paste modifier setting.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.15/Clipaste-v2.2.15.zip" length="6796756" type="application/octet-stream" sparkle:edSignature="2wBIz9o7WguKt5/g0V04ie5O/lUC/zZ/DmVGh9HV4G6oxZe3umVSs6Mq87ZgWY32v3k7gEqOw0/oAO2qzmyRBw=="/>
+        </item>
+        <item>
             <title>2.2.14</title>
             <pubDate>Fri, 11 Sep 2026 02:44:15 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -68,42 +91,6 @@
 - Added regression coverage for panel state ownership, paged history loading, quick paste, and presentation behavior.
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.13/Clipaste-v2.2.13.zip" length="6898246" type="application/octet-stream" sparkle:edSignature="5AZ9i6Nle3PptGITWDX7z1083Gjzrd7lk7uZClXKodsxyC/Hp4ZJP6DKdZKuDJ6luaIfDOjtG5ZdpxqwQmMyAg=="/>
-        </item>
-        <item>
-            <title>2.2.12</title>
-            <pubDate>Wed, 02 Sep 2026 05:02:09 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.12</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20212</sparkle:version>
-            <sparkle:shortVersionString>2.2.12</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
-
-### 🛠 启动稳定性
-
-- 修复系统重启后由登录项冷启动时，CloudKit 每次开机初始化与账户查询竞争而导致主线程卡死的问题。
-- 启动阶段不再执行仅用于诊断的 CloudKit 账户查询，并确保 CloudKit 可用性检查脱离 MainActor。
-
-### ⚡ 性能
-
-- 仅在按住快速粘贴修饰键时计算条目可见区域，修复面板隐藏时仍持续 SwiftUI 布局循环和高 CPU 占用的问题。
-- 松开修饰键时立即清理快速粘贴索引，避免保留陈旧布局状态。
-
----
-
-## ✨ What’s New
-
-### 🛠 Launch Stability
-
-- Fixed a cold-start hang after system restarts caused by contention between the login-item launch and CloudKit per-boot initialization.
-- Removed the diagnostics-only CloudKit account lookup from startup and moved availability checks away from MainActor.
-
-### ⚡ Performance
-
-- Visible-item frames are now measured only while the quick-paste modifier is held, preventing persistent SwiftUI layout loops and high CPU usage while the panel is hidden.
-- Quick-paste indexes are cleared as soon as the modifier is released to avoid stale layout state.
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.12/Clipaste-v2.2.12.zip" length="6886234" type="application/octet-stream" sparkle:edSignature="SzT51xTil6puoO55Z0hvNBW2UeZkVG8jMSoCslf4iGNlZk91qN2+eUhuUMpBul1brMhmfQ8krD6o3B2UDB54Dg=="/>
         </item>
     </channel>
 </rss>
