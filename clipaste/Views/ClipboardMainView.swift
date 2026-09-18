@@ -105,9 +105,7 @@ struct ClipboardMainView: View {
                 requestListFocusAfterSearchExit()
             }
             .onAppear {
-                searchService.onInterceptedKey = { [weak viewModel] event in
-                    guard let viewModel else { return false }
-
+                searchService.onInterceptedKey = { event in
                     guard viewModel.shouldStartTypeToSearch(with: event),
                           let acceptedInput = viewModel.acceptedSearchInput(from: event) else {
                         return false
