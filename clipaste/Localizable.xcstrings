@@ -2986,6 +2986,53 @@
         }
       }
     },
+    "Automatic cleanup keeps items in Favorites and custom groups. Clear History keeps only Favorites." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die automatische Bereinigung behält Einträge in Favoriten und eigenen Gruppen. „Verlauf löschen“ behält nur Favoriten."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatic cleanup keeps items in Favorites and custom groups. Clear History keeps only Favorites."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Le nettoyage automatique conserve les éléments des favoris et des groupes personnalisés. « Effacer l’historique » conserve uniquement les favoris."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動削除では、お気に入りとカスタムグループ内の項目を保持します。「履歴を消去」では、お気に入りのみを保持します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "자동 정리는 즐겨찾기와 사용자 지정 그룹의 항목을 유지합니다. 기록 지우기는 즐겨찾기만 유지합니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自动清理会保留收藏和自建分组中的内容；手动清空历史仅保留收藏。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自動清理會保留收藏和自建群組中的內容；手動清空歷史僅保留收藏。"
+          }
+        }
+      }
+    },
     "Automatic update checks are turned off" : {
       "extractionState" : "stale",
       "localizations" : {

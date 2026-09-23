@@ -123,26 +123,6 @@ extension ClipboardStoreActor {
         }
     }
 
-    func cleanUpExpiredRecords(before expirationDate: Date) {
-        let descriptor = FetchDescriptor<ClipboardRecord>(
-            predicate: #Predicate { $0.timestamp < expirationDate }
-        )
-
-        do {
-            let expiredRecords = try modelContext.fetch(descriptor)
-            guard !expiredRecords.isEmpty else { return }
-
-            for record in expiredRecords {
-                modelContext.delete(record)
-            }
-
-            try markSyncAnchorUpdated()
-            try modelContext.save()
-        } catch {
-            print("❌ [清理任务] 清理过期记录失败: \(error)")
-        }
-    }
-
     func delete(hash: String) {
         let descriptor = FetchDescriptor<ClipboardRecord>(
             predicate: #Predicate<ClipboardRecord> { record in

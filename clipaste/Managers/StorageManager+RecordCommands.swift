@@ -94,7 +94,8 @@ extension StorageManager {
 
     nonisolated
     func performAutoCleanup(before expirationDate: Date) {
-        let actor = self.cleanupActor
+        // Serialize retention with group/favorite edits so cleanup sees their latest state.
+        let actor = self.storeActor
         spawnTrackedTask(priority: .userInitiated) {
             await actor.cleanUpExpiredRecords(before: expirationDate)
         }

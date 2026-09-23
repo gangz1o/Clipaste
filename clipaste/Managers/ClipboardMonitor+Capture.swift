@@ -46,7 +46,7 @@ extension ClipboardMonitor {
             if let fileURL = imageFileURL(from: pasteboardItem) {
                 imagePayloads.append(
                     ClipboardImagePayload(
-                        source: .fileURL(fileURL),
+                        source: .fileURL(fileURL, fallbackData: imageData(from: pasteboardItem)),
                         fallbackRecordPayload: makeFileURLPayload(
                             from: pasteboardItem,
                             appID: appID,

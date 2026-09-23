@@ -27,11 +27,6 @@ struct ClipboardRecordPayload: Sendable {
     let captureSessionID: UUID?
 }
 
-enum ClipboardImageSource: Sendable {
-    case data(Data)
-    case fileURL(URL)
-}
-
 struct ClipboardImagePayload: Sendable {
     let source: ClipboardImageSource
     let fallbackRecordPayload: ClipboardRecordPayload?

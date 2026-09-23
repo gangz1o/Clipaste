@@ -23,7 +23,7 @@ extension GeneralSettingsView {
             SettingsSectionHeader(title: "History")
         } footer: {
             SettingsSectionFooter {
-                Text("Permanently deletes non-favorite clipboard records and image caches. Items in Favorites are kept.")
+                Text("Automatic cleanup keeps items in Favorites and custom groups. Clear History keeps only Favorites.")
             }
         }
         .alert("Clear History?", isPresented: $showingClearAlert) {

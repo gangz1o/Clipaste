@@ -8,7 +8,6 @@ final class StorageManager: @unchecked Sendable, ClipboardStorageDraining {
 
     nonisolated let container: ModelContainer
     let storeActor: ClipboardStoreActor
-    let cleanupActor: ClipboardStoreActor
     nonisolated let taskLock = NSLock()
     nonisolated(unsafe) var activeTasks: [UUID: Task<Void, Never>] = [:]
     nonisolated(unsafe) var scheduledRetryTasks: [UUID: Task<Void, Never>] = [:]
@@ -19,7 +18,6 @@ final class StorageManager: @unchecked Sendable, ClipboardStorageDraining {
     nonisolated init(modelContainer: ModelContainer) {
         self.container = modelContainer
         self.storeActor = ClipboardStoreActor(modelContainer: modelContainer)
-        self.cleanupActor = ClipboardStoreActor(modelContainer: modelContainer)
     }
 
     // Keep interactive reads off the shared write actor to avoid QoS inversions.

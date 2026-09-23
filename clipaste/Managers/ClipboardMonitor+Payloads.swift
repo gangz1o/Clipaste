@@ -9,17 +9,7 @@ extension ClipboardMonitor {
     }
 
     func imageData(from pasteboardItem: NSPasteboardItem) -> Data? {
-        if let pngData = pasteboardItem.data(forType: .png) {
-            let metadata = ImageProcessor.metadata(for: pngData)
-            return ClipboardImageResourcePolicy.allowsStoredImage(metadata) ? pngData : nil
-        }
-
-        if let tiffData = pasteboardItem.data(forType: .tiff) {
-            let metadata = ImageProcessor.metadata(for: tiffData)
-            return ClipboardImageResourcePolicy.allowsStoredImage(metadata) ? tiffData : nil
-        }
-
-        return nil
+        ClipboardPasteboardImageReader.imageData(from: pasteboardItem)
     }
 
     func imageFileURL(from pasteboardItem: NSPasteboardItem) -> URL? {
@@ -100,13 +90,7 @@ extension ClipboardMonitor {
         appIconDominantColorHex: String?,
         appIconData: Data?
     ) async {
-        let imageData: Data?
-        switch payload.source {
-        case let .data(data):
-            imageData = data
-        case let .fileURL(fileURL):
-            imageData = ClipboardFileReference.loadImageData(from: fileURL)
-        }
+        let imageData = payload.source.loadImageData()
 
         guard let imageData else {
             Self.resourceLogger.notice("Skipped an image payload that could not be read within the configured resource budget")
