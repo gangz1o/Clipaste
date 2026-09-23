@@ -3,6 +3,31 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.16</title>
+            <pubDate>Wed, 23 Sep 2026 11:12:40 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.16</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20216</sparkle:version>
+            <sparkle:shortVersionString>2.2.16</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## 本次更新
+
+- 修复保留期自动清理误删自建分组内容的问题：收藏、自建分组、从 Paste 导入的 Pinboard 和多分组条目均会保留。同步更新设置说明。#58
+- 改进复制图片的识别和预览：支持读取 JPEG 等剪贴板图片格式，遇到无效图片表示时继续尝试其他格式；临时图片文件不可读时，回退到复制时保留的图片数据。#57
+
+自动清理保护适用于今后的清理，无法恢复此前已删除的记录。手动“清空历史”仍按确认框说明仅保留收藏。
+
+## What's New
+
+- Fixed automatic retention cleanup deleting items in custom groups. Favorites, custom groups, imported Paste pinboards, and multi-group items are now protected. Updated the settings description. #58
+- Improved copied-image capture and previews: read JPEG and other advertised image formats, try alternate representations when one is invalid, and fall back to captured image data when a temporary image file cannot be read. #57
+
+Retention protection applies to future cleanup and does not restore previously deleted records. Manually clearing history continues to keep only Favorites, as stated in its confirmation dialog.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.16/Clipaste-v2.2.16.zip" length="6799302" type="application/octet-stream" sparkle:edSignature="gFHlPR5gAUWKX5F/IY31nrtxM7/Yy6zjpkm0dpVQN6BhYrdUTDjsMC1sm8Kn1RlK78nigt0mub4u+HecQFpjDA=="/>
+        </item>
+        <item>
             <title>2.2.15</title>
             <pubDate>Fri, 18 Sep 2026 07:51:45 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -51,46 +76,6 @@
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.14/Clipaste-v2.2.14.zip" length="6899624" type="application/octet-stream" sparkle:edSignature="cz2KBT7+D+FYIxtADJqfsrRdGz8kgTxwTRTeT9BocXdhzLJj0HwsrverLq0lOXHLkV7nA77X8cGzaOTq7jkrBQ=="/>
-        </item>
-        <item>
-            <title>2.2.13</title>
-            <pubDate>Wed, 02 Sep 2026 07:43:07 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.13</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20213</sparkle:version>
-            <sparkle:shortVersionString>2.2.13</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## ✨ 本次更新
-
-### ⚡ 面板响应与性能
-
-- 修复面板根视图重复创建状态模型引发的 SwiftUI 渲染循环，消除隐藏状态下的异常 CPU 占用及快捷键呼出延迟。
-- 剪切板历史改为首屏优先、滚动分页加载，数据量增大后仍能快速呼出面板。
-- 集中处理快速粘贴数字键，移除每个卡片单独注册的隐藏快捷键控件，降低视图树和事件路由开销。
-- 优化面板显示顺序和动画时长，并移除会触发同步重绘的窗口更新。
-- 使用原生日期格式化视图，减少列表滚动和刷新时的格式化成本。
-
-### ✅ 稳定性
-
-- 增加面板状态所有权、分页加载、快速粘贴和展示路径的回归检查。
-
----
-
-## ✨ What’s New
-
-### ⚡ Panel Responsiveness & Performance
-
-- Fixed a SwiftUI render loop caused by repeatedly constructing the panel state model, eliminating abnormal hidden-state CPU usage and shortcut presentation latency.
-- Clipboard history now prioritizes the first screen and loads additional pages on demand, keeping panel presentation fast as history grows.
-- Centralized quick-paste number-key routing and removed per-card hidden shortcut controls to reduce view-tree and event-routing overhead.
-- Optimized panel presentation ordering and animation timing while avoiding synchronous window redraws.
-- Switched timestamps to native date formatting views to reduce list refresh and scrolling work.
-
-### ✅ Stability
-
-- Added regression coverage for panel state ownership, paged history loading, quick paste, and presentation behavior.
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.13/Clipaste-v2.2.13.zip" length="6898246" type="application/octet-stream" sparkle:edSignature="5AZ9i6Nle3PptGITWDX7z1083Gjzrd7lk7uZClXKodsxyC/Hp4ZJP6DKdZKuDJ6luaIfDOjtG5ZdpxqwQmMyAg=="/>
         </item>
     </channel>
 </rss>
