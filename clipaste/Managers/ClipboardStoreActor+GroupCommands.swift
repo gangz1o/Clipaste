@@ -90,7 +90,7 @@ extension ClipboardStoreActor {
                 systemIconName: $0.resolvedSystemIconName,
                 sortOrder: $0.sortOrder
             )
-        }
+        }.uniquedByID()
     }
 
     func updateGroupName(id: String, newName: String) {
@@ -99,11 +99,13 @@ extension ClipboardStoreActor {
                 group.id == id && group.deletedAt == nil
             }
         )
-        if let group = try? modelContext.fetch(descriptor).first {
+        let groups = (try? modelContext.fetch(descriptor)) ?? []
+        guard groups.isEmpty == false else { return }
+        for group in groups {
             group.name = newName
-            try? markSyncAnchorUpdated()
-            try? modelContext.save()
         }
+        try? markSyncAnchorUpdated()
+        try? modelContext.save()
     }
 
     func updateGroupIcon(id: String, newIcon: String?) {
@@ -112,11 +114,13 @@ extension ClipboardStoreActor {
                 group.id == id && group.deletedAt == nil
             }
         )
-        if let group = try? modelContext.fetch(descriptor).first {
+        let groups = (try? modelContext.fetch(descriptor)) ?? []
+        guard groups.isEmpty == false else { return }
+        for group in groups {
             group.systemIconName = ClipboardGroupIconName.storageValue(from: newIcon)
-            try? markSyncAnchorUpdated()
-            try? modelContext.save()
         }
+        try? markSyncAnchorUpdated()
+        try? modelContext.save()
     }
 
     func deleteGroup(id: String) {
@@ -135,7 +139,7 @@ extension ClipboardStoreActor {
                 group.id == id && group.deletedAt == nil
             }
         )
-        if let group = try? modelContext.fetch(groupDescriptor).first {
+        for group in (try? modelContext.fetch(groupDescriptor)) ?? [] {
             group.markDeleted()
         }
         try? markSyncAnchorUpdated()
@@ -153,10 +157,13 @@ extension ClipboardStoreActor {
 
         do {
             let groups = try modelContext.fetch(descriptor)
-            let groupsById = Dictionary(uniqueKeysWithValues: groups.map { ($0.id, $0) })
+            // 同一分组 ID 可能存在多行(见 repairDuplicateGroups),需要一起更新。
+            let groupsById = Dictionary(grouping: groups, by: \.id)
 
             for (index, id) in groupIDs.enumerated() {
-                groupsById[id]?.sortOrder = index
+                for group in groupsById[id] ?? [] {
+                    group.sortOrder = index
+                }
             }
 
             let knownIDs = Set(groupIDs)

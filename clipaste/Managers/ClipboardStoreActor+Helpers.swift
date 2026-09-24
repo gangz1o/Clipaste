@@ -177,11 +177,10 @@ extension ClipboardStoreActor {
         return try? modelContext.fetch(descriptor).first
     }
 
-    func fetchStoredGroup(id: String) -> ClipboardGroupModel? {
-        var descriptor = FetchDescriptor<ClipboardGroupModel>(
+    func fetchStoredGroups(id: String) -> [ClipboardGroupModel] {
+        let descriptor = FetchDescriptor<ClipboardGroupModel>(
             predicate: #Predicate<ClipboardGroupModel> { group in group.id == id }
         )
-        descriptor.fetchLimit = 1
-        return try? modelContext.fetch(descriptor).first
+        return (try? modelContext.fetch(descriptor)) ?? []
     }
 }

@@ -80,3 +80,11 @@ struct ClipboardGroupItem: Identifiable, Hashable, Sendable {
         return IconPickerViewModel.customIconNames.contains(systemIconName) ? .custom : .system
     }
 }
+
+extension Array where Element == ClipboardGroupItem {
+    /// CloudKit 与跨路由合并可能让同一分组 ID 存在多行,界面只展示第一行。
+    nonisolated func uniquedByID() -> [ClipboardGroupItem] {
+        var seenIDs = Set<String>()
+        return filter { seenIDs.insert($0.id).inserted }
+    }
+}

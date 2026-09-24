@@ -72,21 +72,24 @@ extension ClipboardStoreActor {
     }
 
     func importStoreExport(_ payload: ClipboardStoreExport) throws {
-        var groupsByID: [String: ClipboardGroupModel] = [:]
+        var groupsByID: [String: [ClipboardGroupModel]] = [:]
         groupsByID.reserveCapacity(payload.groups.count)
 
         for incomingGroup in payload.groups {
-            if let existingGroup = groupsByID[incomingGroup.id] ?? fetchStoredGroup(id: incomingGroup.id) {
-                groupsByID[incomingGroup.id] = existingGroup
-                if let incomingDeletedAt = incomingGroup.deletedAt {
-                    if existingGroup.deletedAt == nil || incomingDeletedAt > (existingGroup.deletedAt ?? .distantPast) {
-                        existingGroup.deletedAt = incomingDeletedAt
-                        existingGroup.deletedByDevice = incomingGroup.deletedByDevice
+            let existingGroups = groupsByID[incomingGroup.id] ?? fetchStoredGroups(id: incomingGroup.id)
+            if existingGroups.isEmpty == false {
+                groupsByID[incomingGroup.id] = existingGroups
+                for existingGroup in existingGroups {
+                    if let incomingDeletedAt = incomingGroup.deletedAt {
+                        if existingGroup.deletedAt == nil || incomingDeletedAt > (existingGroup.deletedAt ?? .distantPast) {
+                            existingGroup.deletedAt = incomingDeletedAt
+                            existingGroup.deletedByDevice = incomingGroup.deletedByDevice
+                        }
+                    } else if existingGroup.deletedAt == nil {
+                        existingGroup.name = incomingGroup.name
+                        existingGroup.systemIconName = ClipboardGroupIconName.storageValue(from: incomingGroup.systemIconName)
+                        existingGroup.sortOrder = incomingGroup.sortOrder
                     }
-                } else if existingGroup.deletedAt == nil {
-                    existingGroup.name = incomingGroup.name
-                    existingGroup.systemIconName = ClipboardGroupIconName.storageValue(from: incomingGroup.systemIconName)
-                    existingGroup.sortOrder = incomingGroup.sortOrder
                 }
             } else {
                 let group = ClipboardGroupModel(
@@ -99,7 +102,7 @@ extension ClipboardStoreActor {
                 )
                 group.createdAt = incomingGroup.createdAt
                 modelContext.insert(group)
-                groupsByID[incomingGroup.id] = group
+                groupsByID[incomingGroup.id] = [group]
             }
         }
 

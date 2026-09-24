@@ -58,7 +58,7 @@ extension StorageManager {
                 systemIconName: $0.resolvedSystemIconName,
                 sortOrder: $0.sortOrder
             )
-        }
+        }.uniquedByID()
     }
 
     func fetchItem(hash: String) async -> ClipboardItem? {

@@ -49,7 +49,7 @@ extension MigrationManager {
 
         var descriptor = FetchDescriptor<ClipboardGroupModel>(
             predicate: #Predicate<ClipboardGroupModel> { group in
-                group.name == rawGroupName
+                group.name == rawGroupName && group.deletedAt == nil
             }
         )
         descriptor.fetchLimit = 1

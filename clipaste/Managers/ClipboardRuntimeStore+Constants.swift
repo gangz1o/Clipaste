@@ -27,6 +27,6 @@ extension ClipboardRuntimeStore {
         // ordinary capture-time duplicates.
         static let minimumInterval: TimeInterval = 10 * 60
         // Version bumps force a one-shot dedup on next startup.
-        static let currentVersion = 1
+        static let currentVersion = 2
     }
 }

@@ -172,7 +172,14 @@ final class MigrationManager {
         into context: ModelContext
     ) throws -> MigrationReport {
         let existingRecords = try context.fetch(FetchDescriptor<ClipboardRecord>())
-        let existingGroups = try context.fetch(FetchDescriptor<ClipboardGroupModel>())
+        // 已删除的分组只是同步墓碑,不能复用,否则导入的记录会落进看不见的分组。
+        let existingGroups = try context.fetch(
+            FetchDescriptor<ClipboardGroupModel>(
+                predicate: #Predicate<ClipboardGroupModel> { group in
+                    group.deletedAt == nil
+                }
+            )
+        )
         var existingHashes = Set(existingRecords.map(\.contentHash))
         var recordsByHash = Dictionary(existingRecords.map { ($0.contentHash, $0) }, uniquingKeysWith: { first, _ in first })
         var groupsByNormalizedName = Dictionary(

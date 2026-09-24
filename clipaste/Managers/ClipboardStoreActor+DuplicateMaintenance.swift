@@ -3,6 +3,9 @@ import SwiftData
 
 extension ClipboardStoreActor {
     func repairDuplicateRecords() -> Int {
+        // 分组表极小,顺带收拢同 ID 的分组墓碑。
+        _ = repairDuplicateGroups()
+
         // Two passes:
         // 1) Scan with batched fetch to identify which contentHashes have >1 row.
         //    We don't keep references to records here — let the context drop

@@ -27,3 +27,10 @@ swiftc clipaste/Utilities/ImageProcessor.swift \
   scripts/ClipboardRetentionTestSupport.swift scripts/ClipboardRetentionTests.swift \
   -o "$test_dir/retention"
 "$test_dir/retention"
+
+swiftc clipaste/Models/ClipboardSourceMetadata.swift \
+  clipaste/Models/ClipboardGroupModel.swift \
+  clipaste/Managers/ClipboardStoreActor+GroupMaintenance.swift \
+  scripts/ClipboardGroupRepairTestSupport.swift scripts/ClipboardGroupRepairTests.swift \
+  -o "$test_dir/group-repair"
+"$test_dir/group-repair"
