@@ -34,3 +34,10 @@ swiftc clipaste/Models/ClipboardSourceMetadata.swift \
   scripts/ClipboardGroupRepairTestSupport.swift scripts/ClipboardGroupRepairTests.swift \
   -o "$test_dir/group-repair"
 "$test_dir/group-repair"
+
+swiftc clipaste/Utilities/ImageProcessor.swift \
+  clipaste/Models/ClipboardRecord.swift \
+  clipaste/Managers/ClipboardStoreActor+ContentMaintenance.swift \
+  scripts/ClipboardContentMaintenanceTestSupport.swift scripts/ClipboardContentMaintenanceTests.swift \
+  -o "$test_dir/content-maintenance"
+"$test_dir/content-maintenance"

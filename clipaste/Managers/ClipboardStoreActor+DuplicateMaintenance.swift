@@ -68,37 +68,23 @@ extension ClipboardStoreActor {
     /// 这个一次性修复能在不删数据的前提下疏通同步。
     func repairOversizedInlineTextRecords() -> Int {
         do {
-            var repairedCount = 0
-            var offset = 0
-
-            while true {
-                let records = try fetchRecordPage(offset: offset)
-                guard records.isEmpty == false else { break }
-
-                var repairedInPage = 0
-                for record in records {
-                    guard let text = record.plainText,
-                          text.utf8.count > ClipboardTextSyncPolicy.inlineLimitBytes else {
-                        continue
-                    }
-
-                    let storedText = ClipboardTextSyncPolicy.storedTextUsingPreferences(for: text)
-                    record.plainText = storedText.inlineText
-                    record.fullTextData = storedText.fullTextData
-                    record.isPlainTextTruncated = storedText.isTruncated
-                    repairedCount += 1
-                    repairedInPage += 1
+            return try updateRecordsInBatches(
+                matching: #Predicate<ClipboardRecord> { record in
+                    record.plainText != nil
+                },
+                markingSyncAnchor: true
+            ) { record in
+                guard let text = record.plainText,
+                      text.utf8.count > ClipboardTextSyncPolicy.inlineLimitBytes else {
+                    return false
                 }
 
-                if repairedInPage > 0 {
-                    try markSyncAnchorUpdated()
-                    try modelContext.save()
-                }
-                offset += records.count
-                guard records.count == Self.maintenancePageSize else { break }
+                let storedText = ClipboardTextSyncPolicy.storedTextUsingPreferences(for: text)
+                record.plainText = storedText.inlineText
+                record.fullTextData = storedText.fullTextData
+                record.isPlainTextTruncated = storedText.isTruncated
+                return true
             }
-
-            return repairedCount
         } catch {
             print("❌ [ClipboardStoreActor] 修复超大文本记录失败: \(error)")
             return 0

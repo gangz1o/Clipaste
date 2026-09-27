@@ -49,6 +49,9 @@ enum StabilityHardeningSourceTests {
         // 维护类调用必须先脱离主线程,否则 @ModelActor 会在 MainActor 调用方线程上执行。
         precondition(storage.contains("await storeActor.repairDuplicateRecords()") == false)
         precondition(storage.contains("await storeActor.repairImportedMigrationTimestampsIfNeeded()") == false)
+        // 维护遍历走 enumerate 分批,禁止回到"排序 + OFFSET"整表翻页。
+        precondition(storage.contains("func fetchRecordPage") == false)
+        precondition(storage.contains("try modelContext.enumerate("))
         precondition(storage.contains("let records = try modelContext.fetch(descriptor)\n            counts.reserveCapacity") == false)
         precondition(storage.contains("try export.validatedPayloadByteCount()"))
         precondition(bootstrapper.contains("try export.validatedPayloadByteCount()"))
