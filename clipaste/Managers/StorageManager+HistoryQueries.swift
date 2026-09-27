@@ -123,20 +123,9 @@ extension StorageManager {
         }.value
     }
 
-    func exportRecordBatch(offset: Int, limit: Int) async throws -> [ClipboardRecordExport] {
-        let container = self.container
-        return try await Task.detached(priority: .utility) {
-            let actor = ClipboardStoreActor(modelContainer: container)
-            return try await actor.exportRecordBatch(offset: offset, limit: limit)
-        }.value
-    }
-
-    func exportPinnedRecordBatch(offset: Int, limit: Int) async throws -> ClipboardStoreExport {
-        let container = self.container
-        return try await Task.detached(priority: .utility) {
-            let actor = ClipboardStoreActor(modelContainer: container)
-            return try await actor.exportPinnedRecordBatch(offset: offset, limit: limit)
-        }.value
+    /// 按"最新优先"分批导出全部记录或仅收藏,见 `ClipboardRecordExportCursor`。
+    nonisolated func makeRecordExportCursor(pinnedOnly: Bool = false) -> ClipboardRecordExportCursor {
+        ClipboardRecordExportCursor(container: container, pinnedOnly: pinnedOnly)
     }
 
     func importStoreExport(_ payload: ClipboardStoreExport) async throws {

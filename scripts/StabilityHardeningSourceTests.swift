@@ -43,15 +43,18 @@ enum StabilityHardeningSourceTests {
         precondition(runtime.contains("await retiringCloudRuntime.storage.shutdown()"))
         precondition(runtime.range(of: "shutdown()")!.lowerBound < runtime.range(of: "resetCloudStoreArtifacts()")!.lowerBound)
         precondition(runtime.contains("defaults.set(resolvedSyncEnabled, forKey: Keys.syncEnabled)"))
-        precondition(runtime.contains("exportRecordBatch"))
-        // 去重扫描只读 contentHash:不把内联大字段读进内存,也不对整表排序分页。
-        precondition(storage.contains("scanDescriptor.propertiesToFetch = [\\.contentHash]"))
+        // 路由切换导出走主键快照游标,不能每批"排序 + OFFSET"重排整表。
+        precondition(runtime.contains("makeRecordExportCursor"))
+        precondition(runtime.contains("exportRecordBatch(offset:") == false)
+        // 维护遍历与导出按主键分批:SwiftData 返回模型对象时忽略 propertiesToFetch,
+        // enumerate 也会一次读完全部行,两者都不能用来控制大表的读取量。
+        precondition(storage.contains("modelContext.fetchIdentifiers("))
+        precondition(storage.contains("propertiesToFetch =") == false)
+        precondition(storage.contains("modelContext.enumerate(") == false)
+        precondition(storage.contains("func fetchRecordPage") == false)
         // 维护类调用必须先脱离主线程,否则 @ModelActor 会在 MainActor 调用方线程上执行。
         precondition(storage.contains("await storeActor.repairDuplicateRecords()") == false)
         precondition(storage.contains("await storeActor.repairImportedMigrationTimestampsIfNeeded()") == false)
-        // 维护遍历走 enumerate 分批,禁止回到"排序 + OFFSET"整表翻页。
-        precondition(storage.contains("func fetchRecordPage") == false)
-        precondition(storage.contains("try modelContext.enumerate("))
         precondition(storage.contains("let records = try modelContext.fetch(descriptor)\n            counts.reserveCapacity") == false)
         precondition(storage.contains("try export.validatedPayloadByteCount()"))
         precondition(bootstrapper.contains("try export.validatedPayloadByteCount()"))

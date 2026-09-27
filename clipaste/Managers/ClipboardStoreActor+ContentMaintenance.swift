@@ -68,13 +68,11 @@ extension ClipboardStoreActor {
 
     func fetchDistinctAppBundleIDsForColorRepair() -> [String] {
         do {
-            var descriptor = FetchDescriptor<ClipboardRecord>(
-                predicate: #Predicate<ClipboardRecord> { record in
+            return try distinctBundleIDs(
+                matching: #Predicate<ClipboardRecord> { record in
                     record.appBundleID != nil
                 }
             )
-            descriptor.propertiesToFetch = [\.appBundleID]
-            return distinctBundleIDs(in: try modelContext.fetch(descriptor))
         } catch {
             print("❌ [ClipboardStoreActor] 读取待修复 App 图标颜色失败: \(error)")
             return []
@@ -109,13 +107,11 @@ extension ClipboardStoreActor {
     func fetchDistinctAppBundleIDsMissingIconData() -> [String] {
         do {
             // 在 SQL 里判空,不触碰 externalStorage getter。
-            var descriptor = FetchDescriptor<ClipboardRecord>(
-                predicate: #Predicate<ClipboardRecord> { record in
+            return try distinctBundleIDs(
+                matching: #Predicate<ClipboardRecord> { record in
                     record.appIconData == nil && record.appBundleID != nil
                 }
             )
-            descriptor.propertiesToFetch = [\.appBundleID]
-            return distinctBundleIDs(in: try modelContext.fetch(descriptor))
         } catch {
             print("❌ [ClipboardStoreActor] 读取待修复 App 图标数据失败: \(error)")
             return []
@@ -147,60 +143,20 @@ extension ClipboardStoreActor {
         }
     }
 
-    static let maintenanceBatchSize = 64
-
-    /// 分批遍历匹配的记录并按批保存。`enumerate` 先取主键再按批加载整行,
-    /// 不排序也不用 OFFSET;旧的"按 id 排序 + OFFSET"分页每页都要把整表
-    /// (含内联大字段)重新排序一遍,几百 MB 的库会卡住几分钟。
-    /// `update` 返回该记录是否被修改。
-    func updateRecordsInBatches(
-        matching predicate: Predicate<ClipboardRecord>? = nil,
-        markingSyncAnchor: Bool = false,
-        _ update: (ClipboardRecord) -> Bool
-    ) throws -> Int {
-        var visitedCount = 0
-        var updatedCount = 0
-        var pendingCount = 0
-
-        func savePending() throws {
-            guard pendingCount > 0 else { return }
-            if markingSyncAnchor {
-                try markSyncAnchorUpdated()
-            }
-            try modelContext.save()
-            pendingCount = 0
-        }
-
-        try modelContext.enumerate(
-            FetchDescriptor<ClipboardRecord>(predicate: predicate),
-            batchSize: Self.maintenanceBatchSize
-        ) { record in
-            visitedCount += 1
-            if update(record) {
-                updatedCount += 1
-                pendingCount += 1
-            }
-            if visitedCount % Self.maintenanceBatchSize == 0 {
-                try savePending()
-            }
-        }
-        try savePending()
-
-        return updatedCount
-    }
-
-    private func distinctBundleIDs(in records: [ClipboardRecord]) -> [String] {
+    private func distinctBundleIDs(matching predicate: Predicate<ClipboardRecord>) throws -> [String] {
         var orderedBundleIDs: [String] = []
         var seenBundleIDs: Set<String> = []
 
-        for record in records {
-            guard let bundleID = record.appBundleID?.trimmingCharacters(in: .whitespacesAndNewlines),
-                  bundleID.isEmpty == false,
-                  seenBundleIDs.insert(bundleID).inserted else {
-                continue
-            }
+        try forEachRecordBatch(matching: predicate, readOnly: true) { records in
+            for record in records {
+                guard let bundleID = record.appBundleID?.trimmingCharacters(in: .whitespacesAndNewlines),
+                      bundleID.isEmpty == false,
+                      seenBundleIDs.insert(bundleID).inserted else {
+                    continue
+                }
 
-            orderedBundleIDs.append(bundleID)
+                orderedBundleIDs.append(bundleID)
+            }
         }
 
         return orderedBundleIDs

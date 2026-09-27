@@ -89,10 +89,12 @@ final class ClipboardStoreBootstrapper: @unchecked Sendable {
         try await target.importStoreExport(ClipboardStoreExport(records: [], groups: groups))
 
         let batchSize = 128
+        let cursor = source.makeRecordExportCursor()
         _ = try await BoundedBatchTransfer.run(
             batchSize: batchSize,
-            loadBatch: { offset, limit in
-                try await source.exportRecordBatch(offset: offset, limit: limit)
+            // 游标自己记录位置,不使用传入的 offset。
+            loadBatch: { _, limit in
+                try await cursor.nextBatch(limit: limit).records
             },
             consumeBatch: { records in
                 try await target.importStoreExport(ClipboardStoreExport(records: records, groups: []))

@@ -155,10 +155,12 @@ extension ClipboardRuntimeStore {
         }
 
         let batchSize = 128
+        let cursor = sourceStorage.makeRecordExportCursor()
         let importedRecordCount = try await BoundedBatchTransfer.run(
             batchSize: batchSize,
-            loadBatch: { offset, limit in
-                try await sourceStorage.exportRecordBatch(offset: offset, limit: limit)
+            // 游标自己记录位置(受字节预算截断的批次也能正确续上),不使用传入的 offset。
+            loadBatch: { _, limit in
+                try await cursor.nextBatch(limit: limit).records
             },
             consumeBatch: { records in
                 try await targetStorage.importStoreExport(

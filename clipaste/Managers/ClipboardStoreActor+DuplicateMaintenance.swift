@@ -7,24 +7,22 @@ extension ClipboardStoreActor {
         _ = repairDuplicateGroups()
 
         // Two passes:
-        // 1) One unsorted scan that only reads contentHash. Sorted + OFFSET paging
-        //    made SQLite re-sort the whole table (inline blobs included) for every
-        //    page; on a few-hundred-MB store that hung startup for minutes.
-        // 2) Fetch only the rows of duplicate hashes, in chunks, instead of one
-        //    unindexed full-table scan per hash.
+        // 1) Batched scan (see forEachRecordBatch) recording which rows share a
+        //    contentHash. The old sorted + OFFSET paging made SQLite re-sort the
+        //    whole table (inline blobs included) per page and hung startup.
+        // 2) Load only the rows of duplicate hashes and merge them.
         do {
-            var scanDescriptor = FetchDescriptor<ClipboardRecord>()
-            scanDescriptor.propertiesToFetch = [\.contentHash]
-
-            var counts: [String: Int] = [:]
-            counts.reserveCapacity(4096)
-            for record in try modelContext.fetch(scanDescriptor) {
-                let contentHash = record.contentHash
-                guard contentHash.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { continue }
-                counts[contentHash, default: 0] += 1
+            var identifiersByHash: [String: [PersistentIdentifier]] = [:]
+            identifiersByHash.reserveCapacity(4096)
+            try forEachRecordBatch(batchSize: 256, readOnly: true) { records in
+                for record in records {
+                    let contentHash = record.contentHash
+                    guard contentHash.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { continue }
+                    identifiersByHash[contentHash, default: []].append(record.persistentModelID)
+                }
             }
 
-            let duplicateHashes = counts.compactMap { $0.value > 1 ? $0.key : nil }
+            let duplicateHashes = identifiersByHash.compactMap { $0.value.count > 1 ? $0.key : nil }
             guard duplicateHashes.isEmpty == false else { return 0 }
 
             var repairedCount = 0
@@ -32,12 +30,19 @@ extension ClipboardStoreActor {
             let chunkSize = 200
             for chunkStart in stride(from: 0, to: duplicateHashes.count, by: chunkSize) {
                 let hashChunk = Array(duplicateHashes[chunkStart..<min(chunkStart + chunkSize, duplicateHashes.count)])
-                let dupDescriptor = FetchDescriptor<ClipboardRecord>(
-                    predicate: #Predicate<ClipboardRecord> { record in
-                        hashChunk.contains(record.contentHash)
-                    }
-                )
-                let records = try modelContext.fetch(dupDescriptor)
+                let records: [ClipboardRecord]
+                if #available(macOS 15, *) {
+                    records = try fetchRecords(identifiers: hashChunk.flatMap { identifiersByHash[$0] ?? [] })
+                } else {
+                    // macOS 14 不能按主键批量取,退回按 contentHash 查询(每批一次全表扫描)。
+                    records = try modelContext.fetch(
+                        FetchDescriptor<ClipboardRecord>(
+                            predicate: #Predicate<ClipboardRecord> { record in
+                                hashChunk.contains(record.contentHash)
+                            }
+                        )
+                    )
+                }
 
                 for duplicates in Dictionary(grouping: records, by: \.contentHash).values where duplicates.count > 1 {
                     let orderedRecords = duplicates.sorted(by: shouldPreferSurvivor)

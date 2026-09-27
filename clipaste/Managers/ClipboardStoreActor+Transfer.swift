@@ -7,21 +7,51 @@ extension ClipboardStoreActor {
             .map(Self.makeGroupExport(from:))
     }
 
+    /// 导出顺序:最新优先,时间相同按 id。
+    static var exportSortOrder: [SortDescriptor<ClipboardRecord>] {
+        [
+            SortDescriptor(\.timestamp, order: .reverse),
+            SortDescriptor(\.id, order: .forward)
+        ]
+    }
+
+    /// 导出游标的主键快照:整表只排序这一次,且只读主键。
+    @available(macOS 15, *)
+    func exportRecordIdentifiers(pinnedOnly: Bool) throws -> [PersistentIdentifier] {
+        try fetchRecordIdentifiers(
+            matching: pinnedOnly ? #Predicate<ClipboardRecord> { $0.isPinned } : nil,
+            sortBy: Self.exportSortOrder
+        )
+    }
+
+    /// 按主键导出一批。受字节预算截断时,`consumedCount` 只算到第一条未导出的记录,
+    /// 快照之后已删除的主键也计入已消费,保证游标总能前进且不漏记录。
+    @available(macOS 15, *)
+    func exportRecordBatch(
+        identifiers: [PersistentIdentifier],
+        includingGroups: Bool
+    ) throws -> (export: ClipboardStoreExport, consumedCount: Int) {
+        let records = try fetchRecords(identifiers: identifiers)
+        let exports = try Self.makeBoundedRecordExports(from: records)
+        let consumedCount = exports.count < records.count
+            ? identifiers.firstIndex(of: records[exports.count].persistentModelID) ?? identifiers.count
+            : identifiers.count
+        let groups = includingGroups ? try referencedGroupExports(for: exports) : []
+        return (ClipboardStoreExport(records: exports, groups: groups), consumedCount)
+    }
+
+    /// macOS 14 回退:每批都会按 `exportSortOrder` 重排整表。
     func exportRecordBatch(offset: Int, limit: Int) throws -> [ClipboardRecordExport] {
         guard offset >= 0, limit > 0 else { return [] }
 
-        var descriptor = FetchDescriptor<ClipboardRecord>(
-            sortBy: [
-                SortDescriptor(\.timestamp, order: .reverse),
-                SortDescriptor(\.id, order: .forward)
-            ]
-        )
+        var descriptor = FetchDescriptor<ClipboardRecord>(sortBy: Self.exportSortOrder)
         descriptor.fetchOffset = offset
         descriptor.fetchLimit = limit
         let records = try modelContext.fetch(descriptor)
         return try Self.makeBoundedRecordExports(from: records)
     }
 
+    /// macOS 14 回退:每批都会按 `exportSortOrder` 重排全部收藏。
     func exportPinnedRecordBatch(offset: Int, limit: Int) throws -> ClipboardStoreExport {
         guard offset >= 0, limit > 0 else {
             return ClipboardStoreExport(records: [], groups: [])
@@ -29,24 +59,25 @@ extension ClipboardStoreActor {
 
         var descriptor = FetchDescriptor<ClipboardRecord>(
             predicate: #Predicate<ClipboardRecord> { $0.isPinned },
-            sortBy: [
-                SortDescriptor(\.timestamp, order: .reverse),
-                SortDescriptor(\.id, order: .forward)
-            ]
+            sortBy: Self.exportSortOrder
         )
         descriptor.fetchOffset = offset
         descriptor.fetchLimit = limit
         let records = try Self.makeBoundedRecordExports(from: modelContext.fetch(descriptor))
+        return ClipboardStoreExport(records: records, groups: try referencedGroupExports(for: records))
+    }
+
+    private func referencedGroupExports(for records: [ClipboardRecordExport]) throws -> [ClipboardGroupExport] {
         let referencedGroupIDs = Set(
             records.flatMap {
                 normalizedGroupIDs(primaryGroupID: $0.groupId, groupIdsRaw: $0.groupIdsRaw)
             }
         )
-        let groups = try modelContext.fetch(FetchDescriptor<ClipboardGroupModel>())
+        guard referencedGroupIDs.isEmpty == false else { return [] }
+
+        return try modelContext.fetch(FetchDescriptor<ClipboardGroupModel>())
             .filter { referencedGroupIDs.contains($0.id) }
             .map(Self.makeGroupExport(from:))
-
-        return ClipboardStoreExport(records: records, groups: groups)
     }
 
     private static func makeBoundedRecordExports(

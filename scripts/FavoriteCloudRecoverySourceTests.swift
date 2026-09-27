@@ -28,8 +28,9 @@ enum FavoriteCloudRecoverySourceTests {
         )
 
         expect(
-            storageSource.contains("func exportPinnedRecordBatch(offset: Int, limit: Int) async throws -> ClipboardStoreExport"),
-            "storage facade must expose a throwing, bounded pinned export"
+            storageSource.contains("func makeRecordExportCursor(pinnedOnly: Bool")
+                && runtimeSource.contains("makeRecordExportCursor(pinnedOnly: true)"),
+            "favorite recovery must export favorites through the bounded pinned cursor"
         )
         expect(
             storageSource.contains("#Predicate<ClipboardRecord> { $0.isPinned }"),

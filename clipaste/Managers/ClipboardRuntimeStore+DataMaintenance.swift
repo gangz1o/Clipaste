@@ -45,20 +45,16 @@ extension ClipboardRuntimeStore {
             }
 
             let batchSize = 128
-            var offset = 0
+            let cursor = sourceRuntime.storage.makeRecordExportCursor(pinnedOnly: true)
             var recoveredRecordCount = 0
             var recoveredGroupIDs: Set<String> = []
 
             while true {
-                let payload = try await sourceRuntime.storage.exportPinnedRecordBatch(
-                    offset: offset,
-                    limit: batchSize
-                )
+                let payload = try await cursor.nextBatch(limit: batchSize)
                 guard payload.records.isEmpty == false else { break }
                 try await currentRuntime.storage.importStoreExport(payload)
                 recoveredRecordCount += payload.records.count
                 recoveredGroupIDs.formUnion(payload.groups.map(\.id))
-                offset += payload.records.count
                 await Task.yield()
             }
 

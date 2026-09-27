@@ -38,6 +38,25 @@ swiftc clipaste/Models/ClipboardSourceMetadata.swift \
 swiftc clipaste/Utilities/ImageProcessor.swift \
   clipaste/Models/ClipboardRecord.swift \
   clipaste/Managers/ClipboardStoreActor+ContentMaintenance.swift \
+  clipaste/Managers/ClipboardStoreActor+Batching.swift \
   scripts/ClipboardContentMaintenanceTestSupport.swift scripts/ClipboardContentMaintenanceTests.swift \
   -o "$test_dir/content-maintenance"
 "$test_dir/content-maintenance"
+
+swiftc clipaste/Utilities/ImageProcessor.swift \
+  clipaste/Models/ClipboardRecord.swift \
+  clipaste/Models/ClipboardGroupModel.swift \
+  clipaste/Models/ClipboardSourceMetadata.swift \
+  clipaste/Models/SyncAnchor.swift \
+  clipaste/Managers/ClipboardStorageModels.swift \
+  clipaste/Managers/ClipboardStoreTransferModels.swift \
+  clipaste/Managers/ClipboardTextSyncPolicy.swift \
+  clipaste/Managers/ClipboardStoreActor+Transfer.swift \
+  clipaste/Managers/ClipboardStoreActor+Helpers.swift \
+  clipaste/Managers/ClipboardStoreActor+Batching.swift \
+  clipaste/Managers/ClipboardStoreActor+DuplicateMaintenance.swift \
+  clipaste/Managers/ClipboardStoreActor+GroupMaintenance.swift \
+  clipaste/Managers/ClipboardRecordExportCursor.swift \
+  scripts/ClipboardRecordTransferTestSupport.swift scripts/ClipboardRecordTransferTests.swift \
+  -o "$test_dir/record-transfer"
+"$test_dir/record-transfer"
