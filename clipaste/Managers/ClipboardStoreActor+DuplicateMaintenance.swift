@@ -7,39 +7,21 @@ extension ClipboardStoreActor {
         _ = repairDuplicateGroups()
 
         // Two passes:
-        // 1) Scan with batched fetch to identify which contentHashes have >1 row.
-        //    We don't keep references to records here — let the context drop
-        //    intermediate faults so memory stays flat regardless of table size.
-        // 2) Only fetch and merge the small subset of records belonging to a
-        //    duplicate hash.
+        // 1) One unsorted scan that only reads contentHash. Sorted + OFFSET paging
+        //    made SQLite re-sort the whole table (inline blobs included) for every
+        //    page; on a few-hundred-MB store that hung startup for minutes.
+        // 2) Fetch only the rows of duplicate hashes, in chunks, instead of one
+        //    unindexed full-table scan per hash.
         do {
+            var scanDescriptor = FetchDescriptor<ClipboardRecord>()
+            scanDescriptor.propertiesToFetch = [\.contentHash]
+
             var counts: [String: Int] = [:]
             counts.reserveCapacity(4096)
-
-            let pageSize = 256
-            var offset = 0
-
-            while true {
-                var descriptor = FetchDescriptor<ClipboardRecord>(
-                    sortBy: [
-                        SortDescriptor(\.timestamp, order: .reverse),
-                        SortDescriptor(\.id, order: .forward)
-                    ]
-                )
-                descriptor.fetchLimit = pageSize
-                descriptor.fetchOffset = offset
-
-                let records = try modelContext.fetch(descriptor)
-                guard records.isEmpty == false else { break }
-
-                for record in records {
-                    let contentHash = record.contentHash.trimmingCharacters(in: .whitespacesAndNewlines)
-                    guard contentHash.isEmpty == false else { continue }
-                    counts[contentHash, default: 0] += 1
-                }
-
-                offset += records.count
-                guard records.count == pageSize else { break }
+            for record in try modelContext.fetch(scanDescriptor) {
+                let contentHash = record.contentHash
+                guard contentHash.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false else { continue }
+                counts[contentHash, default: 0] += 1
             }
 
             let duplicateHashes = counts.compactMap { $0.value > 1 ? $0.key : nil }
@@ -47,22 +29,25 @@ extension ClipboardStoreActor {
 
             var repairedCount = 0
 
-            for hash in duplicateHashes {
+            let chunkSize = 200
+            for chunkStart in stride(from: 0, to: duplicateHashes.count, by: chunkSize) {
+                let hashChunk = Array(duplicateHashes[chunkStart..<min(chunkStart + chunkSize, duplicateHashes.count)])
                 let dupDescriptor = FetchDescriptor<ClipboardRecord>(
                     predicate: #Predicate<ClipboardRecord> { record in
-                        record.contentHash == hash
+                        hashChunk.contains(record.contentHash)
                     }
                 )
-                let duplicates = (try? modelContext.fetch(dupDescriptor)) ?? []
-                guard duplicates.count > 1 else { continue }
+                let records = try modelContext.fetch(dupDescriptor)
 
-                let orderedRecords = duplicates.sorted(by: shouldPreferSurvivor)
-                guard let survivor = orderedRecords.first else { continue }
+                for duplicates in Dictionary(grouping: records, by: \.contentHash).values where duplicates.count > 1 {
+                    let orderedRecords = duplicates.sorted(by: shouldPreferSurvivor)
+                    guard let survivor = orderedRecords.first else { continue }
 
-                for duplicate in orderedRecords.dropFirst() {
-                    merge(duplicate, into: survivor)
-                    modelContext.delete(duplicate)
-                    repairedCount += 1
+                    for duplicate in orderedRecords.dropFirst() {
+                        merge(duplicate, into: survivor)
+                        modelContext.delete(duplicate)
+                        repairedCount += 1
+                    }
                 }
             }
 

@@ -9,34 +9,29 @@ extension ClipboardStoreActor {
             let migratedBundleIdentifiers = MigrationManager.migratedBundleIdentifiers
             let now = Date()
             var repairedCount = 0
-            var offset = 0
 
-            while true {
-                let records = try fetchRecordPage(offset: offset)
-                guard records.isEmpty == false else { break }
-
-                var repairedInPage = 0
-                for record in records {
-                    guard record.timestamp < suspiciousUpperBound,
-                          let appBundleID = record.appBundleID,
-                          migratedBundleIdentifiers.contains(appBundleID),
-                          let repairedDate = MigrationManager.repairedDateIfLikelyMisdecodedReferenceTimestamp(
-                            record.timestamp,
-                            now: now
-                          ) else {
-                        continue
-                    }
-
-                    record.timestamp = repairedDate
-                    repairedCount += 1
-                    repairedInPage += 1
+            // 每次启动都会跑:只取可疑时间戳的行,不能再按页排序扫描整表(含内联大字段)。
+            let descriptor = FetchDescriptor<ClipboardRecord>(
+                predicate: #Predicate<ClipboardRecord> { record in
+                    record.timestamp < suspiciousUpperBound
+                }
+            )
+            for record in try modelContext.fetch(descriptor) {
+                guard let appBundleID = record.appBundleID,
+                      migratedBundleIdentifiers.contains(appBundleID),
+                      let repairedDate = MigrationManager.repairedDateIfLikelyMisdecodedReferenceTimestamp(
+                        record.timestamp,
+                        now: now
+                      ) else {
+                    continue
                 }
 
-                if repairedInPage > 0 {
-                    try modelContext.save()
-                }
-                offset += records.count
-                guard records.count == Self.maintenancePageSize else { break }
+                record.timestamp = repairedDate
+                repairedCount += 1
+            }
+
+            if repairedCount > 0 {
+                try modelContext.save()
             }
 
             return repairedCount

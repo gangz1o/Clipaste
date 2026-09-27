@@ -44,7 +44,11 @@ enum StabilityHardeningSourceTests {
         precondition(runtime.range(of: "shutdown()")!.lowerBound < runtime.range(of: "resetCloudStoreArtifacts()")!.lowerBound)
         precondition(runtime.contains("defaults.set(resolvedSyncEnabled, forKey: Keys.syncEnabled)"))
         precondition(runtime.contains("exportRecordBatch"))
-        precondition(storage.contains("descriptor.fetchLimit = pageSize"))
+        // 去重扫描只读 contentHash:不把内联大字段读进内存,也不对整表排序分页。
+        precondition(storage.contains("scanDescriptor.propertiesToFetch = [\\.contentHash]"))
+        // 维护类调用必须先脱离主线程,否则 @ModelActor 会在 MainActor 调用方线程上执行。
+        precondition(storage.contains("await storeActor.repairDuplicateRecords()") == false)
+        precondition(storage.contains("await storeActor.repairImportedMigrationTimestampsIfNeeded()") == false)
         precondition(storage.contains("let records = try modelContext.fetch(descriptor)\n            counts.reserveCapacity") == false)
         precondition(storage.contains("try export.validatedPayloadByteCount()"))
         precondition(bootstrapper.contains("try export.validatedPayloadByteCount()"))

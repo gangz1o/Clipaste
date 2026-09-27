@@ -80,11 +80,11 @@ extension StorageManager {
     }
 
     func repairImportedMigrationTimestampsIfNeeded() async -> Int {
-        await storeActor.repairImportedMigrationTimestampsIfNeeded()
+        await detachedMaintenance { await $0.repairImportedMigrationTimestampsIfNeeded() }
     }
 
     func repairTextClassificationsIfNeeded() async -> Int {
-        await storeActor.repairTextClassificationsIfNeeded()
+        await detachedMaintenance { await $0.repairTextClassificationsIfNeeded() }
     }
 
     func touchSyncAnchor() async throws {
@@ -92,27 +92,27 @@ extension StorageManager {
     }
 
     func repairDuplicateRecords() async -> Int {
-        await storeActor.repairDuplicateRecords()
+        await detachedMaintenance { await $0.repairDuplicateRecords() }
     }
 
     func repairOversizedInlineTextRecords() async -> Int {
-        await storeActor.repairOversizedInlineTextRecords()
+        await detachedMaintenance { await $0.repairOversizedInlineTextRecords() }
     }
 
     func fetchDistinctAppBundleIDsForColorRepair() async -> [String] {
-        await storeActor.fetchDistinctAppBundleIDsForColorRepair()
+        await detachedMaintenance { await $0.fetchDistinctAppBundleIDsForColorRepair() }
     }
 
     func repairAppIconDominantColors(using colorsByBundleID: [String: String]) async -> Int {
-        await storeActor.repairAppIconDominantColors(using: colorsByBundleID)
+        await detachedMaintenance { await $0.repairAppIconDominantColors(using: colorsByBundleID) }
     }
 
     func fetchDistinctAppBundleIDsMissingIconData() async -> [String] {
-        await storeActor.fetchDistinctAppBundleIDsMissingIconData()
+        await detachedMaintenance { await $0.fetchDistinctAppBundleIDsMissingIconData() }
     }
 
     func repairAppIconData(using iconDataByBundleID: [String: Data]) async -> Int {
-        await storeActor.repairAppIconData(using: iconDataByBundleID)
+        await detachedMaintenance { await $0.repairAppIconData(using: iconDataByBundleID) }
     }
 
     func exportGroups() async throws -> [ClipboardGroupExport] {

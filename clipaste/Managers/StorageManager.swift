@@ -39,4 +39,17 @@ final class StorageManager: @unchecked Sendable, ClipboardStorageDraining {
             await operation()
         }.value
     }
+
+    /// `@ModelActor` 的执行器经 `performAndWait` 在**调用方线程**上跑任务:
+    /// 从 MainActor 直接 await `storeActor` 时,整表维护会在主线程执行并卡死界面。
+    /// 维护类调用统一先脱离主线程,仍走共享写 actor 以保持写入串行。
+    nonisolated
+    func detachedMaintenance<T: Sendable>(
+        _ operation: @Sendable @escaping (ClipboardStoreActor) async -> T
+    ) async -> T {
+        let storeActor = self.storeActor
+        return await Task.detached(priority: .utility) {
+            await operation(storeActor)
+        }.value
+    }
 }
