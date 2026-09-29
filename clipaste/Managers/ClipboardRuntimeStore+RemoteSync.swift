@@ -15,6 +15,8 @@ extension ClipboardRuntimeStore {
             // short moment after eventChanged fires; the no-op signature
             // check makes this cheap when nothing actually changed.
             await self.refreshAfterRemoteImport()
+            // 补扫只为 CloudKit 稍晚落地的导入；本地路由没有远端写入者。
+            guard self.currentRuntime.syncEnabled else { return }
             await self.refreshAfterRemoteImportPasses(delays: [1_500_000_000])
         }
     }
@@ -69,10 +71,21 @@ extension ClipboardRuntimeStore {
         // skip dedup entirely on no-op CloudKit pings. When a change is
         // observed, dedup is throttled (default: at most once per 10 min) —
         // ordinary capture-time dedup is already handled inline in upsert.
-        let latestSignature = await makeClipboardSnapshotSignature(using: currentRuntime.storage)
+        let snapshot = await makeClipboardSnapshot(using: currentRuntime.storage)
+        let latestSignature = snapshot.signature
+        let localHashes = consumeLocallyBroadcastRecordHashes()
+        let previousSignature = clipboardSnapshotSignature
         let didChange = updateClipboardSnapshotSignature(latestSignature)
 
         guard didChange else { return }
+
+        // 本进程自己保存的回声：记录已增量送达界面，只吸收进基线并顺手更新 warm cache，
+        // 不再触发整页刷新、诊断快照和去重修复。
+        if let previousSignature, let localHashes,
+           latestSignature.differsOnlyByLocalChanges(from: previousSignature, localHashes: localHashes) {
+            publishWarmCache(snapshot.items, routeKey: rootIdentity)
+            return
+        }
 
         let repairedCount = await repairDuplicateRecordsIfThrottled(using: currentRuntime.storage)
         await refreshCloudStoreDiagnostics(using: currentRuntime.storage)
@@ -89,6 +102,19 @@ extension ClipboardRuntimeStore {
                 arguments: [.count(repairedCount)]
             )
         )
+    }
+
+    func noteLocallyBroadcastRecordChange(_ contentHash: String) {
+        guard locallyBroadcastRecordHashes != nil else { return }
+        locallyBroadcastRecordHashes?.insert(contentHash)
+        if (locallyBroadcastRecordHashes?.count ?? 0) > Self.maximumTrackedLocalRecordHashes {
+            locallyBroadcastRecordHashes = nil
+        }
+    }
+
+    func consumeLocallyBroadcastRecordHashes() -> Set<String>? {
+        defer { locallyBroadcastRecordHashes = [] }
+        return locallyBroadcastRecordHashes
     }
 
     func refreshAfterRemoteImportPasses(delays: [UInt64]) async {

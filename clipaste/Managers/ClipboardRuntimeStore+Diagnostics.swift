@@ -30,16 +30,18 @@ extension ClipboardRuntimeStore {
 
 
     func resetClipboardSnapshotSignature(using storage: StorageManager) async {
-        clipboardSnapshotSignature = await makeClipboardSnapshotSignature(using: storage)
+        clipboardSnapshotSignature = await makeClipboardSnapshot(using: storage).signature
     }
 
-    func updateClipboardSnapshotSignature(_ latestSignature: String) -> Bool {
+    func updateClipboardSnapshotSignature(_ latestSignature: ClipboardSnapshotSignature) -> Bool {
         defer { clipboardSnapshotSignature = latestSignature }
         guard let clipboardSnapshotSignature else { return true }
         return clipboardSnapshotSignature != latestSignature
     }
 
-    func makeClipboardSnapshotSignature(using storage: StorageManager) async -> String {
+    func makeClipboardSnapshot(
+        using storage: StorageManager
+    ) async -> (signature: ClipboardSnapshotSignature, items: [ClipboardItem]) {
         let groups = await storage.fetchGroups()
         let items = await storage.fetchItemsPage(
             searchText: "",
@@ -55,17 +57,24 @@ extension ClipboardRuntimeStore {
             ].joined(separator: "|")
         }.joined(separator: "\n")
 
-        let itemSignature = items.map { item in
-            [
-                item.id.uuidString,
-                item.contentHash,
-                String(item.timestamp.timeIntervalSinceReferenceDate),
-                item.isPinned ? "1" : "0",
-                item.groupIDs.joined(separator: ",")
-            ].joined(separator: "|")
-        }.joined(separator: "\n")
+        let entries = items.map { item in
+            ClipboardSnapshotSignature.Entry(
+                contentHash: item.contentHash,
+                timestamp: item.timestamp.timeIntervalSinceReferenceDate,
+                fingerprint: [
+                    item.id.uuidString,
+                    item.isPinned ? "1" : "0",
+                    item.groupIDs.joined(separator: ",")
+                ].joined(separator: "|")
+            )
+        }
 
-        return "groups:\n\(groupSignature)\nitems:\n\(itemSignature)"
+        let signature = ClipboardSnapshotSignature(
+            groupSignature: groupSignature,
+            entries: entries,
+            windowLimit: ClipboardHistoryWarmCache.defaultLimit
+        )
+        return (signature, items)
     }
 
     func scheduleWarmCacheRefresh(using storage: StorageManager, routeKey: String) {
@@ -75,14 +84,25 @@ extension ClipboardRuntimeStore {
                 fetchLimit: ClipboardHistoryWarmCache.defaultLimit,
                 offset: 0
             )
-            await ClipboardHistoryWarmCache.shared.update(items: warmItems, routeKey: routeKey)
-            await MainActor.run {
-                NotificationCenter.default.post(
-                    name: .clipboardWarmCacheDidChange,
-                    object: nil,
-                    userInfo: ["routeKey": routeKey]
-                )
-            }
+            await Self.publishWarmCache(warmItems, routeKey: routeKey)
+        }
+    }
+
+    /// 已经拿到首屏数据时直接更新 warm cache，省掉一次重复查询。
+    func publishWarmCache(_ items: [ClipboardItem], routeKey: String) {
+        Task.detached(priority: .background) {
+            await Self.publishWarmCache(items, routeKey: routeKey)
+        }
+    }
+
+    private nonisolated static func publishWarmCache(_ warmItems: [ClipboardItem], routeKey: String) async {
+        await ClipboardHistoryWarmCache.shared.update(items: warmItems, routeKey: routeKey)
+        await MainActor.run {
+            NotificationCenter.default.post(
+                name: .clipboardWarmCacheDidChange,
+                object: nil,
+                userInfo: ["routeKey": routeKey]
+            )
         }
     }
 

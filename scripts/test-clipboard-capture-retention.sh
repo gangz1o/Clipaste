@@ -60,3 +60,8 @@ swiftc clipaste/Utilities/ImageProcessor.swift \
   scripts/ClipboardRecordTransferTestSupport.swift scripts/ClipboardRecordTransferTests.swift \
   -o "$test_dir/record-transfer"
 "$test_dir/record-transfer"
+
+swiftc clipaste/Managers/ClipboardSnapshotSignature.swift \
+  scripts/ClipboardSnapshotSignatureTests.swift \
+  -parse-as-library -o "$test_dir/snapshot-signature"
+"$test_dir/snapshot-signature"

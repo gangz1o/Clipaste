@@ -5,6 +5,9 @@ import os
 import SwiftData
 
 extension ClipboardRuntimeStore {
+    /// 签名比对间隔内最多追踪的本地记录变更条数，超出后按外部变化处理。
+    static let maximumTrackedLocalRecordHashes = 512
+
     enum Keys {
         static let syncEnabled = "enable_icloud_sync"
         static let lastSyncDate = "last_sync_date"

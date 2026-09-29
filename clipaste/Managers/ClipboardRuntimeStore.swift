@@ -42,7 +42,14 @@ final class ClipboardRuntimeStore {
     var remoteStoreObserver: NSObjectProtocol?
     var cloudKitEventObserver: NSObjectProtocol?
     var remoteRepairTask: Task<Void, Never>?
-    var clipboardSnapshotSignature: String?
+    @ObservationIgnored
+    var clipboardSnapshotSignature: ClipboardSnapshotSignature?
+    /// 自上次签名比对以来，本进程已通过 clipboardRecordDidChange 增量广播过的记录。
+    /// nil 表示条数超限、无法判断，下次比对一律按外部变化处理。
+    @ObservationIgnored
+    var locallyBroadcastRecordHashes: Set<String>? = []
+    @ObservationIgnored
+    var localRecordChangeObserver: NSObjectProtocol?
     var lastDuplicateRepairDate: Date?
 
     private init(defaults: UserDefaults = .standard) {
@@ -166,6 +173,17 @@ final class ClipboardRuntimeStore {
 
         Task {
             await performInitialBootstrap()
+        }
+
+        localRecordChangeObserver = NotificationCenter.default.addObserver(
+            forName: .clipboardRecordDidChange,
+            object: nil,
+            queue: nil
+        ) { [weak self] notification in
+            guard let contentHash = notification.clipboardRecordChange?.contentHash else { return }
+            Task { @MainActor [weak self] in
+                self?.noteLocallyBroadcastRecordChange(contentHash)
+            }
         }
 
         remoteStoreObserver = NotificationCenter.default.addObserver(
