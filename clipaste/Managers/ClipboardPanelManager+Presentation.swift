@@ -61,8 +61,15 @@ extension ClipboardPanelManager {
         // ⚠️ 不再调用 NSApp.activate(ignoringOtherApps:) — 那会把菜单栏切成自己的 App，
         //    导致目标 App 失去焦点，Cmd+V 无法命中正确窗口。
         //    .nonactivatingPanel 已经允许面板接收按键，无需抢占 App 级焦点。
+        // 同步合并隐藏期间暂存的剪贴板变更，保证面板首帧就是最新列表。
+        NotificationCenter.default.post(name: .clipboardPanelWillPresent, object: nil)
         panel.makeKeyAndOrderFront(nil)
         panel.becomeFirstResponder()
+
+        // 复制后立刻呼出时，轮询可能还没跑到这次变化；这里立即补采集，
+        // 入库后经 clipboardRecordDidChange 增量插入到列表顶部。
+        // .nonactivatingPanel 不会改变 frontmostApplication，来源 App 归属仍然正确。
+        ClipboardMonitor.shared.captureLatestChangeNow()
 
         NSAnimationContext.runAnimationGroup({ context in
             context.duration = 0.14

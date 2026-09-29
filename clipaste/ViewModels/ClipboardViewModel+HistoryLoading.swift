@@ -7,6 +7,9 @@ extension ClipboardViewModel {
         dataLoadGeneration &+= 1
         let generation = dataLoadGeneration
         historyLoadTask?.cancel()
+        isInitialHistoryPageLoadInFlight = true
+        storeUpsertsDuringHistoryLoad.removeAll()
+        storeDeletesDuringHistoryLoad.removeAll()
         let shouldDeferRefreshUntilAfterPresentation = mode == .visibleFirst && items.isEmpty == false
 
         if items.isEmpty {
@@ -82,6 +85,7 @@ extension ClipboardViewModel {
 
         historyLoadTask?.cancel()
         dataLoadGeneration &+= 1
+        endInitialHistoryPageLoadTracking()
         let retainedItems = Array(items.prefix(Self.initialVisibleItemBatchSize))
         replaceItems(retainedItems)
         refreshDisplayedItemsFromCurrentScope()
@@ -116,8 +120,11 @@ extension ClipboardViewModel {
     }
 
     @MainActor
-    func applyInitialHistoryPage(_ pageItems: [ClipboardItem], generation: UInt, mode: DataLoadMode) {
+    func applyInitialHistoryPage(_ fetchedPageItems: [ClipboardItem], generation: UInt, mode: DataLoadMode) {
         guard generation == dataLoadGeneration else { return }
+        let fetchedPageCount = fetchedPageItems.count
+        let pageItems = mergingStoreChangesDuringHistoryLoad(into: fetchedPageItems)
+        endInitialHistoryPageLoadTracking()
 
         if mode == .visibleFirst, items.isEmpty == false {
             mergeItems(pageItems, prepend: true)
@@ -127,7 +134,7 @@ extension ClipboardViewModel {
                 isInitialHistoryLoading = false
                 isLoadingMoreHistory = false
                 loadedHistoryCount = items.count
-                hasLoadedFullHistory = pageItems.count < Self.initialVisibleItemBatchSize
+                hasLoadedFullHistory = fetchedPageCount < Self.initialVisibleItemBatchSize
                 return
             }
 
@@ -139,7 +146,7 @@ extension ClipboardViewModel {
         isInitialHistoryLoading = false
         isLoadingMoreHistory = false
         loadedHistoryCount = items.count
-        hasLoadedFullHistory = pageItems.count < Self.initialVisibleItemBatchSize
+        hasLoadedFullHistory = fetchedPageCount < Self.initialVisibleItemBatchSize
     }
 
     @MainActor
@@ -150,6 +157,36 @@ extension ClipboardViewModel {
         refreshDisplayedItemsFromCurrentScope()
         isInitialHistoryLoading = false
         loadedHistoryCount = loadedCount
+    }
+
+    func recordStoreChangeDuringHistoryLoad(upserted item: ClipboardItem) {
+        guard isInitialHistoryPageLoadInFlight else { return }
+        storeDeletesDuringHistoryLoad.remove(item.contentHash)
+        storeUpsertsDuringHistoryLoad[item.contentHash] = item
+    }
+
+    func recordStoreChangeDuringHistoryLoad(deletedHash contentHash: String) {
+        guard isInitialHistoryPageLoadInFlight else { return }
+        storeUpsertsDuringHistoryLoad.removeValue(forKey: contentHash)
+        storeDeletesDuringHistoryLoad.insert(contentHash)
+    }
+
+    private func endInitialHistoryPageLoadTracking() {
+        isInitialHistoryPageLoadInFlight = false
+        storeUpsertsDuringHistoryLoad.removeAll()
+        storeDeletesDuringHistoryLoad.removeAll()
+    }
+
+    private func mergingStoreChangesDuringHistoryLoad(into pageItems: [ClipboardItem]) -> [ClipboardItem] {
+        guard storeUpsertsDuringHistoryLoad.isEmpty == false || storeDeletesDuringHistoryLoad.isEmpty == false else {
+            return pageItems
+        }
+
+        let changedHashes = storeDeletesDuringHistoryLoad.union(storeUpsertsDuringHistoryLoad.keys)
+        var merged = pageItems.filter { changedHashes.contains($0.contentHash) == false }
+        merged.append(contentsOf: storeUpsertsDuringHistoryLoad.values)
+        merged.sort { $0.timestamp > $1.timestamp }
+        return merged
     }
 
     @discardableResult

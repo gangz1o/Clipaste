@@ -18,6 +18,12 @@ extension ClipboardMonitor {
         processPasteboardItems()
     }
 
+    /// 面板呼出时主动同步一次剪贴板，不等下一个轮询节拍。
+    func captureLatestChangeNow() {
+        guard isMonitoringLifecycleActive, isMonitoringPaused == false else { return }
+        pollPasteboardIfNeeded()
+    }
+
     func processPasteboardItems() {
         let sourceApplication = NSWorkspace.shared.frontmostApplication
         let appID = sourceApplication?.bundleIdentifier

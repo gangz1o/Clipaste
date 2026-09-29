@@ -5,6 +5,10 @@ import SwiftUI
 extension ClipboardViewModel {
     func beginPresentation() {
         let wasAlreadyActive = isPanelPresentationActive
+        if wasAlreadyActive == false {
+            // 补上 willPresent 之后到面板成为 key 之间落地的隐藏期暂存。
+            applyHiddenChangesBeforePresentation()
+        }
         isPanelPresentationActive = true
         
         // Only reset search on the initial presentation, not when regaining focus
@@ -49,7 +53,8 @@ extension ClipboardViewModel {
             .sink { [weak self] _ in
                 guard let self, self.hasPreparedPanelData else { return }
                 guard self.isPanelPresentationActive else {
-                    self.needsReloadOnNextPresentation = true
+                    self.needsGroupReloadOnNextPresentation = true
+                    self.scheduleHiddenFirstPagePrefetch()
                     return
                 }
                 self.loadData(mode: .fullRefresh)
@@ -63,6 +68,7 @@ extension ClipboardViewModel {
             .sink { [weak self] _ in
                 guard let self, self.hasPreparedPanelData else { return }
                 guard self.isPanelPresentationActive else {
+                    self.discardHiddenStaging()
                     self.needsReloadOnNextPresentation = true
                     return
                 }

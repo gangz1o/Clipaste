@@ -117,6 +117,20 @@ final class ClipboardViewModel {
     var loadedHistoryCount = 0
     var hasLoadedFullHistory = false
     @ObservationIgnored nonisolated(unsafe) var historyLoadTask: Task<Void, Never>? = nil
+    /// 首屏整页查询进行中时收到的增量变更。整页结果可能读自这些变更入库之前，
+    /// 落地前需要先合并，否则刚插入的新记录会被旧快照覆盖掉。
+    @ObservationIgnored var isInitialHistoryPageLoadInFlight = false
+    @ObservationIgnored var storeUpsertsDuringHistoryLoad: [String: ClipboardItem] = [:]
+    @ObservationIgnored var storeDeletesDuringHistoryLoad: Set<String> = []
+    /// 面板隐藏期间暂存的变更，见 ClipboardViewModel+HiddenSync。全部不参与观察。
+    @ObservationIgnored var hiddenStagedUpserts: [String: ClipboardItem] = [:]
+    @ObservationIgnored var hiddenStagedDeletes: Set<String> = []
+    @ObservationIgnored var hiddenChangeSequence: UInt = 0
+    @ObservationIgnored var hiddenChangeSequenceByHash: [String: UInt] = [:]
+    @ObservationIgnored var hiddenPrefetchedFirstPage: [ClipboardItem]? = nil
+    @ObservationIgnored var hiddenFirstPagePrefetchPhase: HiddenFirstPagePrefetchPhase = .idle
+    @ObservationIgnored var needsGroupReloadOnNextPresentation = false
+    @ObservationIgnored nonisolated(unsafe) var hiddenFirstPagePrefetchTask: Task<Void, Never>? = nil
     var itemIndexByID: [UUID: Int] = [:]
     var itemIndexByHash: [String: Int] = [:]
     @ObservationIgnored nonisolated(unsafe) var operationNoticeHideTask: Task<Void, Never>? = nil
@@ -139,6 +153,7 @@ final class ClipboardViewModel {
 
         setupDataSubscriptions()
         setupRecordChangeSubscriptions()
+        setupPanelWillPresentSubscription()
         setupWarmCacheSubscription()
         setupFilterPipeline()
         setupGroupSwitchSubscriptions()
@@ -160,5 +175,6 @@ final class ClipboardViewModel {
             NSEvent.removeMonitor(flagsChangedMonitor)
         }
         historyLoadTask?.cancel()
+        hiddenFirstPagePrefetchTask?.cancel()
     }
 }

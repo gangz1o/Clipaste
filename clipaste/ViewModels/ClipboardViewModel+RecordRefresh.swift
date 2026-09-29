@@ -10,7 +10,7 @@ extension ClipboardViewModel {
             .sink { [weak self] change in
                 guard let self, self.hasPreparedPanelData else { return }
                 guard self.isPanelPresentationActive else {
-                    self.needsReloadOnNextPresentation = true
+                    self.stageHiddenRecordChange(change)
                     return
                 }
 
@@ -22,17 +22,8 @@ extension ClipboardViewModel {
     }
 
     func refreshRecordAfterStoreChange(_ change: ClipboardRecordChange) async {
-        let previousFirstVisibleID = displayedItemsForInteraction.first?.id
-        let shouldFollowTopInsertion =
-            change.kind == .upsert &&
-            selectedItemIDs.count == 1 &&
-            previousFirstVisibleID != nil &&
-            selectedItemIDs.contains(previousFirstVisibleID!) &&
-            lastSelectedID == previousFirstVisibleID
-
         if change.kind == .delete {
-            removeItem(withHash: change.contentHash)
-            reconcileSelectionAfterDisplayedItemsChange()
+            applyStoreRecordChanges(upserts: [], deletedHashes: [change.contentHash])
             return
         }
 
@@ -41,7 +32,40 @@ extension ClipboardViewModel {
             return
         }
 
-        upsertItem(item, shouldResort: change.kind.requiresResort)
+        applyStoreRecordChanges(
+            upserts: [item],
+            deletedHashes: [],
+            shouldResort: change.kind.requiresResort,
+            followsTopInsertion: change.kind == .upsert
+        )
+    }
+
+    /// 把已取好快照的变更合并进列表。可见时的增量刷新和呼出前合并隐藏期暂存都走这里。
+    func applyStoreRecordChanges(
+        upserts: [ClipboardItem],
+        deletedHashes: Set<String>,
+        shouldResort: Bool = true,
+        followsTopInsertion: Bool = false
+    ) {
+        let previousFirstVisibleID = displayedItemsForInteraction.first?.id
+        let shouldFollowTopInsertion =
+            followsTopInsertion &&
+            upserts.isEmpty == false &&
+            selectedItemIDs.count == 1 &&
+            previousFirstVisibleID != nil &&
+            selectedItemIDs.contains(previousFirstVisibleID!) &&
+            lastSelectedID == previousFirstVisibleID
+
+        for contentHash in deletedHashes {
+            recordStoreChangeDuringHistoryLoad(deletedHash: contentHash)
+        }
+        removeItems(withHashes: deletedHashes)
+
+        for item in upserts {
+            recordStoreChangeDuringHistoryLoad(upserted: item)
+        }
+        upsertItems(upserts, shouldResort: shouldResort)
+
         reconcileSelectionAfterDisplayedItemsChange()
 
         if shouldFollowTopInsertion,

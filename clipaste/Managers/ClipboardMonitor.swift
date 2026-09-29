@@ -113,9 +113,12 @@ final class ClipboardMonitor: ClipboardCaptureDraining {
         let intervalNanoseconds = Self.nanoseconds(for: pollingInterval)
         cancelMonitoringLoop()
 
-        monitoringTask = Task.detached(priority: .background) { [weak self] in
+        let tolerance = Self.pollingTolerance(for: pollingInterval)
+        // 不能用 .background：后台 QoS 的定时器会被系统大幅合并/推迟（叠加 App Nap 时可达数秒），
+        // 导致复制后立刻呼出面板时新记录还没被采集。
+        monitoringTask = Task.detached(priority: .utility) { [weak self] in
             while !Task.isCancelled {
-                try? await Task.sleep(for: .nanoseconds(intervalNanoseconds))
+                try? await Task.sleep(for: .nanoseconds(intervalNanoseconds), tolerance: tolerance)
                 await self?.pollPasteboardIfNeeded()
             }
         }
@@ -133,6 +136,10 @@ final class ClipboardMonitor: ClipboardCaptureDraining {
         }
 
         return candidate
+    }
+
+    private static func pollingTolerance(for interval: TimeInterval) -> Duration {
+        .milliseconds(min(50, max(10, Int((interval * 100).rounded()))))
     }
 
     private static func nanoseconds(for interval: TimeInterval) -> UInt64 {

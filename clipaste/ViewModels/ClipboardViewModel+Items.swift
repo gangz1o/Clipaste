@@ -74,11 +74,22 @@ extension ClipboardViewModel {
     }
 
     func upsertItem(_ item: ClipboardItem, shouldResort: Bool) {
-        if let index = itemIndexByHash[item.contentHash], items.indices.contains(index) {
-            items[index] = item
-        } else {
-            items.insert(item, at: 0)
+        upsertItems([item], shouldResort: shouldResort)
+    }
+
+    /// 批量合并：只排序、刷新显示列表和重建索引各一次。
+    func upsertItems(_ incomingItems: [ClipboardItem], shouldResort: Bool) {
+        guard incomingItems.isEmpty == false else { return }
+
+        var insertedItems: [ClipboardItem] = []
+        for item in incomingItems {
+            if let index = itemIndexByHash[item.contentHash], items.indices.contains(index) {
+                items[index] = item
+            } else {
+                insertedItems.append(item)
+            }
         }
+        items.insert(contentsOf: insertedItems, at: 0)
 
         if shouldResort {
             sortItemsByPresentationOrder()
@@ -86,7 +97,17 @@ extension ClipboardViewModel {
 
         refreshDisplayedItemsFromCurrentScope()
         rebuildItemIndexes()
-        enqueueMissingLinkMetadata(for: [item])
+        enqueueMissingLinkMetadata(for: incomingItems)
+    }
+
+    func removeItems(withHashes contentHashes: Set<String>) {
+        guard contentHashes.isEmpty == false else { return }
+        let countBefore = items.count
+        items.removeAll { contentHashes.contains($0.contentHash) }
+        guard items.count != countBefore else { return }
+
+        refreshDisplayedItemsFromCurrentScope()
+        rebuildItemIndexes()
     }
 }
 
