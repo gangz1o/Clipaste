@@ -19,8 +19,10 @@ extension GeneralSettingsView {
             }
 
             Toggle(isOn: $viewModel.isCopySoundEnabled) {
-                Text("Copy Notification Sound")
+                Text("Clipboard Change Sound")
             }
+            .help(Text("Play a short sound when the system clipboard changes or you copy from history."))
+
 
             Toggle(isOn: $singleClickPaste) {
                 Text("Single-click Paste")

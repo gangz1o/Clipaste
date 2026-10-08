@@ -44,6 +44,7 @@ extension ClipboardMonitor {
         }
 
         guard let pasteboardItems = pasteboard.pasteboardItems, !pasteboardItems.isEmpty else { return }
+        ClipboardSoundFeedback.play(defaults: defaults)
         let storage = StorageManager.shared
         var recordPayloads: [ClipboardRecordPayload] = []
         var imagePayloads: [ClipboardImagePayload] = []

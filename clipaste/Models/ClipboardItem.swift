@@ -83,7 +83,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
     let appIcon: NSImage?
     let appIconName: String // Or you can use NSImage, but keeping it simple for now
     let appIconDominantColorHex: String?
-    let timestamp: Date
+    var timestamp: Date
     let rawText: String?
     let hasImagePreview: Bool
     let hasImageData: Bool
@@ -99,6 +99,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
     var customTitle: String? // 用户手动添加的标题
     var linkTitle: String?     // 链接预览：网页标题（后台 metadata 引擎抓取）
     var linkIconData: Data?    // 链接预览：网站图标数据
+    var topPinOrder: Double = 0
     var isPinned: Bool         // 固定状态
     let hasRTF: Bool           // ⚠️ 架构红线：仅轻量标记，不持有富文本二进制
     let sourcePlatformRawValue: String
@@ -136,6 +137,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         linkTitle: String? = nil,
         linkIconData: Data? = nil,
         isPinned: Bool = false,
+        topPinOrder: Double = 0,
         hasRTF: Bool = false,
         sourcePlatformRawValue: String = "macOS",
         sourceDeviceName: String? = nil,
@@ -178,6 +180,7 @@ struct ClipboardItem: Identifiable, Hashable, @unchecked Sendable {
         self.linkTitle = linkTitle
         self.linkIconData = linkIconData
         self.isPinned = isPinned
+        self.topPinOrder = topPinOrder
         self.hasRTF = hasRTF
         self.sourcePlatformRawValue = sourcePlatformRawValue
         self.sourceDeviceName = sourceDeviceName

@@ -98,7 +98,6 @@ extension ClipboardViewModel {
                 typeFilter: typeFilter,
                 groupId: groupId,
                 builtInGroup: builtInGroup,
-                visibleIDs: filteredIDs,
                 generation: thisGeneration
             )
         }
@@ -110,7 +109,6 @@ extension ClipboardViewModel {
         typeFilter: ClipboardContentType?,
         groupId: String?,
         builtInGroup: ClipboardBuiltInGroup?,
-        visibleIDs: [UUID],
         generation: UInt
     ) async {
         let storage = StorageManager.shared
@@ -146,7 +144,7 @@ extension ClipboardViewModel {
         guard Task.isCancelled == false, filterGeneration == generation else { return }
 
         mergeItems(newItems, prepend: false)
-        applyDisplayedItemIDsIfChanged(visibleIDs + newItems.map(\.id))
+        refreshDisplayedItemsFromCurrentScope()
     }
 
     private func applyDisplayedItemIDsIfChanged(_ newIDs: [UUID]) {

@@ -150,7 +150,7 @@ extension ClipboardStoreActor {
 
     func deleteUnpinnedRecords() {
         let descriptor = FetchDescriptor<ClipboardRecord>(
-            predicate: #Predicate<ClipboardRecord> { $0.isPinned == false }
+            predicate: #Predicate<ClipboardRecord> { $0.isPinned == false && $0.topPinOrder == 0 }
         )
         do {
             let records = try modelContext.fetch(descriptor)

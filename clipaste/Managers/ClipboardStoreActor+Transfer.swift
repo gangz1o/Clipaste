@@ -168,6 +168,7 @@ extension ClipboardStoreActor {
                 existingRecord.rtfData = incomingRecord.rtfData ?? existingRecord.rtfData
                 existingRecord.richTextArchiveData = incomingRecord.richTextArchiveData ?? existingRecord.richTextArchiveData
                 existingRecord.isPinned = existingRecord.isPinned || incomingRecord.isPinned
+                existingRecord.topPinOrder = max(existingRecord.topPinOrder, incomingRecord.topPinOrder)
                 existingRecord.sourcePlatformRawValue = incomingRecord.sourcePlatformRawValue
                 existingRecord.sourceDeviceName = incomingRecord.sourceDeviceName ?? existingRecord.sourceDeviceName
                 existingRecord.captureMethodRawValue = incomingRecord.captureMethodRawValue
@@ -227,6 +228,7 @@ extension ClipboardStoreActor {
                     linkTitle: incomingRecord.linkTitle,
                     linkIconData: incomingRecord.linkIconData,
                     isPinned: incomingRecord.isPinned,
+                    topPinOrder: incomingRecord.topPinOrder,
                     rtfData: incomingRecord.rtfData,
                     richTextArchiveData: incomingRecord.richTextArchiveData,
                     sourcePlatformRawValue: incomingRecord.sourcePlatformRawValue,
@@ -266,6 +268,7 @@ extension ClipboardStoreActor {
             customTitle: record.customTitle,
             linkTitle: record.linkTitle,
             linkIconData: record.linkIconData,
+            topPinOrder: record.topPinOrder,
             isPinned: record.isPinned,
             rtfData: record.rtfData,
             richTextArchiveData: record.richTextArchiveData,

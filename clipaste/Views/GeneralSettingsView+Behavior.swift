@@ -23,7 +23,7 @@ extension GeneralSettingsView {
             SettingsSectionHeader(title: "History")
         } footer: {
             SettingsSectionFooter {
-                Text("Automatic cleanup keeps items in Favorites and custom groups. Clear History keeps only Favorites.")
+                Text("Automatic cleanup keeps pinned items, Favorites and custom groups. Clear History keeps pinned items and Favorites.")
             }
         }
         .alert("Clear History?", isPresented: $showingClearAlert) {
@@ -32,7 +32,7 @@ extension GeneralSettingsView {
                 StorageManager.shared.clearUnpinnedHistory()
             }
         } message: {
-            Text("Permanently deletes non-favorite clipboard records and image caches. Items in Favorites are kept.")
+            Text("Permanently deletes clipboard records and image caches except pinned items and Favorites.")
         }
     }
 }

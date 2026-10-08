@@ -185,7 +185,7 @@ extension ClipboardViewModel {
         let changedHashes = storeDeletesDuringHistoryLoad.union(storeUpsertsDuringHistoryLoad.keys)
         var merged = pageItems.filter { changedHashes.contains($0.contentHash) == false }
         merged.append(contentsOf: storeUpsertsDuringHistoryLoad.values)
-        merged.sort { $0.timestamp > $1.timestamp }
+        merged.sort(by: ClipboardItem.precedesInHistory)
         return merged
     }
 

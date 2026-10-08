@@ -29,6 +29,7 @@ final class ClipboardRecord {
     var customTitle: String? // 用户手动添加的标题
     var linkTitle: String? // 链接预览：网页标题
     @Attribute(.externalStorage) var linkIconData: Data? // 链接预览：网站图标数据
+    var topPinOrder: Double = 0
     var isPinned: Bool = false // 固定状态
     @Attribute(.externalStorage) var rtfData: Data? // 预览/编辑使用的 RTF（原始 RTF 或后台回退生成）
     @Attribute(.externalStorage) var richTextArchiveData: Data? // 原始富格式集合（HTML/RTF/RTFD/Tabular Text）
@@ -58,6 +59,7 @@ final class ClipboardRecord {
         linkTitle: String? = nil,
         linkIconData: Data? = nil,
         isPinned: Bool = false,
+        topPinOrder: Double = 0,
         rtfData: Data? = nil,
         richTextArchiveData: Data? = nil,
         sourcePlatformRawValue: String = "macOS",
@@ -88,6 +90,7 @@ final class ClipboardRecord {
         self.linkTitle = linkTitle
         self.linkIconData = linkIconData
         self.isPinned = isPinned
+        self.topPinOrder = topPinOrder
         self.rtfData = rtfData
         self.richTextArchiveData = richTextArchiveData
         self.sourcePlatformRawValue = sourcePlatformRawValue

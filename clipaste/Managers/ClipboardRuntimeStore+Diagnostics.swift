@@ -64,6 +64,7 @@ extension ClipboardRuntimeStore {
                 fingerprint: [
                     item.id.uuidString,
                     item.isPinned ? "1" : "0",
+                    String(item.topPinOrder),
                     item.groupIDs.joined(separator: ",")
                 ].joined(separator: "|")
             )

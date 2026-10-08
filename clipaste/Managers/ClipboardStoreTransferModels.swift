@@ -39,6 +39,7 @@ struct ClipboardRecordExport: Sendable {
     let customTitle: String?
     let linkTitle: String?
     let linkIconData: Data?
+    var topPinOrder: Double = 0
     let isPinned: Bool
     let rtfData: Data?
     let richTextArchiveData: Data?

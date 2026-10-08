@@ -26,7 +26,7 @@ extension ClipboardViewModel {
     }
 
     func replaceItems(_ newItems: [ClipboardItem]) {
-        items = newItems
+        items = newItems.sorted(by: ClipboardItem.precedesInHistory)
         rebuildItemIndexes()
         enqueueMissingLinkMetadata(for: newItems)
     }
@@ -36,7 +36,7 @@ extension ClipboardViewModel {
 
         let combined = prepend ? (incomingItems + items) : (items + incomingItems)
         let deduplicated = deduplicatedItemsPreservingOrder(combined)
-        items = deduplicated
+        items = deduplicated.sorted(by: ClipboardItem.precedesInHistory)
         rebuildItemIndexes()
         enqueueMissingLinkMetadata(for: incomingItems)
     }
@@ -91,7 +91,7 @@ extension ClipboardViewModel {
         }
         items.insert(contentsOf: insertedItems, at: 0)
 
-        if shouldResort {
+        if shouldResort || !insertedItems.isEmpty {
             sortItemsByPresentationOrder()
         }
 
@@ -142,9 +142,7 @@ private extension ClipboardViewModel {
     }
 
     func sortItemsByPresentationOrder() {
-        items.sort { lhs, rhs in
-            lhs.timestamp > rhs.timestamp
-        }
+        items.sort(by: ClipboardItem.precedesInHistory)
     }
 
     func matchesCurrentDisplayScope(_ item: ClipboardItem, query: String) -> Bool {

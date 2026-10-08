@@ -5,6 +5,12 @@ extension ClipboardVerticalItemView {
     @ViewBuilder
     var rowContent: some View {
         HStack(spacing: isCompact ? 6 : Layout.contentSpacing) {
+            if item.isTopPinned {
+                Image(systemName: "pin.fill")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityLabel(Text("Pinned to Top"))
+            }
             // 1. 左侧：App 图标
             AppIconView(appBundleID: item.sourceBundleIdentifier, size: isCompact ? Layout.compactAppIconSize : Layout.appIconSize)
                 .shadow(color: Color.black.opacity(0.1), radius: isCompact ? 1 : 2, y: isCompact ? 1 : 1)

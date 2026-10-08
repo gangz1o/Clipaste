@@ -9,7 +9,11 @@ actor ClipboardSearcher {
 
         if query.isEmpty {
             descriptor = FetchDescriptor<ClipboardRecord>(
-                sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+                sortBy: [
+                    SortDescriptor(\.topPinOrder, order: .reverse),
+                    SortDescriptor(\.timestamp, order: .reverse),
+                    SortDescriptor(\.id, order: .forward)
+                ]
             )
         } else {
             let predicate = #Predicate<ClipboardRecord> { record in
@@ -19,7 +23,11 @@ actor ClipboardSearcher {
 
             descriptor = FetchDescriptor<ClipboardRecord>(
                 predicate: predicate,
-                sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+                sortBy: [
+                    SortDescriptor(\.topPinOrder, order: .reverse),
+                    SortDescriptor(\.timestamp, order: .reverse),
+                    SortDescriptor(\.id, order: .forward)
+                ]
             )
         }
 

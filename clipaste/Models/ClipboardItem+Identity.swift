@@ -16,6 +16,7 @@ extension ClipboardItem {
         lhs.contentHash == rhs.contentHash &&
         lhs.timestamp == rhs.timestamp &&
         lhs.isPinned == rhs.isPinned &&
+        lhs.topPinOrder == rhs.topPinOrder &&
         lhs.customTitle == rhs.customTitle &&
         lhs.linkTitle == rhs.linkTitle &&
         lhs.groupIDs == rhs.groupIDs &&
@@ -30,5 +31,6 @@ extension ClipboardItem {
         hasher.combine(contentHash)
         hasher.combine(timestamp)
         hasher.combine(isPinned)
+        hasher.combine(topPinOrder)
     }
 }

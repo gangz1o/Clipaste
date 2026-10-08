@@ -110,6 +110,14 @@ extension StorageManager {
     }
 
     nonisolated
+    func setTopPin(hash: String, order: Double) {
+        let actor = self.storeActor
+        spawnTrackedTask(priority: .userInitiated) {
+            await actor.setTopPin(hash: hash, order: order)
+        }
+    }
+
+    nonisolated
     func togglePin(hash: String, isPinned: Bool) {
         let actor = self.storeActor
         spawnTrackedTask(priority: .userInitiated) {

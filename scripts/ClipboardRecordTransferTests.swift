@@ -5,6 +5,7 @@ import SwiftData
 enum ClipboardRecordTransferTests {
     static func main() async throws {
         try await testExportOrderMatchesSortedPaging()
+        try await testTopPinSurvivesStoreTransfer()
         try await testPinnedExportCarriesReferencedGroups()
         try await testByteBudgetTruncationKeepsEveryRecord()
         try await testRecordsDeletedAfterSnapshotDoNotEndExport()
@@ -23,6 +24,19 @@ enum ClipboardRecordTransferTests {
         precondition(exported == expected, "Export must keep newest-first order without gaps or repeats")
         precondition(batches.map(\.records.count) == [128, 128, 44])
         precondition(batches.allSatisfy { $0.groups.isEmpty }, "Full export carries groups separately")
+    }
+
+    private static func testTopPinSurvivesStoreTransfer() async throws {
+        let source = try makeTemporaryContainer()
+        let sourceActor = ClipboardStoreActor(modelContainer: source)
+        try await sourceActor.seed(count: 3)
+        let batches = try await drain(ClipboardRecordExportCursor(container: source, pinnedOnly: false), limit: 128)
+        let target = try makeTemporaryContainer()
+        let targetActor = ClipboardStoreActor(modelContainer: target)
+        for batch in batches { try await targetActor.importStoreExport(batch) }
+        let restored = try await drain(ClipboardRecordExportCursor(container: target, pinnedOnly: false), limit: 128)
+        let pinned = restored.flatMap(\.records).first { $0.contentHash == "r0" }
+        precondition(pinned?.topPinOrder == 1234, "Store transfers must preserve top pin order")
     }
 
     private static func testPinnedExportCarriesReferencedGroups() async throws {

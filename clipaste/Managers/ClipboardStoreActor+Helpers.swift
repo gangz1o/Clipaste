@@ -78,6 +78,7 @@ extension ClipboardStoreActor {
 
         target.timestamp = max(target.timestamp, source.timestamp)
         target.isPinned = target.isPinned || source.isPinned
+        target.topPinOrder = max(target.topPinOrder, source.topPinOrder)
 
         if sourceIsNewer {
             target.typeRawValue = source.typeRawValue

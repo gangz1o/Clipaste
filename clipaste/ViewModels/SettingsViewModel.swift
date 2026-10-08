@@ -138,8 +138,7 @@ final class SettingsViewModel: @preconcurrency ObservableObject {
     }
 
     func playCopySound() {
-        guard isCopySoundEnabled else { return }
-        NSSound(named: "Pop")?.play()
+        ClipboardSoundFeedback.play(defaults: .standard)
     }
 
     // MARK: - 语言切换

@@ -40,7 +40,8 @@ actor ClipboardStoreActor {
                 plainText: "item \(index)",
                 imageData: imageBytes > 0 ? Data(count: imageBytes) : nil,
                 groupId: isPinned ? "pinned-group" : nil,
-                isPinned: isPinned
+                isPinned: isPinned,
+                topPinOrder: index == 0 ? 1234 : 0
             ))
         }
         modelContext.insert(ClipboardGroupModel(id: "pinned-group", name: "Pinned"))

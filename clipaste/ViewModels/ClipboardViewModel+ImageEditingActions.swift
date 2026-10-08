@@ -129,6 +129,7 @@ extension ClipboardViewModel {
                 linkTitle: item.linkTitle,
                 linkIconData: item.linkIconData,
                 isPinned: item.isPinned,
+                topPinOrder: item.topPinOrder,
                 hasRTF: item.hasRTF,
                 sourcePlatformRawValue: item.sourcePlatformRawValue,
                 sourceDeviceName: item.sourceDeviceName,

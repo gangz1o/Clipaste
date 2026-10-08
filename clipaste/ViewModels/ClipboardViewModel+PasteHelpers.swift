@@ -67,7 +67,9 @@ extension ClipboardViewModel {
     func moveItemToTop(_ item: ClipboardItem) {
         if let index = itemIndexByID[item.id], index != 0 {
             withAnimation(.easeInOut(duration: 0.2)) {
-                moveItem(withID: item.id, to: 0)
+                var updatedItem = item
+                updatedItem.timestamp = Date()
+                upsertItem(updatedItem, shouldResort: true)
             }
         }
         selectedItemIDs = [item.id]

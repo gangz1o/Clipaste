@@ -17,6 +17,7 @@ actor ClipboardStoreActor {
     func seed(cutoff: Date) throws {
         let old = cutoff.addingTimeInterval(-1)
         let records = [
+            ClipboardRecord(timestamp: old, contentHash: "top-pinned", typeRawValue: "text", topPinOrder: 100),
             ClipboardRecord(timestamp: old, contentHash: "expired", typeRawValue: "text"),
             ClipboardRecord(timestamp: cutoff, contentHash: "boundary", typeRawValue: "text"),
             ClipboardRecord(timestamp: cutoff.addingTimeInterval(1), contentHash: "recent", typeRawValue: "text"),

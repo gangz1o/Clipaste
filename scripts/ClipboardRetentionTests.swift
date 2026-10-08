@@ -13,7 +13,7 @@ enum ClipboardRetentionTests {
         try await actor.seed(cutoff: cutoff)
         await actor.cleanUpExpiredRecords(before: cutoff)
         let expected: Set<String> = [
-            "boundary", "recent", "favorite", "legacy-group", "multi-group", "imported", "legacy-invalid-json"
+            "top-pinned", "boundary", "recent", "favorite", "legacy-group", "multi-group", "imported", "legacy-invalid-json"
         ]
         let firstPass = try await actor.hashes()
         precondition(firstPass == expected, "Cleanup must retain favorites and all group representations")

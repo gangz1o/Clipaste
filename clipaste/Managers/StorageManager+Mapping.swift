@@ -34,6 +34,7 @@ extension StorageManager {
             linkTitle: record.linkTitle,
             linkIconData: record.linkIconData,
             isPinned: record.isPinned,
+            topPinOrder: record.topPinOrder,
             hasRTF: record.hasRTF,
             sourcePlatformRawValue: record.sourcePlatformRawValue,
             sourceDeviceName: record.sourceDeviceName,

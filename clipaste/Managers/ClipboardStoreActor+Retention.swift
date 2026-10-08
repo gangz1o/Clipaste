@@ -4,7 +4,7 @@ import SwiftData
 extension ClipboardStoreActor {
     func cleanUpExpiredRecords(before expirationDate: Date) {
         let descriptor = FetchDescriptor<ClipboardRecord>(
-            predicate: #Predicate { $0.timestamp < expirationDate && $0.isPinned == false }
+            predicate: #Predicate { $0.timestamp < expirationDate && $0.isPinned == false && $0.topPinOrder == 0 }
         )
 
         do {

@@ -212,6 +212,15 @@ extension View {
         }
 
         Button {
+            viewModel.toggleTopPin(item: item)
+        } label: {
+            Label(
+                item.isTopPinned ? "Unpin from Top" : "Pin to Top",
+                systemImage: item.isTopPinned ? "pin.slash" : "pin"
+            )
+        }
+
+        Button {
             viewModel.pinItem(item: item)
         } label: {
             Label(

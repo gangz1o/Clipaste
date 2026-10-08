@@ -12,10 +12,16 @@ extension ClipboardCardView {
             Spacer(minLength: 12)
 
             VStack(alignment: .trailing, spacing: 2) {
-                Text(item.typeBadgeTitle())
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(.white)
-                    .lineLimit(1)
+                HStack(spacing: 4) {
+                    if item.isTopPinned {
+                        Image(systemName: "pin.fill")
+                            .accessibilityLabel(Text("Pinned to Top"))
+                    }
+                    Text(item.typeBadgeTitle())
+                        .lineLimit(1)
+                }
+                .font(.system(size: 13, weight: .bold))
+                .foregroundStyle(.white)
 
                 Text(
                     item.timestamp,

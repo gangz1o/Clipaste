@@ -21,6 +21,7 @@ nonisolated struct ClipboardRecordSnapshot: Sendable {
     let customTitle: String?
     let linkTitle: String?
     let linkIconData: Data?
+    var topPinOrder: Double = 0
     let isPinned: Bool
     let hasRTF: Bool
     let sourcePlatformRawValue: String
@@ -71,6 +72,7 @@ nonisolated struct ClipboardRecordSnapshot: Sendable {
             customTitle: record.customTitle,
             linkTitle: record.linkTitle,
             linkIconData: nil,
+            topPinOrder: record.topPinOrder,
             isPinned: record.isPinned,
             hasRTF: mayHaveRichText,
             sourcePlatformRawValue: record.sourcePlatformRawValue,
