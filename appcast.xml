@@ -3,6 +3,31 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.23</title>
+            <pubDate>Thu, 08 Oct 2026 11:01:36 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.23</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20223</sparkle:version>
+            <sparkle:shortVersionString>2.2.23</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## 本次更新
+
+本版修复右键菜单「新增分组…」无效的问题，并新增是否记录其他设备通用剪贴板内容的选项。
+
+- **右键新增分组**：在记录上右键选择「加入分组 → 新增分组…」，会弹出分组编辑框（名称 + 图标）；创建后当前记录自动加入新分组。支持 Esc 取消，输入时不会触发面板的打字搜索。
+- **其他设备的内容**：新增「通用 → 记录来自其他设备的内容」开关（默认开启）。关闭后，通过通用剪贴板从 iPhone、iPad 或其他 Mac 同步过来的内容（例如 iPhone 截图后选择「拷贝并删除」）不再被记录，也不会播放提示音。
+
+## What's New
+
+This release fixes the "New Group…" context menu entry and adds an option for Universal Clipboard content from other devices.
+
+- **New group from the context menu**: "Add to Group → New Group…" now opens the group editor (name + icon). The new group is created and the record is added to it. Press Esc to cancel; typing no longer triggers type-to-search while the editor is open.
+- **Content from other devices**: New "General → Record Content from Other Devices" toggle (on by default). Turn it off to skip content synced from iPhone, iPad or other Macs via Universal Clipboard, such as an iPhone screenshot saved with "Copy and Delete". Skipped content also plays no sound.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.23/Clipaste-v2.2.23.zip" length="8340733" type="application/octet-stream" sparkle:edSignature="3zuVnM+sHuEgus0QJUBkwyUqEPxGKDDjy11q6I8IvnVdn4IAXHHbmCmOTazl2KsLsO3pQKm9+cMpVbo1y0q7DA=="/>
+        </item>
+        <item>
             <title>2.2.22</title>
             <pubDate>Thu, 08 Oct 2026 07:11:14 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -67,37 +92,6 @@ This release unifies the app, menu bar and README icons and includes the pinning
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.21/Clipaste-v2.2.21.zip" length="6736188" type="application/octet-stream" sparkle:edSignature="wWJayAce9/8G5ugFD/RB87slHmjA9PYpYa9YBxQFWw10nwJkbqLG2Vdr2zZy0KuRs/Qpf4fNlZ8vTR5k4oNDCA=="/>
-        </item>
-        <item>
-            <title>2.2.20</title>
-            <pubDate>Thu, 08 Oct 2026 06:35:42 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.20</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20220</sparkle:version>
-            <sparkle:shortVersionString>2.2.20</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## 本次更新
-
-本版带来全新的应用图标，并汇总 v2.2.19 的记录置顶与剪贴板提示音改进。
-
-- **全新应用图标**：采用紫色折纸 P、珊瑚色翻折与暖白底板，优化透明圆角和各尺寸显示；中英文 README 与安装包展示同步更新。
-- **记录置顶**：右键单条记录即可「置顶 / 取消置顶」，与收藏独立，支持多条记录。横向、纵向和紧凑布局均显示图钉标识，新复制内容排在置顶记录之后；取消置顶后恢复按复制时间排序。解决 #60。
-- **置顶持久保存**：重启、分页、搜索和本地 / iCloud 存储切换时保留置顶状态；自动清理与「清空历史」会保留置顶记录。
-- **剪贴板变化提示音**：普通系统复制及其他应用更新 Mac 剪贴板时也能播放简短提示音，沿用已有开关偏好，并遵守暂停监听和忽略应用设置。解决 #61。
-- **避免重复响铃**：同一次复制不会因手动操作和后台监听而重复播放提示音。
-
-## What's New
-
-This release introduces a new app icon and includes the pinning and clipboard sound improvements from v2.2.19.
-
-- **New app icon**: A purple folded-paper P with a coral fold and a warm-white tile, refined transparent corners and size-specific assets. Updated branding in both READMEs and the installer presentation.
-- **Pin records to the top**: Use the context menu to pin or unpin individual records, independently of Favorites. Multiple pins are supported in all three layouts. New copies stay below pinned records; unpinning restores chronological order. Resolves #60.
-- **Persistent pins**: Pin state survives restarts, paging, search and local / iCloud store transfers. Automatic cleanup and Clear History preserve pinned records.
-- **Clipboard change sound**: Optional sound feedback now also covers ordinary system copies and other applications updating the Mac clipboard. Existing preferences, paused monitoring and ignored applications are respected. Resolves #61.
-- **No duplicate sounds**: Manual copying and background monitoring play only one sound for the same clipboard update.
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.20/Clipaste-v2.2.20.zip" length="6734432" type="application/octet-stream" sparkle:edSignature="3FYmuSvxDnNblH8NEZTjob3cdrG61SSwz0uFWt/THk35hxtNNb4oNufNGAw4mdvC5l1BHtzxssFuMaC5kflrCQ=="/>
         </item>
     </channel>
 </rss>
