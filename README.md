@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/assets/clipaste-icon-purple.png" width="120" height="120" alt="Clipaste purple folded-paper P icon" />
+  <img src="docs/assets/clipaste-icon-native.png" width="120" height="120" alt="Clipaste purple folded-paper P icon" />
 
   <h1>Clipaste</h1>
 
