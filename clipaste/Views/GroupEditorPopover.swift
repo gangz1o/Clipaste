@@ -5,6 +5,7 @@ struct GroupEditorPopover: View {
     @Environment(\.locale) private var locale
     @AppStorage("appAccentColor") private var appAccentColor: AppAccentColor = .defaultValue
 
+    var onCancel: (() -> Void)? = nil
     let onSubmit: (String, String?) -> Void
 
     @FocusState private var isNameFocused: Bool
@@ -49,6 +50,11 @@ struct GroupEditorPopover: View {
 
             HStack(spacing: 8) {
                 Spacer(minLength: 0)
+
+                if let onCancel {
+                    Button("Cancel", role: .cancel, action: onCancel)
+                        .keyboardShortcut(.cancelAction)
+                }
 
                 Button {
                     submitIfPossible()

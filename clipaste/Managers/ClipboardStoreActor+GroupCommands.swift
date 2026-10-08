@@ -2,7 +2,12 @@ import Foundation
 import SwiftData
 
 extension ClipboardStoreActor {
-    func createGroup(name: String, systemIconName: String? = nil) {
+    func createGroup(
+        id: String = UUID().uuidString,
+        name: String,
+        systemIconName: String? = nil,
+        assigningRecordHash recordHash: String? = nil
+    ) {
         let descriptor = FetchDescriptor<ClipboardGroupModel>(
             predicate: #Predicate<ClipboardGroupModel> { group in
                 group.deletedAt == nil
@@ -10,13 +15,19 @@ extension ClipboardStoreActor {
         )
         let groups = (try? modelContext.fetch(descriptor)) ?? []
         let minOrder = groups.map(\.sortOrder).min() ?? 0
-        let newGroup = ClipboardGroupModel(name: name, systemIconName: systemIconName, sortOrder: minOrder - 1)
+        let newGroup = ClipboardGroupModel(id: id, name: name, systemIconName: systemIconName, sortOrder: minOrder - 1)
         modelContext.insert(newGroup)
         do {
             try markSyncAnchorUpdated()
             try modelContext.save()
         } catch {
             print("❌ [ClipboardStoreActor] 创建分组失败: \(error)")
+            return
+        }
+
+        // 在同一个 actor 调用里完成归组，保证记录写入时分组已经存在。
+        if let recordHash {
+            assignRecordToGroup(recordHash: recordHash, groupId: id)
         }
     }
 

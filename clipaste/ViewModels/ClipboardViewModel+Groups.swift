@@ -7,8 +7,12 @@ extension ClipboardViewModel {
         selectedGroupID = groupID
     }
 
-    func addNewGroup() {
-        print("触发添加新分组")
+    func beginCreatingGroup(for item: ClipboardItem) {
+        newGroupTargetItem = item
+    }
+
+    func dismissNewGroupEditor() {
+        newGroupTargetItem = nil
     }
 
     func loadCustomGroups() {
@@ -52,8 +56,23 @@ extension ClipboardViewModel {
         StorageManager.shared.updateGroupOrder(groupIDs: customGroups.map(\.id))
     }
 
-    func createNewGroup(name: String, systemIconName: String? = nil) {
-        StorageManager.shared.createGroup(name: name, systemIconName: systemIconName)
+    func createNewGroup(name: String, systemIconName: String? = nil, assigning item: ClipboardItem? = nil) {
+        let groupID = UUID().uuidString
+
+        if let item {
+            updateItem(id: item.id) { updatedItem in
+                if updatedItem.groupIDs.contains(groupID) == false {
+                    updatedItem.groupIDs.append(groupID)
+                }
+            }
+        }
+
+        StorageManager.shared.createGroup(
+            id: groupID,
+            name: name,
+            systemIconName: systemIconName,
+            assigningRecordHash: item?.contentHash
+        )
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 150_000_000)
             self.loadCustomGroups()

@@ -15,6 +15,19 @@ extension ClipboardMainView {
         )
     }
 
+    var newGroupTargetItemBinding: Binding<ClipboardItem?> {
+        Binding(
+            get: { viewModel.newGroupTargetItem },
+            set: { newValue in
+                if let newValue {
+                    viewModel.newGroupTargetItem = newValue
+                } else {
+                    viewModel.dismissNewGroupEditor()
+                }
+            }
+        )
+    }
+
     @discardableResult
     func applyPendingListFocusIfPossible() -> Bool {
         guard let pendingListFocusRequest else { return false }

@@ -203,7 +203,7 @@ extension View {
             Divider()
 
             Button {
-                print("trigger new group popover")
+                viewModel.beginCreatingGroup(for: item)
             } label: {
                 Label("New Group…", systemImage: "plus")
             }

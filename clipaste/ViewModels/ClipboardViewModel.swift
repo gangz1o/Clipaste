@@ -74,6 +74,7 @@ final class ClipboardViewModel {
     }
     var draggedGroup: ClipboardGroupItem? = nil
     var titleEditorItem: ClipboardItem? = nil
+    var newGroupTargetItem: ClipboardItem? = nil
     var quickPasteModifier: ModifierKey = ModifierKey.quickPastePreference()
     var plainTextModifier: ModifierKey = ModifierKey.plainTextPreference()
     var isQuickPasteModifierHeld: Bool = false

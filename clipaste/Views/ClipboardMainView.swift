@@ -138,6 +138,11 @@ struct ClipboardMainView: View {
                     viewModel.saveCustomTitle(for: item, title: title)
                 }
             }
+            .sheet(item: newGroupTargetItemBinding, onDismiss: viewModel.dismissNewGroupEditor) { item in
+                ClipboardNewGroupSheet { name, iconName in
+                    viewModel.createNewGroup(name: name, systemIconName: iconName, assigning: item)
+                }
+            }
     }
 
 }

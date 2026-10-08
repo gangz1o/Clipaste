@@ -11,10 +11,20 @@ extension StorageManager {
     }
 
     nonisolated
-    func createGroup(name: String, systemIconName: String? = nil) {
+    func createGroup(
+        id: String = UUID().uuidString,
+        name: String,
+        systemIconName: String? = nil,
+        assigningRecordHash recordHash: String? = nil
+    ) {
         let actor = self.storeActor
         spawnTrackedTask(priority: .userInitiated) {
-            await actor.createGroup(name: name, systemIconName: systemIconName)
+            await actor.createGroup(
+                id: id,
+                name: name,
+                systemIconName: systemIconName,
+                assigningRecordHash: recordHash
+            )
         }
     }
 
