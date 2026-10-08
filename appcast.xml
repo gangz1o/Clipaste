@@ -3,6 +3,33 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.24</title>
+            <pubDate>Thu, 08 Oct 2026 14:37:49 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.24</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20224</sparkle:version>
+            <sparkle:shortVersionString>2.2.24</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## 本次更新
+
+本版修复历史较多时自建分组页显示「剪贴板为空」的问题，并修复 iCloud 同步持续失败。
+
+- **分组页显示为空**：历史记录较多时，较早的分组成员（例如从 Paste 迁移来的 Pinboard 条目）不会被加载，分组页显示「剪贴板为空」。现在分组、收藏与类型筛选会直接从数据库读取全部成员。（#63）
+- **在分组内搜索**：在分组、收藏或类型筛选下搜索时，较早的匹配记录也能搜到。
+- **iCloud 同步失败**：修复自 v2.2.19 起设置页显示「同步失败：CKErrorDomain 错误 2」、新记录无法上传的问题。该问题已在服务端修复，旧版本也会自动恢复同步；同步出错时的提示也更具体。
+
+## What's New
+
+This release fixes empty custom group pages on large histories and the persistent iCloud sync failure.
+
+- **Empty group pages**: With a large history, older group members (such as Pinboard items migrated from Paste) were never loaded, so the group page showed "Clipboard is empty". Group, Favorites and type filters now load all members from the database. (#63)
+- **Search inside a group**: Searching within a group, Favorites or a type filter now also finds older matches.
+- **iCloud sync failures**: Fixes "Sync failed: CKErrorDomain error 2" and stuck uploads since v2.2.19. The cause is fixed on the server, so older versions resume syncing too; sync error messages are also more specific.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.24/Clipaste-v2.2.24.zip" length="8368140" type="application/octet-stream" sparkle:edSignature="iXPrxsrZr0GouhuUXXzPbiO+zkeP61eK3KBvOT6HYpaX9HjJ9nw5g73YJ6qADb0iu77ZNkex3UAiRxrqJmo5Cw=="/>
+        </item>
+        <item>
             <title>2.2.23</title>
             <pubDate>Thu, 08 Oct 2026 11:01:36 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -59,39 +86,6 @@ This release fixes the undersized, double-tile app icon on newer macOS versions 
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.22/Clipaste-v2.2.22.zip" length="8327248" type="application/octet-stream" sparkle:edSignature="2epw+784TLS/Dsxj4X3N9FsH+QdGV1fPDCqX70N7BU8GLiySLF2CGIMiOpI4slhkDEAMN2ts8Z4GQrCQj/jUCg=="/>
-        </item>
-        <item>
-            <title>2.2.21</title>
-            <pubDate>Thu, 08 Oct 2026 06:42:51 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.21</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20221</sparkle:version>
-            <sparkle:shortVersionString>2.2.21</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## 本次更新
-
-本版统一应用、菜单栏和 README 的全新图标，并汇总 v2.2.19 的记录置顶与剪贴板提示音改进。
-
-- **全新应用图标**：采用紫色折纸 P、珊瑚色翻折与暖白底板，优化透明圆角和各尺寸显示；中英文 README 与安装包展示同步更新。
-- **全新菜单栏图标**：将原剪贴板符号换成与应用图标一致的折纸 P，采用单色矢量资源，自动适配深浅背景，保持小尺寸与 Retina 显示清晰。
-- **记录置顶**：右键单条记录即可「置顶 / 取消置顶」，与收藏独立，支持多条记录。横向、纵向和紧凑布局均显示图钉标识，新复制内容排在置顶记录之后；取消置顶后恢复按复制时间排序。解决 #60。
-- **置顶持久保存**：重启、分页、搜索和本地 / iCloud 存储切换时保留置顶状态；自动清理与「清空历史」会保留置顶记录。
-- **剪贴板变化提示音**：普通系统复制及其他应用更新 Mac 剪贴板时也能播放简短提示音，沿用已有开关偏好，并遵守暂停监听和忽略应用设置。解决 #61。
-- **避免重复响铃**：同一次复制不会因手动操作和后台监听而重复播放提示音。
-
-## What's New
-
-This release unifies the app, menu bar and README icons and includes the pinning and clipboard sound improvements from v2.2.19.
-
-- **New app icon**: A purple folded-paper P with a coral fold and a warm-white tile, refined transparent corners and size-specific assets. Updated branding in both READMEs and the installer presentation.
-- **New menu bar icon**: A monochrome folded-paper P replaces the old clipboard symbol. The vector template adapts to light and dark backgrounds and stays sharp at small sizes and on Retina displays.
-- **Pin records to the top**: Use the context menu to pin or unpin individual records, independently of Favorites. Multiple pins are supported in all three layouts. New copies stay below pinned records; unpinning restores chronological order. Resolves #60.
-- **Persistent pins**: Pin state survives restarts, paging, search and local / iCloud store transfers. Automatic cleanup and Clear History preserve pinned records.
-- **Clipboard change sound**: Optional sound feedback now also covers ordinary system copies and other applications updating the Mac clipboard. Existing preferences, paused monitoring and ignored applications are respected. Resolves #61.
-- **No duplicate sounds**: Manual copying and background monitoring play only one sound for the same clipboard update.
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.21/Clipaste-v2.2.21.zip" length="6736188" type="application/octet-stream" sparkle:edSignature="wWJayAce9/8G5ugFD/RB87slHmjA9PYpYa9YBxQFWw10nwJkbqLG2Vdr2zZy0KuRs/Qpf4fNlZ8vTR5k4oNDCA=="/>
         </item>
     </channel>
 </rss>
