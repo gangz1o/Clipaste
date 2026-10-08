@@ -18,6 +18,22 @@ You can also run the workflow manually with `workflow_dispatch` and provide an e
 
 If the tag matches `vX.Y` or `vX.Y.Z`, the release build writes that value into `CFBundleShortVersionString`.
 
+## CloudKit Schema
+
+The CloudKit **Production** environment does not let clients create fields. If a release adds a
+SwiftData attribute (for example `ClipboardRecord.topPinOrder` in v2.2.19) and the schema is not
+deployed, every upload that carries the new field is rejected and iCloud export keeps failing with
+`CKErrorDomain` error 2 (`partialFailure`).
+
+Before tagging a release that changes `ClipboardRecord`, `ClipboardGroupModel` or `SyncAnchor`:
+
+1. Build Debug and run `Clipaste.app/Contents/MacOS/Clipaste --initialize-cloudkit-schema`
+   to push the full schema to the Development environment.
+2. In [CloudKit Console](https://icloud.developer.apple.com), select `iCloud.com.gangz1o.clipaste`
+   → Schema → **Deploy Schema Changes** to Production.
+3. Verify with `scripts/check-cloudkit-schema.sh` (needs a management token, saved once with
+   `xcrun cktool save-token --type management`).
+
 ## Required GitHub Secrets
 
 - `APPLE_TEAM_ID`
