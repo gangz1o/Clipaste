@@ -3,6 +3,39 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.21</title>
+            <pubDate>Thu, 08 Oct 2026 06:42:51 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.21</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20221</sparkle:version>
+            <sparkle:shortVersionString>2.2.21</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## 本次更新
+
+本版统一应用、菜单栏和 README 的全新图标，并汇总 v2.2.19 的记录置顶与剪贴板提示音改进。
+
+- **全新应用图标**：采用紫色折纸 P、珊瑚色翻折与暖白底板，优化透明圆角和各尺寸显示；中英文 README 与安装包展示同步更新。
+- **全新菜单栏图标**：将原剪贴板符号换成与应用图标一致的折纸 P，采用单色矢量资源，自动适配深浅背景，保持小尺寸与 Retina 显示清晰。
+- **记录置顶**：右键单条记录即可「置顶 / 取消置顶」，与收藏独立，支持多条记录。横向、纵向和紧凑布局均显示图钉标识，新复制内容排在置顶记录之后；取消置顶后恢复按复制时间排序。解决 #60。
+- **置顶持久保存**：重启、分页、搜索和本地 / iCloud 存储切换时保留置顶状态；自动清理与「清空历史」会保留置顶记录。
+- **剪贴板变化提示音**：普通系统复制及其他应用更新 Mac 剪贴板时也能播放简短提示音，沿用已有开关偏好，并遵守暂停监听和忽略应用设置。解决 #61。
+- **避免重复响铃**：同一次复制不会因手动操作和后台监听而重复播放提示音。
+
+## What's New
+
+This release unifies the app, menu bar and README icons and includes the pinning and clipboard sound improvements from v2.2.19.
+
+- **New app icon**: A purple folded-paper P with a coral fold and a warm-white tile, refined transparent corners and size-specific assets. Updated branding in both READMEs and the installer presentation.
+- **New menu bar icon**: A monochrome folded-paper P replaces the old clipboard symbol. The vector template adapts to light and dark backgrounds and stays sharp at small sizes and on Retina displays.
+- **Pin records to the top**: Use the context menu to pin or unpin individual records, independently of Favorites. Multiple pins are supported in all three layouts. New copies stay below pinned records; unpinning restores chronological order. Resolves #60.
+- **Persistent pins**: Pin state survives restarts, paging, search and local / iCloud store transfers. Automatic cleanup and Clear History preserve pinned records.
+- **Clipboard change sound**: Optional sound feedback now also covers ordinary system copies and other applications updating the Mac clipboard. Existing preferences, paused monitoring and ignored applications are respected. Resolves #61.
+- **No duplicate sounds**: Manual copying and background monitoring play only one sound for the same clipboard update.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.21/Clipaste-v2.2.21.zip" length="6736188" type="application/octet-stream" sparkle:edSignature="wWJayAce9/8G5ugFD/RB87slHmjA9PYpYa9YBxQFWw10nwJkbqLG2Vdr2zZy0KuRs/Qpf4fNlZ8vTR5k4oNDCA=="/>
+        </item>
+        <item>
             <title>2.2.20</title>
             <pubDate>Thu, 08 Oct 2026 06:35:42 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -65,33 +98,6 @@ This release introduces a new app icon and includes the pinning and clipboard so
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.19/Clipaste-v2.2.19.zip" length="6860528" type="application/octet-stream" sparkle:edSignature="AseKHTYORzKmiBcgMbLX03q9K0n1BpneNW6BejPMKqjbzOIEddeH1UrNFD7Ons4ecgKEtxpa6T/98d4/+k21CA=="/>
-        </item>
-        <item>
-            <title>2.2.18</title>
-            <pubDate>Tue, 29 Sep 2026 02:49:30 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.18</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20218</sparkle:version>
-            <sparkle:shortVersionString>2.2.18</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## 本次更新
-
-- 复制后立即打开面板，最新记录会直接显示，不再延迟两三秒。打开面板时会立即读取剪贴板，后台轮询也不再被系统推迟。
-- 面板隐藏时历史会在后台保持最新，打开时首帧即为最新列表，隐藏期间不做界面渲染。
-- 降低复制时的后台开销：本地保存不再被当作 iCloud 远端导入处理，每次复制不再额外重载整页和刷新诊断。隐藏时连续复制的 CPU 占用降低约 20–35%。
-- 修复启动时的数据维护可能卡住主线程的问题。
-- 大幅加快数据维护和开关 iCloud 同步时的数据导出，并降低内存占用：大型数据库上导出从约 23 秒降至 0.14 秒。
-
-## What's New
-
-- Opening the panel right after a copy now shows the new item immediately instead of two to three seconds later. The panel reads the pasteboard when it opens, and background polling is no longer deferred by the system.
-- History stays current while the panel is hidden, so the first frame after opening is up to date. Nothing is rendered while the panel is hidden.
-- Lower background cost per copy: the app's own saves are no longer handled as iCloud remote imports, so a copy no longer reloads the whole page or refreshes diagnostics. CPU use while copying with the panel hidden is down about 20–35%.
-- Fixed startup data maintenance that could hang the main thread.
-- Data maintenance and the export that runs when turning iCloud sync on or off are much faster and use less memory: on a large store, export went from about 23s to 0.14s.
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.18/Clipaste-v2.2.18.zip" length="6856456" type="application/octet-stream" sparkle:edSignature="+8Enc2EYWr5lPB4TJml3ruvGKRyd5mqeLClU7gxitEX5oCJlkZAu0xDXX55CP2VRV8IiRScP0MuaArGSF6+FBQ=="/>
         </item>
     </channel>
 </rss>
