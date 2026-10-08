@@ -26,6 +26,8 @@ extension ClipboardViewModel {
     }
 
     func replaceItems(_ newItems: [ClipboardItem]) {
+        // 必须在赋值前清空：items 的 didSet 会同步触发重新过滤。
+        completedScopeSupplementKey = nil
         items = newItems.sorted(by: ClipboardItem.precedesInHistory)
         rebuildItemIndexes()
         enqueueMissingLinkMetadata(for: newItems)
@@ -159,7 +161,8 @@ private extension ClipboardViewModel {
         }
 
         guard !query.isEmpty else {
-            return true
+            let isUnscoped = currentFilter == nil && selectedBuiltInGroup == nil && selectedGroupId == nil
+            return isUnscoped == false || isWithinLoadedHistoryWindow(item)
         }
 
         let searchable = item.searchableText ?? item.rawText ?? item.textPreview
