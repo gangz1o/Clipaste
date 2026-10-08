@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="clipaste/Assets.xcassets/AppIcon.appiconset/app-icon-256.png" width="120" height="120" alt="Clipaste 紫色折纸 P 图标" />
+  <img src="docs/assets/clipaste-icon-purple.png" width="120" height="120" alt="Clipaste 紫色折纸 P 图标" />
 
   <h1>Clipaste</h1>
 
