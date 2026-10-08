@@ -111,6 +111,50 @@
         }
       }
     },
+    "Record Content from Other Devices" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record Content from Other Devices"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "记录来自其他设备的内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "記錄來自其他裝置的內容"
+          }
+        }
+      }
+    },
+    "Record content synced from iPhone, iPad or other Macs via Universal Clipboard, such as a screenshot copied on iPhone." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record content synced from iPhone, iPad or other Macs via Universal Clipboard, such as a screenshot copied on iPhone."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "记录通过通用剪贴板从 iPhone、iPad 或其他 Mac 同步过来的内容，例如在 iPhone 上拷贝的截图。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "記錄透過通用剪貼簿從 iPhone、iPad 或其他 Mac 同步過來的內容，例如在 iPhone 上拷貝的截圖。"
+          }
+        }
+      }
+    },
     "Clipboard Change Sound" : {
       "localizations" : {
         "en" : {

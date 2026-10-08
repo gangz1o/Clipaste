@@ -18,6 +18,8 @@ final class ClipboardMonitor: ClipboardCaptureDraining {
     nonisolated(unsafe) var defaultsObserver: NSObjectProtocol?
     let fileURLType = NSPasteboard.PasteboardType("public.file-url")
     let utf8PlainTextType = NSPasteboard.PasteboardType("public.utf8-plain-text")
+    /// 通用剪贴板（Handoff）从 iPhone / iPad 等其他设备同步过来的内容会带这个标记。
+    let remoteClipboardType = NSPasteboard.PasteboardType("com.apple.is-remote-clipboard")
     var isMonitoringLifecycleActive = false
     var isMonitoringPaused = false
     var pollingInterval: TimeInterval

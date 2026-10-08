@@ -43,6 +43,10 @@ extension ClipboardMonitor {
             return
         }
 
+        if shouldSkipUniversalClipboardContent() {
+            return
+        }
+
         guard let pasteboardItems = pasteboard.pasteboardItems, !pasteboardItems.isEmpty else { return }
         ClipboardSoundFeedback.play(defaults: defaults)
         let storage = StorageManager.shared
@@ -134,6 +138,13 @@ extension ClipboardMonitor {
                 shouldFetchLinkMetadata: shouldFetchLinkMetadata
             )
         }
+    }
+
+    private func shouldSkipUniversalClipboardContent() -> Bool {
+        let recordsUniversalClipboard = defaults.object(forKey: Keys.recordsUniversalClipboard) as? Bool
+            ?? DefaultValues.recordsUniversalClipboard
+        guard recordsUniversalClipboard == false else { return false }
+        return pasteboard.types?.contains(remoteClipboardType) == true
     }
 
 }

@@ -67,6 +67,11 @@ final class SettingsViewModel: @preconcurrency ObservableObject {
         willSet { objectWillChange.send() }
     }
 
+    @AppStorage(ClipboardMonitor.Keys.recordsUniversalClipboard)
+    var recordsUniversalClipboard: Bool = ClipboardMonitor.DefaultValues.recordsUniversalClipboard {
+        willSet { objectWillChange.send() }
+    }
+
     @AppStorage("clipboardLayout") var layoutMode: AppLayoutMode = .horizontal {
         willSet { objectWillChange.send() }
     }

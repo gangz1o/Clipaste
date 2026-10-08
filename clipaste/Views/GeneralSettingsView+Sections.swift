@@ -23,6 +23,10 @@ extension GeneralSettingsView {
             }
             .help(Text("Play a short sound when the system clipboard changes or you copy from history."))
 
+            Toggle(isOn: $viewModel.recordsUniversalClipboard) {
+                Text("Record Content from Other Devices")
+            }
+            .help(Text("Record content synced from iPhone, iPad or other Macs via Universal Clipboard, such as a screenshot copied on iPhone."))
 
             Toggle(isOn: $singleClickPaste) {
                 Text("Single-click Paste")

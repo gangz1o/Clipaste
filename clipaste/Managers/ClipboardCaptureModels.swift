@@ -6,10 +6,12 @@ extension ClipboardMonitor {
     enum Keys {
         static let isMonitoringPaused = "isMonitoringPaused"
         static let monitorInterval = "monitorInterval"
+        static let recordsUniversalClipboard = "recordsUniversalClipboard"
     }
 
     enum DefaultValues {
         static let monitorInterval: TimeInterval = 0.5
+        static let recordsUniversalClipboard = true
     }
 }
 
