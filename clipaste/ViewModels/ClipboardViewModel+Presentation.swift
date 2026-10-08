@@ -127,9 +127,11 @@ extension ClipboardViewModel {
             guard let self else { return }
             guard let cachedItems = await ClipboardHistoryWarmCache.shared.snapshot(for: routeKey) else { return }
             guard self.items.isEmpty || self.hasPreparedPanelData == false else { return }
+            let isComplete = cachedItems.count < ClipboardHistoryWarmCache.defaultLimit
+            self.hasLoadedFullHistory = isComplete
+            self.updateHistoryWindowBoundary(loadedPage: cachedItems, isComplete: isComplete, extendsCurrentWindow: false)
             self.applyLoadedItems(cachedItems)
             self.loadedHistoryCount = cachedItems.count
-            self.hasLoadedFullHistory = cachedItems.count < ClipboardHistoryWarmCache.defaultLimit
         }
     }
 }

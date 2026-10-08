@@ -70,12 +70,18 @@ extension ClipboardViewModel {
         guard Task.isCancelled == false, generation == dataLoadGeneration else { return }
         guard page.isEmpty == false else {
             hasLoadedFullHistory = true
+            historyWindowBoundary = nil
+            refreshDisplayedItemsFromCurrentScope()
             return
         }
 
         let totalLoaded = offset + page.count
-        appendHistoryPage(page, generation: generation, loadedCount: totalLoaded)
-        hasLoadedFullHistory = page.count < pageLimit
+        appendHistoryPage(
+            page,
+            generation: generation,
+            loadedCount: totalLoaded,
+            isComplete: page.count < pageLimit
+        )
     }
 
     func trimHistoryWindowForIdleIfNeeded() {
@@ -86,11 +92,14 @@ extension ClipboardViewModel {
         historyLoadTask?.cancel()
         dataLoadGeneration &+= 1
         endInitialHistoryPageLoadTracking()
-        let retainedItems = Array(items.prefix(Self.initialVisibleItemBatchSize))
+        let retainedItems = Array(
+            items.lazy.filter(isWithinLoadedHistoryWindow).prefix(Self.initialVisibleItemBatchSize)
+        )
+        hasLoadedFullHistory = false
+        updateHistoryWindowBoundary(loadedPage: retainedItems, isComplete: false, extendsCurrentWindow: false)
         replaceItems(retainedItems)
         refreshDisplayedItemsFromCurrentScope()
         loadedHistoryCount = retainedItems.count
-        hasLoadedFullHistory = false
         isLoadingMoreHistory = false
     }
 
@@ -126,15 +135,33 @@ extension ClipboardViewModel {
         let pageItems = mergingStoreChangesDuringHistoryLoad(into: fetchedPageItems)
         endInitialHistoryPageLoadTracking()
 
-        if mode == .visibleFirst, items.isEmpty == false {
+        // 先更新载入状态再改 items：items 的 didSet 会同步重新过滤，
+        // 过滤据此决定是否需要范围补齐、「全部」视图展示到哪里。
+        let isComplete = fetchedPageCount < Self.initialVisibleItemBatchSize
+        let extendsCurrentWindow = mode == .visibleFirst && items.isEmpty == false
+        hasLoadedFullHistory = isComplete
+        updateHistoryWindowBoundary(
+            loadedPage: fetchedPageItems,
+            isComplete: isComplete,
+            extendsCurrentWindow: extendsCurrentWindow
+        )
+
+        var mergedLoadedHistoryCount: Int?
+        if extendsCurrentWindow {
+            // items 里可能混有搜索 / 范围补齐进来的窗口外记录，不能直接用 items.count
+            // 当作分页 offset，否则继续加载会跳过一段历史。只累加本次新并入的条目。
+            let countBeforeMerge = items.count
             mergeItems(pageItems, prepend: true)
             refreshDisplayedItemsFromCurrentScope()
+            mergedLoadedHistoryCount = max(
+                loadedHistoryCount + (items.count - countBeforeMerge),
+                fetchedPageCount
+            )
 
             if applyDeferredAutoSelectFirstItemIfNeeded() {
                 isInitialHistoryLoading = false
                 isLoadingMoreHistory = false
-                loadedHistoryCount = items.count
-                hasLoadedFullHistory = fetchedPageCount < Self.initialVisibleItemBatchSize
+                loadedHistoryCount = mergedLoadedHistoryCount ?? items.count
                 return
             }
 
@@ -145,14 +172,20 @@ extension ClipboardViewModel {
 
         isInitialHistoryLoading = false
         isLoadingMoreHistory = false
-        loadedHistoryCount = items.count
-        hasLoadedFullHistory = fetchedPageCount < Self.initialVisibleItemBatchSize
+        loadedHistoryCount = mergedLoadedHistoryCount ?? items.count
     }
 
     @MainActor
-    func appendHistoryPage(_ pageItems: [ClipboardItem], generation: UInt, loadedCount: Int) {
+    func appendHistoryPage(
+        _ pageItems: [ClipboardItem],
+        generation: UInt,
+        loadedCount: Int,
+        isComplete: Bool
+    ) {
         guard generation == dataLoadGeneration else { return }
 
+        hasLoadedFullHistory = isComplete
+        updateHistoryWindowBoundary(loadedPage: pageItems, isComplete: isComplete, extendsCurrentWindow: true)
         mergeItems(pageItems, prepend: false)
         refreshDisplayedItemsFromCurrentScope()
         isInitialHistoryLoading = false

@@ -35,6 +35,14 @@ final class ClipboardViewModel {
     static let backgroundLoadMaxItems = 2000
     /// 数据库搜索分页大小。
     static let databaseSearchPageSize = 200
+    /// 分组 / 收藏 / 类型筛选直查数据库时单次取回的上限。
+    static let scopedFetchLimit = 1000
+
+    struct ScopeSupplementKey: Equatable {
+        let groupId: String?
+        let typeRawValue: String?
+        let favoritesOnly: Bool
+    }
 
     struct QuickLookImagePreviewState {
         let image: NSImage
@@ -117,6 +125,11 @@ final class ClipboardViewModel {
     var dataLoadGeneration: UInt = 0
     var loadedHistoryCount = 0
     var hasLoadedFullHistory = false
+    /// 已按范围直查补齐过的筛选范围。items 每次变化都会重新过滤，
+    /// 记住它可以避免同一范围下反复查库；items 被整体替换时清空。
+    @ObservationIgnored var completedScopeSupplementKey: ScopeSupplementKey? = nil
+    /// 连续载入的历史前缀中排序最靠后的一条；nil 表示 items 即完整历史。
+    @ObservationIgnored var historyWindowBoundary: ClipboardItem? = nil
     @ObservationIgnored nonisolated(unsafe) var historyLoadTask: Task<Void, Never>? = nil
     /// 首屏整页查询进行中时收到的增量变更。整页结果可能读自这些变更入库之前，
     /// 落地前需要先合并，否则刚插入的新记录会被旧快照覆盖掉。

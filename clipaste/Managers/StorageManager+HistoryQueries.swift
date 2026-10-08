@@ -29,6 +29,27 @@ extension StorageManager {
     }
 
     nonisolated
+    func fetchScopedItems(
+        searchText: String = "",
+        groupId: String?,
+        typeRawValue: String?,
+        favoritesOnly: Bool,
+        fetchLimit: Int
+    ) async -> [ClipboardItem] {
+        let container = self.container
+        return await detachedRead {
+            let searcher = ClipboardSearcher(modelContainer: container)
+            return await searcher.fetchScoped(
+                searchText: searchText,
+                groupId: groupId,
+                typeRawValue: typeRawValue,
+                favoritesOnly: favoritesOnly,
+                fetchLimit: fetchLimit
+            )
+        }
+    }
+
+    nonisolated
 
     func fetchGroups() async -> [ClipboardGroupItem] {
         let container = self.container
