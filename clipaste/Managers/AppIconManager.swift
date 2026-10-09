@@ -10,6 +10,8 @@ final class AppIconManager {
     /// `pngData` 路径（drawing + tiffRepresentation + PNG encode），同一个 App
     /// 反复编码同一张图非常吃主线程。
     private let pngDataCache = NSCache<NSString, NSData>()
+    /// 值为 nil 表示本机找不到该 App，同样缓存下来避免重复查询。
+    private var dominantColorHexCache: [String: String?] = [:]
 
     private init() {
         pngDataCache.countLimit = 128
@@ -30,6 +32,18 @@ final class AppIconManager {
         let icon = NSWorkspace.shared.icon(forFile: url.path)
         cache.setObject(icon, forKey: bundleIdentifier as NSString)
         return icon
+    }
+
+    /// 按 bundleID 从本机图标取卡片主题色，保证同一个 App 的所有卡片颜色一致。
+    /// 本机没有该 App（例如从其他设备同步来的记录）时返回 nil，由调用方回退到记录里存的颜色。
+    func dominantColorHex(for bundleIdentifier: String) -> String? {
+        if let cached = dominantColorHexCache[bundleIdentifier] {
+            return cached
+        }
+
+        let colorHex = getIcon(for: bundleIdentifier)?.dominantColorHex()
+        dominantColorHexCache[bundleIdentifier] = colorHex
+        return colorHex
     }
 
     func iconPNGData(for bundleIdentifier: String, pixelSize: CGFloat = syncedIconPixelSize) -> Data? {

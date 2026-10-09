@@ -37,8 +37,11 @@ struct ClipboardCardView: View {
     }
 
     var headerBaseColor: Color {
-        if let storedColor = Color(clipasteHex: item.appIconDominantColorHex) {
-            return storedColor
+        let colorHex = item.sourceBundleIdentifier
+            .flatMap(AppIconManager.shared.dominantColorHex(for:))
+            ?? item.appIconDominantColorHex
+        if let color = Color(clipasteHex: colorHex) {
+            return color
         }
         return Color(nsColor: .darkGray)
     }

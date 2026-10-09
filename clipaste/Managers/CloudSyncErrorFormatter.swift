@@ -11,11 +11,12 @@ nonisolated enum CloudSyncErrorFormatter {
         // Core Data 可能把它包在 NSUnderlyingErrorKey / NSDetailedErrors 里,逐层往下找。
         if let partialErrors = partialFailureItemErrors(in: error as NSError, depth: 0) {
             let distinctReasons = Set(partialErrors.map { ($0 as NSError).localizedDescription })
-            let detail = distinctReasons.sorted().prefix(3).joined(separator: "；")
-            let hint = distinctReasons.contains { $0.localizedCaseInsensitiveContains("Cannot create or modify field") }
-                ? "iCloud 服务端尚未部署新版本的数据字段，需开发者部署 CloudKit schema。"
-                : ""
-            return "\(hint)CloudKit 部分记录同步失败（\(partialErrors.count) 条）：\(detail)"
+            let detail = distinctReasons.sorted().prefix(3).joined(separator: "; ")
+            let failedCount = partialErrors.count
+            if distinctReasons.contains(where: { $0.localizedCaseInsensitiveContains("Cannot create or modify field") }) {
+                return String(localized: "The iCloud server doesn't have the latest data fields yet. The developer needs to deploy the CloudKit schema. Some records failed to sync (\(failedCount)): \(detail)")
+            }
+            return String(localized: "Some records failed to sync to CloudKit (\(failedCount)): \(detail)")
         }
 
         if let localizedError = error as? LocalizedError,
@@ -34,7 +35,7 @@ nonisolated enum CloudSyncErrorFormatter {
         }
 
         if let underlyingError = nsError.userInfo[NSUnderlyingErrorKey] as? NSError {
-            let underlyingMessage = "底层错误：\(underlyingError.localizedDescription)"
+            let underlyingMessage = String(localized: "Underlying error: \(underlyingError.localizedDescription)")
             if segments.contains(underlyingMessage) == false {
                 segments.append(underlyingMessage)
             }
@@ -45,10 +46,10 @@ nonisolated enum CloudSyncErrorFormatter {
             let detailMessage = detailedErrors
                 .map { $0.localizedDescription }
                 .filter { $0.isEmpty == false }
-                .joined(separator: "；")
+                .joined(separator: "; ")
 
             if detailMessage.isEmpty == false {
-                segments.append("详细信息：\(detailMessage)")
+                segments.append(String(localized: "Details: \(detailMessage)"))
             }
         }
 

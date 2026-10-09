@@ -1,94 +1,109 @@
 import AppKit
-import CoreImage
 import Foundation
 
 private nonisolated enum AppIconColorExtraction {
-    static let workingSize = 32
-    static let minimumAlpha: Double = 0.18
-    static let minimumSaturation: Double = 0.20
-    static let neutralBrightnessCutoff: Double = 0.78
-    static let sharedContext = CIContext(options: [.cacheIntermediates: false])
+    static let workingSize = 48
+    /// 低于该不透明度的像素视为阴影 / 抗锯齿边缘，不参与取色。
+    static let minimumAlpha: Double = 0.6
+    static let minimumSaturation: Double = 0.28
+    static let minimumBrightness: Double = 0.30
+    static let minimumChroma: Double = 0.18
+    /// 有色像素占比低于该值时，图标视为中性色（黑 / 白 / 灰）。
+    static let minimumChromaticCoverage: Double = 0.06
+    static let hueBinCount = 36
+    /// 峰值两侧纳入平均的色相范围（以 bin 为单位）。
+    static let hueWindowBins: Double = 1.5
+    /// 中性色图标的亮度上限，保证卡片头部的白色文字可读。
+    static let neutralMaximumBrightness: Double = 0.42
 }
 
 extension NSImage {
+    /// 取图标的「品牌色」：在有色像素上做环形色相直方图，取峰值附近像素的加权平均；
+    /// 图标几乎没有颜色时，退回到压暗后的中性色平均值。
     nonisolated
     func dominantColorHex() -> String? {
         autoreleasepool {
-            if let histogramColor = Self.histogramDominantColorHex(from: self) {
-                return histogramColor
+            guard let bitmap = Self.makeBitmap(from: self, size: AppIconColorExtraction.workingSize),
+                  let bitmapData = bitmap.bitmapData else {
+                return nil
             }
 
-            return Self.areaAverageHex(from: self)
+            let binCount = AppIconColorExtraction.hueBinCount
+            var histogram = [Double](repeating: 0, count: binCount)
+            var chromaticPixels: [ChromaticPixel] = []
+            var neutral = ColorAccumulator()
+            var opaqueCount = 0
+
+            let pixelCount = bitmap.pixelsWide * bitmap.pixelsHigh
+            for pixelIndex in 0..<pixelCount {
+                let offset = pixelIndex * 4
+                let alpha = Double(bitmapData[offset + 3]) / 255.0
+                guard alpha >= AppIconColorExtraction.minimumAlpha else {
+                    continue
+                }
+
+                // 位图是预乘 alpha 的，先还原真实颜色。
+                let color = RGBColor(
+                    red: min(Double(bitmapData[offset]) / 255.0 / alpha, 1),
+                    green: min(Double(bitmapData[offset + 1]) / 255.0 / alpha, 1),
+                    blue: min(Double(bitmapData[offset + 2]) / 255.0 / alpha, 1)
+                )
+                let hsv = color.hsv
+                let chroma = hsv.saturation * hsv.value
+                opaqueCount += 1
+
+                guard hsv.saturation >= AppIconColorExtraction.minimumSaturation,
+                      hsv.value >= AppIconColorExtraction.minimumBrightness,
+                      chroma >= AppIconColorExtraction.minimumChroma else {
+                    neutral.add(color, weight: 1)
+                    continue
+                }
+
+                histogram[Int(hsv.hue * Double(binCount)) % binCount] += chroma
+                chromaticPixels.append(ChromaticPixel(color: color, hue: hsv.hue, weight: chroma))
+            }
+
+            guard opaqueCount > 0 else {
+                return nil
+            }
+
+            let coverage = Double(chromaticPixels.count) / Double(opaqueCount)
+            if coverage >= AppIconColorExtraction.minimumChromaticCoverage,
+               let brandColor = Self.peakHueColor(histogram: histogram, pixels: chromaticPixels) {
+                return brandColor.hex
+            }
+
+            return neutral.average?.clampingBrightness(to: AppIconColorExtraction.neutralMaximumBrightness).hex
         }
     }
 
-    private nonisolated static func makeCIImage(from image: NSImage) -> CIImage? {
-        if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
-            return CIImage(cgImage: cgImage)
+    private nonisolated static func peakHueColor(histogram: [Double], pixels: [ChromaticPixel]) -> RGBColor? {
+        let binCount = histogram.count
+        // 环形平滑：避免跨在 bin 边界（例如 0° / 360° 的红色）的同一种颜色被拆散。
+        let smoothed = histogram.indices.map { index in
+            histogram[(index + binCount - 1) % binCount] * 0.5
+                + histogram[index]
+                + histogram[(index + 1) % binCount] * 0.5
         }
 
-        if let tiffRepresentation = image.tiffRepresentation {
-            return CIImage(data: tiffRepresentation)
-        }
-
-        return nil
-    }
-
-    private nonisolated static func histogramDominantColorHex(from image: NSImage) -> String? {
-        guard let bitmap = makeBitmap(from: image, size: AppIconColorExtraction.workingSize),
-              let bitmapData = bitmap.bitmapData else {
+        guard let peakIndex = smoothed.indices.max(by: { smoothed[$0] < smoothed[$1] }),
+              smoothed[peakIndex] > 0 else {
             return nil
         }
 
-        let bytesPerPixel = 4
-        let pixelCount = bitmap.pixelsWide * bitmap.pixelsHigh
-        var bins: [Int: ColorBin] = [:]
-        var fallback = ColorBin()
+        let peakHue = (Double(peakIndex) + 0.5) / Double(binCount)
+        let window = AppIconColorExtraction.hueWindowBins / Double(binCount)
+        var accumulator = ColorAccumulator()
 
-        for pixelIndex in 0..<pixelCount {
-            let offset = pixelIndex * bytesPerPixel
-            let red = Double(bitmapData[offset]) / 255.0
-            let green = Double(bitmapData[offset + 1]) / 255.0
-            let blue = Double(bitmapData[offset + 2]) / 255.0
-            let alpha = Double(bitmapData[offset + 3]) / 255.0
-
-            guard alpha >= AppIconColorExtraction.minimumAlpha else {
+        for pixel in pixels {
+            let distance = abs(pixel.hue - peakHue)
+            guard min(distance, 1 - distance) <= window else {
                 continue
             }
-
-            let hsv = RGBColor(red: red, green: green, blue: blue).hsv
-            fallback.add(red: red, green: green, blue: blue, alpha: alpha, weight: alpha)
-
-            let isNearWhiteOrGray =
-                hsv.saturation < AppIconColorExtraction.minimumSaturation &&
-                hsv.value > AppIconColorExtraction.neutralBrightnessCutoff
-            guard !isNearWhiteOrGray else {
-                continue
-            }
-
-            let shouldTreatAsAccent =
-                hsv.saturation >= AppIconColorExtraction.minimumSaturation || hsv.value < 0.42
-            guard shouldTreatAsAccent else {
-                continue
-            }
-
-            let bucket = colorBucket(for: hsv, red: red, green: green, blue: blue)
-            let weight = alpha * max(hsv.saturation, 0.35) * (0.55 + hsv.value * 0.45)
-            bins[bucket, default: ColorBin()].add(
-                red: red,
-                green: green,
-                blue: blue,
-                alpha: alpha,
-                weight: weight
-            )
+            accumulator.add(pixel.color, weight: pixel.weight)
         }
 
-        if let best = bins.max(by: { $0.value.totalWeight < $1.value.totalWeight })?.value,
-           let color = best.hex {
-            return color
-        }
-
-        return fallback.hex
+        return accumulator.average
     }
 
     private nonisolated static func makeBitmap(from image: NSImage, size: Int) -> NSBitmapImageRep? {
@@ -128,80 +143,34 @@ extension NSImage {
 
         return rep
     }
-
-    private nonisolated static func colorBucket(for hsv: HSVColor, red: Double, green: Double, blue: Double) -> Int {
-        let hueBucket = Int((hsv.hue * 24.0).rounded(.down)) % 24
-        let saturationBucket = min(Int(hsv.saturation * 4.0), 3)
-        let brightnessBucket = min(Int(hsv.value * 4.0), 3)
-        let dominantChannel = dominantChannelIndex(red: red, green: green, blue: blue)
-        return (((hueBucket * 4) + saturationBucket) * 4 + brightnessBucket) * 4 + dominantChannel
-    }
-
-    private nonisolated static func dominantChannelIndex(red: Double, green: Double, blue: Double) -> Int {
-        if red >= green && red >= blue { return 0 }
-        if green >= red && green >= blue { return 1 }
-        return 2
-    }
-
-    private nonisolated static func areaAverageHex(from image: NSImage) -> String? {
-        guard let ciImage = makeCIImage(from: image) else {
-            return nil
-        }
-
-        let extent = ciImage.extent.integral
-        guard extent.isEmpty == false else {
-            return nil
-        }
-
-        guard let filter = CIFilter(
-            name: "CIAreaAverage",
-            parameters: [
-                kCIInputImageKey: ciImage,
-                kCIInputExtentKey: CIVector(cgRect: extent)
-            ]
-        ),
-        let outputImage = filter.outputImage,
-        let colorSpace = CGColorSpace(name: CGColorSpace.sRGB) else {
-            return nil
-        }
-
-        var pixel = [UInt8](repeating: 0, count: 4)
-        AppIconColorExtraction.sharedContext.render(
-            outputImage,
-            toBitmap: &pixel,
-            rowBytes: 4,
-            bounds: CGRect(x: 0, y: 0, width: 1, height: 1),
-            format: .RGBA8,
-            colorSpace: colorSpace
-        )
-
-        guard pixel[3] > 0 else {
-            return nil
-        }
-
-        return String(format: "#%02X%02X%02X", pixel[0], pixel[1], pixel[2])
-    }
 }
 
-private nonisolated struct ColorBin {
-    private(set) var totalWeight: Double = 0
+private nonisolated struct ChromaticPixel {
+    let color: RGBColor
+    let hue: Double
+    let weight: Double
+}
+
+private nonisolated struct ColorAccumulator {
+    private var totalWeight: Double = 0
     private var weightedRed: Double = 0
     private var weightedGreen: Double = 0
     private var weightedBlue: Double = 0
 
-    mutating func add(red: Double, green: Double, blue: Double, alpha _: Double, weight: Double) {
+    mutating func add(_ color: RGBColor, weight: Double) {
         totalWeight += weight
-        weightedRed += red * weight
-        weightedGreen += green * weight
-        weightedBlue += blue * weight
+        weightedRed += color.red * weight
+        weightedGreen += color.green * weight
+        weightedBlue += color.blue * weight
     }
 
-    var hex: String? {
+    var average: RGBColor? {
         guard totalWeight > 0 else { return nil }
-        let red = UInt8((weightedRed / totalWeight * 255.0).rounded())
-        let green = UInt8((weightedGreen / totalWeight * 255.0).rounded())
-        let blue = UInt8((weightedBlue / totalWeight * 255.0).rounded())
-        return String(format: "#%02X%02X%02X", red, green, blue)
+        return RGBColor(
+            red: weightedRed / totalWeight,
+            green: weightedGreen / totalWeight,
+            blue: weightedBlue / totalWeight
+        )
     }
 }
 
@@ -209,6 +178,20 @@ private nonisolated struct RGBColor {
     let red: Double
     let green: Double
     let blue: Double
+
+    var hex: String {
+        func component(_ value: Double) -> UInt8 {
+            UInt8((min(max(value, 0), 1) * 255.0).rounded())
+        }
+        return String(format: "#%02X%02X%02X", component(red), component(green), component(blue))
+    }
+
+    func clampingBrightness(to maximum: Double) -> RGBColor {
+        let brightness = max(red, green, blue)
+        guard brightness > maximum else { return self }
+        let scale = maximum / brightness
+        return RGBColor(red: red * scale, green: green * scale, blue: blue * scale)
+    }
 
     var hsv: HSVColor {
         let maxValue = max(red, green, blue)
