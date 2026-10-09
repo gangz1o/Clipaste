@@ -3,6 +3,33 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.25</title>
+            <pubDate>Fri, 09 Oct 2026 02:46:50 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.25</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20225</sparkle:version>
+            <sparkle:shortVersionString>2.2.25</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## 本次更新
+
+本版修复卡片顶部颜色取得不准、同一个 App 颜色不统一的问题，并补齐各语言的翻译。
+
+- **卡片颜色更准确**：改进从 App 图标取色的方式，优先取图标的品牌色，不再被深色背景或阴影带偏。例如 Obsidian、Raycast、密码等 App 之前显示为黑色，现在会显示各自的品牌色；Chrome 也不会再在黄、红、绿之间随机变化。
+- **同一个 App 颜色统一**：同一个 App 的所有卡片现在使用同一种颜色，旧记录也会自动生效，无需重新复制。
+- **多语言补全**：补齐置顶、剪贴板变化提示音、记录其他设备内容、首次引导、分组图标选择等文案的德语、法语、日语、韩语翻译，部分缺失的中文翻译也已补上；iCloud 同步错误提示也会按系统语言显示。
+
+## What's New
+
+This release makes card header colors accurate and consistent, and completes translations across all languages.
+
+- **More accurate card colors**: Colors picked from app icons now favor the icon's brand color instead of dark backgrounds or shadows. Apps such as Obsidian, Raycast and Passwords previously showed black headers and now show their brand colors, and Chrome no longer switches between yellow, red and green.
+- **Consistent colors per app**: All cards from the same app now share one color, including existing history items — no need to copy them again.
+- **Complete translations**: Adds German, French, Japanese and Korean translations for pinning, the clipboard change sound, content from other devices, onboarding and the group icon picker, plus a few missing Chinese strings. iCloud sync error messages now follow the system language.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.25/Clipaste-v2.2.25.zip" length="8372396" type="application/octet-stream" sparkle:edSignature="XG4jzN9d6h+5h3XSjybgrg89ZkXdIOlDM7iBI34pSwIYNdNSf7scL+OmOi531UkO+93iXLQZv2FjmpOln3ALAA=="/>
+        </item>
+        <item>
             <title>2.2.24</title>
             <pubDate>Thu, 08 Oct 2026 14:37:49 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -53,39 +80,6 @@ This release fixes the "New Group…" context menu entry and adds an option for 
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.23/Clipaste-v2.2.23.zip" length="8340733" type="application/octet-stream" sparkle:edSignature="3zuVnM+sHuEgus0QJUBkwyUqEPxGKDDjy11q6I8IvnVdn4IAXHHbmCmOTazl2KsLsO3pQKm9+cMpVbo1y0q7DA=="/>
-        </item>
-        <item>
-            <title>2.2.22</title>
-            <pubDate>Thu, 08 Oct 2026 07:11:14 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.22</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20222</sparkle:version>
-            <sparkle:shortVersionString>2.2.22</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## 本次更新
-
-本版修复应用图标在新版 macOS 中缩小、出现双层底板的问题，并包含此前的菜单栏图标、记录置顶与剪贴板提示音改进。
-
-- **修复应用图标尺寸**：使用满幅不透明图稿和原生图标资源，由 macOS 统一处理外轮廓，消除额外灰色底板和过度留白。保留紫色折纸 P 与珊瑚色翻折设计；中英文 README 同步展示系统实际渲染的图标。
-- **全新菜单栏图标**：将原剪贴板符号换成与应用图标一致的折纸 P，采用单色矢量资源，自动适配深浅背景，保持小尺寸与 Retina 显示清晰。
-- **记录置顶**：右键单条记录即可「置顶 / 取消置顶」，与收藏独立，支持多条记录。横向、纵向和紧凑布局均显示图钉标识，新复制内容排在置顶记录之后；取消置顶后恢复按复制时间排序。解决 #60。
-- **置顶持久保存**：重启、分页、搜索和本地 / iCloud 存储切换时保留置顶状态；自动清理与「清空历史」会保留置顶记录。
-- **剪贴板变化提示音**：普通系统复制及其他应用更新 Mac 剪贴板时也能播放简短提示音，沿用已有开关偏好，并遵守暂停监听和忽略应用设置。解决 #61。
-- **避免重复响铃**：同一次复制不会因手动操作和后台监听而重复播放提示音。
-
-## What's New
-
-This release fixes the undersized, double-tile app icon on newer macOS versions and includes the earlier menu bar icon, pinning and clipboard sound improvements.
-
-- **Fix app icon sizing**: Native icon assets with opaque, full-bleed artwork let macOS apply the outer shape, removing the extra gray tile and excessive padding. The purple folded-paper P and coral fold are preserved. Both READMEs now show the system-rendered icon.
-- **New menu bar icon**: A monochrome folded-paper P replaces the old clipboard symbol. The vector template adapts to light and dark backgrounds and stays sharp at small sizes and on Retina displays.
-- **Pin records to the top**: Use the context menu to pin or unpin individual records, independently of Favorites. Multiple pins are supported in all three layouts. New copies stay below pinned records; unpinning restores chronological order. Resolves #60.
-- **Persistent pins**: Pin state survives restarts, paging, search and local / iCloud store transfers. Automatic cleanup and Clear History preserve pinned records.
-- **Clipboard change sound**: Optional sound feedback now also covers ordinary system copies and other applications updating the Mac clipboard. Existing preferences, paused monitoring and ignored applications are respected. Resolves #61.
-- **No duplicate sounds**: Manual copying and background monitoring play only one sound for the same clipboard update.
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.22/Clipaste-v2.2.22.zip" length="8327248" type="application/octet-stream" sparkle:edSignature="2epw+784TLS/Dsxj4X3N9FsH+QdGV1fPDCqX70N7BU8GLiySLF2CGIMiOpI4slhkDEAMN2ts8Z4GQrCQj/jUCg=="/>
         </item>
     </channel>
 </rss>
