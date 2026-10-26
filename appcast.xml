@@ -3,6 +3,35 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.26</title>
+            <pubDate>Mon, 26 Oct 2026 11:18:54 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.26</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20226</sparkle:version>
+            <sparkle:shortVersionString>2.2.26</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## 本次更新
+
+本版修复连续快速复制后呼出面板卡顿、中间记录丢失的问题，并重新设计了设置页侧边栏。
+
+- **连续复制不再丢记录**：快速连续复制多段内容时，中间的复制可能来不及被记录，只剩最后一条。现在每一次复制都会被完整记录，并按复制顺序排列。（#65）
+- **呼出面板不再卡顿**：连续复制后立即用快捷键或菜单栏图标呼出面板，之前可能要卡好几秒才有反应，现在会立即打开。
+- **更省资源**：每次复制触发的数据库查询更少，连续复制时后台占用明显降低。
+- **全新设置侧边栏**：设置页侧边栏改用系统原生样式，每个设置项配上彩色图标，选中项使用强调色高亮；图标大小跟随系统侧边栏尺寸设置，「关于」的更新提示红点显示在图标上。
+
+## What's New
+
+This release fixes lag and lost history after rapid copying, and redesigns the settings sidebar.
+
+- **No more lost copies**: When copying several items in quick succession, items in the middle could be skipped, leaving only the last one. Every copy is now recorded, in the order you copied it. (#65)
+- **Panel opens instantly**: Opening the panel with the shortcut or the menu bar icon right after a burst of copies could hang for several seconds. It now opens right away.
+- **Lighter on resources**: Each copy triggers fewer database queries, so bursts of copying use noticeably less background work.
+- **Redesigned settings sidebar**: The settings sidebar now uses the native macOS style, with a colored icon for each section and accent-colored selection. Icons follow the system sidebar size setting, and the update badge for "About" now sits on its icon.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.26/Clipaste-v2.2.26.zip" length="8375051" type="application/octet-stream" sparkle:edSignature="TPsFAQpHx7ETm6kZDdbzC2KbRLUK+yEPgQMVV3QtXh0Dm1nnnyUrWsejTPmLMJv/AlFneEKcDOdkPWS2S4y7Bw=="/>
+        </item>
+        <item>
             <title>2.2.25</title>
             <pubDate>Fri, 09 Oct 2026 02:46:50 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -55,31 +84,6 @@ This release fixes empty custom group pages on large histories and the persisten
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.24/Clipaste-v2.2.24.zip" length="8368140" type="application/octet-stream" sparkle:edSignature="iXPrxsrZr0GouhuUXXzPbiO+zkeP61eK3KBvOT6HYpaX9HjJ9nw5g73YJ6qADb0iu77ZNkex3UAiRxrqJmo5Cw=="/>
-        </item>
-        <item>
-            <title>2.2.23</title>
-            <pubDate>Thu, 08 Oct 2026 11:01:36 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.23</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20223</sparkle:version>
-            <sparkle:shortVersionString>2.2.23</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## 本次更新
-
-本版修复右键菜单「新增分组…」无效的问题，并新增是否记录其他设备通用剪贴板内容的选项。
-
-- **右键新增分组**：在记录上右键选择「加入分组 → 新增分组…」，会弹出分组编辑框（名称 + 图标）；创建后当前记录自动加入新分组。支持 Esc 取消，输入时不会触发面板的打字搜索。
-- **其他设备的内容**：新增「通用 → 记录来自其他设备的内容」开关（默认开启）。关闭后，通过通用剪贴板从 iPhone、iPad 或其他 Mac 同步过来的内容（例如 iPhone 截图后选择「拷贝并删除」）不再被记录，也不会播放提示音。
-
-## What's New
-
-This release fixes the "New Group…" context menu entry and adds an option for Universal Clipboard content from other devices.
-
-- **New group from the context menu**: "Add to Group → New Group…" now opens the group editor (name + icon). The new group is created and the record is added to it. Press Esc to cancel; typing no longer triggers type-to-search while the editor is open.
-- **Content from other devices**: New "General → Record Content from Other Devices" toggle (on by default). Turn it off to skip content synced from iPhone, iPad or other Macs via Universal Clipboard, such as an iPhone screenshot saved with "Copy and Delete". Skipped content also plays no sound.
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.23/Clipaste-v2.2.23.zip" length="8340733" type="application/octet-stream" sparkle:edSignature="3zuVnM+sHuEgus0QJUBkwyUqEPxGKDDjy11q6I8IvnVdn4IAXHHbmCmOTazl2KsLsO3pQKm9+cMpVbo1y0q7DA=="/>
         </item>
     </channel>
 </rss>
