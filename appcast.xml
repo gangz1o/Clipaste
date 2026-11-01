@@ -3,6 +3,33 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.27</title>
+            <pubDate>Sun, 01 Nov 2026 12:12:39 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.27</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20227</sparkle:version>
+            <sparkle:shortVersionString>2.2.27</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## 本次更新
+
+本版改善 Windows App 远程连接中的粘贴兼容性，并修复文本预览滚动时可能卡死的问题。
+
+- **Windows App 远程粘贴**：修复通过双击历史记录或快捷键粘贴到远程 Windows 时，可能只输入字母 `v` 的问题。针对 Windows App 使用完整的 `Ctrl+V` 按键序列，并等待触发快捷键的修饰键松开、目标应用恢复焦点后再发送。
+- **更稳妥的自动粘贴**：统一普通粘贴、纯文本粘贴和 AI 结果粘贴的按键发送逻辑；取消粘贴时释放模拟按键，避免按键残留。
+- **文本预览不再卡死**：修复文本预览在滚动临界位置可能陷入布局循环、导致界面无响应的问题。（#66）
+
+## What's New
+
+This release improves pasting into Windows App remote sessions and fixes a text preview freeze during scrolling.
+
+- **Remote paste in Windows App**: Fixes an issue where double-clicking a history item or using a quick-paste shortcut could type only `v` on the remote Windows PC. Clipaste now sends a complete `Ctrl+V` sequence for Windows App, waiting for shortcut modifiers to be released and the target app to regain focus.
+- **More robust automatic paste**: Regular paste, plain-text paste, and AI-result paste now share the same keystroke handling. Cancelled sequences release their simulated keys to avoid leaving modifiers held.
+- **Text preview freeze fix**: Fixes a layout loop that could make text previews unresponsive near the scrolling boundary. (#66)
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.27/Clipaste-v2.2.27.zip" length="8382145" type="application/octet-stream" sparkle:edSignature="gMkRxDDUe3qrqi8r0lqYVH/xpW46eUV65tZr6IWjn5kMmkfDA7e3KA7d9IFfe5ZB66Qlu+U34DbCG4ztChTGDA=="/>
+        </item>
+        <item>
             <title>2.2.26</title>
             <pubDate>Mon, 26 Oct 2026 11:18:54 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -57,33 +84,6 @@ This release makes card header colors accurate and consistent, and completes tra
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.25/Clipaste-v2.2.25.zip" length="8372396" type="application/octet-stream" sparkle:edSignature="XG4jzN9d6h+5h3XSjybgrg89ZkXdIOlDM7iBI34pSwIYNdNSf7scL+OmOi531UkO+93iXLQZv2FjmpOln3ALAA=="/>
-        </item>
-        <item>
-            <title>2.2.24</title>
-            <pubDate>Thu, 08 Oct 2026 14:37:49 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.24</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20224</sparkle:version>
-            <sparkle:shortVersionString>2.2.24</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## 本次更新
-
-本版修复历史较多时自建分组页显示「剪贴板为空」的问题，并修复 iCloud 同步持续失败。
-
-- **分组页显示为空**：历史记录较多时，较早的分组成员（例如从 Paste 迁移来的 Pinboard 条目）不会被加载，分组页显示「剪贴板为空」。现在分组、收藏与类型筛选会直接从数据库读取全部成员。（#63）
-- **在分组内搜索**：在分组、收藏或类型筛选下搜索时，较早的匹配记录也能搜到。
-- **iCloud 同步失败**：修复自 v2.2.19 起设置页显示「同步失败：CKErrorDomain 错误 2」、新记录无法上传的问题。该问题已在服务端修复，旧版本也会自动恢复同步；同步出错时的提示也更具体。
-
-## What's New
-
-This release fixes empty custom group pages on large histories and the persistent iCloud sync failure.
-
-- **Empty group pages**: With a large history, older group members (such as Pinboard items migrated from Paste) were never loaded, so the group page showed "Clipboard is empty". Group, Favorites and type filters now load all members from the database. (#63)
-- **Search inside a group**: Searching within a group, Favorites or a type filter now also finds older matches.
-- **iCloud sync failures**: Fixes "Sync failed: CKErrorDomain error 2" and stuck uploads since v2.2.19. The cause is fixed on the server, so older versions resume syncing too; sync error messages are also more specific.
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.24/Clipaste-v2.2.24.zip" length="8368140" type="application/octet-stream" sparkle:edSignature="iXPrxsrZr0GouhuUXXzPbiO+zkeP61eK3KBvOT6HYpaX9HjJ9nw5g73YJ6qADb0iu77ZNkex3UAiRxrqJmo5Cw=="/>
         </item>
     </channel>
 </rss>
