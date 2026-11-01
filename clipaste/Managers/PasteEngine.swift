@@ -6,10 +6,8 @@ import UniformTypeIdentifiers
 @MainActor
 final class PasteEngine {
     static let shared = PasteEngine()
-    static let postHidePasteDelay: Duration = .milliseconds(60)
-
     private let pasteboard = NSPasteboard.general
-    private let vKeyCode: CGKeyCode = 0x09
+    private var pasteTask: Task<Void, Never>?
 
     private init() {}
 
@@ -28,6 +26,7 @@ final class PasteEngine {
             preferPlainText: preferPlainText
         ) else { return false }
 
+        pasteTask?.cancel()
         ClipboardMonitor.shared.isIgnoredNextChange = true
         pasteboard.clearContents()
         return write(payload: payload)
@@ -35,21 +34,42 @@ final class PasteEngine {
 
     /// 仅将纯文本写入系统剪贴板（抹除一切格式）
     func writePlainTextToPasteboard(text: String) {
+        pasteTask?.cancel()
         ClipboardMonitor.shared.isIgnoredNextChange = true
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
     }
 
-    func simulateCommandV() {
-        postPasteKeystroke()
+    func hidePanelAndPaste() {
+        let panelManager = ClipboardPanelManager.shared
+        // Hiding the panel clears previousActiveApp; capture the destination first.
+        let target = panelManager.previousActiveApp ?? NSWorkspace.shared.frontmostApplication
+        panelManager.forceHidePanel()
+        pasteTask?.cancel()
+        guard let target, checkAccessibilityPermissions() else { return }
+
+        let previousTask = pasteTask
+        let changeCount = pasteboard.changeCount
+        pasteTask = Task { @MainActor [weak self] in
+            // Finish releasing a cancelled sequence before starting another one.
+            await previousTask?.value
+            guard let self, !Task.isCancelled else { return }
+            await PasteKeystrokeSender.send(
+                bundleIdentifier: target.bundleIdentifier,
+                isTargetActive: {
+                    !target.isTerminated
+                        && NSWorkspace.shared.frontmostApplication?.processIdentifier == target.processIdentifier
+                        && !panelManager.isVisible
+                        && self.pasteboard.changeCount == changeCount
+                }
+            )
+        }
     }
 
     func paste(record: ClipboardPasteRecord) async {
         guard checkAccessibilityPermissions() else { return }
         guard await writeToPasteboard(record: record) else { return }
-        ClipboardPanelManager.shared.hidePanel()
-        try? await Task.sleep(for: Self.postHidePasteDelay)
-        simulateCommandV()
+        hidePanelAndPaste()
     }
 
     private func write(payload: PastePayload) -> Bool {
@@ -61,17 +81,6 @@ final class PasteEngine {
         case let .image(data, format):
             return pasteboard.setData(data, forType: format.pasteboardType)
         }
-    }
-
-    private func postPasteKeystroke() {
-        let source = CGEventSource(stateID: .hidSystemState)
-        let keyDown = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: true)
-        keyDown?.flags = .maskCommand
-        let keyUp = CGEvent(keyboardEventSource: source, virtualKey: vKeyCode, keyDown: false)
-        keyUp?.flags = .maskCommand
-
-        keyDown?.post(tap: .cghidEventTap)
-        keyUp?.post(tap: .cghidEventTap)
     }
 
     nonisolated

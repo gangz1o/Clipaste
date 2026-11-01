@@ -31,11 +31,7 @@ extension ClipboardViewModel {
             showOperationNotice(String(localized: "AI result replaced the current item."))
         case .pasteToActiveApp:
             PasteEngine.shared.writePlainTextToPasteboard(text: result)
-            ClipboardPanelManager.shared.forceHidePanel()
-            Task { @MainActor in
-                try? await Task.sleep(for: PasteEngine.postHidePasteDelay)
-                PasteEngine.shared.simulateCommandV()
-            }
+            PasteEngine.shared.hidePanelAndPaste()
         }
     }
 

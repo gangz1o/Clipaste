@@ -23,18 +23,11 @@ extension ClipboardViewModel {
                 return
             }
 
-            ClipboardPanelManager.shared.forceHidePanel()
-
             let autoPaste = UserDefaults.standard.object(forKey: "autoPasteToActiveApp") as? Bool ?? true
             if autoPaste {
-                guard PasteEngine.shared.checkAccessibilityPermissions() else {
-                    return
-                }
-
-                Task { @MainActor in
-                    try? await Task.sleep(for: PasteEngine.postHidePasteDelay)
-                    PasteEngine.shared.simulateCommandV()
-                }
+                PasteEngine.shared.hidePanelAndPaste()
+            } else {
+                ClipboardPanelManager.shared.forceHidePanel()
             }
 
             moveItemToTopIfPreferred(item)
@@ -45,11 +38,7 @@ extension ClipboardViewModel {
         Task { @MainActor in
             guard let text = await plainText(for: item) else { return }
             PasteEngine.shared.writePlainTextToPasteboard(text: text)
-            ClipboardPanelManager.shared.forceHidePanel()
-            Task { @MainActor in
-                try? await Task.sleep(for: PasteEngine.postHidePasteDelay)
-                PasteEngine.shared.simulateCommandV()
-            }
+            PasteEngine.shared.hidePanelAndPaste()
             moveItemToTopIfPreferred(item)
         }
     }
