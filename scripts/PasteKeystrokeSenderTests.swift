@@ -162,8 +162,11 @@ enum PasteKeystrokeSenderTests {
             case .keyDown:
                 precondition(key == 0x09 && !vIsDown)
                 precondition(heldModifier == expectedModifierKey, "Remote client must see modifier-down before V")
-                let expectedFlags: CGEventFlags = expectedModifierKey == 0x3B ? .maskControl : .maskCommand
+                let expectedFlags = PasteKeystrokeSender.shortcutFlags(isWindowsApp: expectedModifierKey == 0x3B)
                 precondition(event.flags == expectedFlags, "Do not leak the quick-paste shortcut's modifiers")
+                // VMs/remote clients ignore modifiers without the left-key device bit.
+                let deviceBit: UInt64 = expectedModifierKey == 0x3B ? 0x01 : 0x08
+                precondition(event.flags.rawValue & deviceBit != 0, "Missing device-dependent modifier bit")
                 vIsDown = true
                 pasteCount += 1
             case .keyUp:

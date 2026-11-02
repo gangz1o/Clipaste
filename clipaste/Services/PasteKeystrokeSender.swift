@@ -9,6 +9,16 @@ enum PasteKeystrokeSender {
         bundleIdentifier == "com.microsoft.rdc.macos"
     }
 
+    /// VMs and remote clients map physical keys to the guest using the device-dependent
+    /// left/right modifier bits; without them they forward a bare "v".
+    nonisolated static func shortcutFlags(isWindowsApp: Bool) -> CGEventFlags {
+        let deviceLeftControl: UInt64 = 0x01 // NX_DEVICELCTLKEYMASK
+        let deviceLeftCommand: UInt64 = 0x08 // NX_DEVICELCMDKEYMASK
+        return isWindowsApp
+            ? CGEventFlags(rawValue: CGEventFlags.maskControl.rawValue | deviceLeftControl)
+            : CGEventFlags(rawValue: CGEventFlags.maskCommand.rawValue | deviceLeftCommand)
+    }
+
     @discardableResult
     static func send(
         bundleIdentifier: String?,
@@ -49,7 +59,7 @@ enum PasteKeystrokeSender {
         sleep: (Duration) async throws -> Void
     ) async -> Bool {
         let modifierKey: CGKeyCode = isWindowsApp ? 0x3B : 0x37 // Left Control / Command
-        let flags: CGEventFlags = isWindowsApp ? .maskControl : .maskCommand
+        let flags = shortcutFlags(isWindowsApp: isWindowsApp)
         // Keep synthetic modifier state separate from the user's physical keyboard state.
         guard let source = CGEventSource(stateID: .privateState),
               let modifierDown = CGEvent(keyboardEventSource: source, virtualKey: modifierKey, keyDown: true),
