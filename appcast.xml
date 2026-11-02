@@ -3,6 +3,31 @@
     <channel>
         <title>Clipaste</title>
         <item>
+            <title>2.2.29</title>
+            <pubDate>Mon, 02 Nov 2026 10:46:42 +0000</pubDate>
+            <link>https://github.com/gangz1o/Clipaste</link>
+            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.29</sparkle:fullReleaseNotesLink>
+            <sparkle:version>20229</sparkle:version>
+            <sparkle:shortVersionString>2.2.29</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <description sparkle:format="markdown"><![CDATA[## 本次更新
+
+本版修复复制超大段文字时 Clipaste 卡住、鼠标持续转圈的问题。
+
+- **复制大段文字不再卡顿**：复制很长的文本（例如大型日志或文档全文）时，Clipaste 在判断内容是链接、颜色还是代码时会逐字扫描整段文字，导致界面数秒无响应。现在只分析开头一小段，判断耗时不再随文本长度增长。
+- **更准确的类型识别**：以网址开头的超长文本不再被误判为「链接」，会正确归类为文本。
+
+## What's New
+
+This release fixes Clipaste freezing with a spinning cursor after copying very large text.
+
+- **No more freezes on large copies**: When very long text was copied (such as large logs or full documents), Clipaste scanned the entire text to decide whether it was a link, color, or code, leaving the UI unresponsive for several seconds. It now analyzes only the beginning of the text, so classification time no longer grows with its length.
+- **More accurate type detection**: Very long text that starts with a URL is no longer misclassified as a link and is correctly treated as text.
+
+]]></description>
+            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.29/Clipaste-v2.2.29.zip" length="8382240" type="application/octet-stream" sparkle:edSignature="QJ6GqAHAeyILbKL3LJTKnLlJJ4lgCxItgxyNQKAhmhtCdT6gyacinPRUfs+o1nSjLdSwkeurVA2tdWBMKmwzAw=="/>
+        </item>
+        <item>
             <title>2.2.28</title>
             <pubDate>Mon, 02 Nov 2026 02:02:08 +0000</pubDate>
             <link>https://github.com/gangz1o/Clipaste</link>
@@ -51,35 +76,6 @@ This release improves pasting into Windows App remote sessions and fixes a text 
 
 ]]></description>
             <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.27/Clipaste-v2.2.27.zip" length="8382145" type="application/octet-stream" sparkle:edSignature="gMkRxDDUe3qrqi8r0lqYVH/xpW46eUV65tZr6IWjn5kMmkfDA7e3KA7d9IFfe5ZB66Qlu+U34DbCG4ztChTGDA=="/>
-        </item>
-        <item>
-            <title>2.2.26</title>
-            <pubDate>Mon, 26 Oct 2026 11:18:54 +0000</pubDate>
-            <link>https://github.com/gangz1o/Clipaste</link>
-            <sparkle:fullReleaseNotesLink>https://github.com/gangz1o/Clipaste/releases/tag/v2.2.26</sparkle:fullReleaseNotesLink>
-            <sparkle:version>20226</sparkle:version>
-            <sparkle:shortVersionString>2.2.26</sparkle:shortVersionString>
-            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-            <description sparkle:format="markdown"><![CDATA[## 本次更新
-
-本版修复连续快速复制后呼出面板卡顿、中间记录丢失的问题，并重新设计了设置页侧边栏。
-
-- **连续复制不再丢记录**：快速连续复制多段内容时，中间的复制可能来不及被记录，只剩最后一条。现在每一次复制都会被完整记录，并按复制顺序排列。（#65）
-- **呼出面板不再卡顿**：连续复制后立即用快捷键或菜单栏图标呼出面板，之前可能要卡好几秒才有反应，现在会立即打开。
-- **更省资源**：每次复制触发的数据库查询更少，连续复制时后台占用明显降低。
-- **全新设置侧边栏**：设置页侧边栏改用系统原生样式，每个设置项配上彩色图标，选中项使用强调色高亮；图标大小跟随系统侧边栏尺寸设置，「关于」的更新提示红点显示在图标上。
-
-## What's New
-
-This release fixes lag and lost history after rapid copying, and redesigns the settings sidebar.
-
-- **No more lost copies**: When copying several items in quick succession, items in the middle could be skipped, leaving only the last one. Every copy is now recorded, in the order you copied it. (#65)
-- **Panel opens instantly**: Opening the panel with the shortcut or the menu bar icon right after a burst of copies could hang for several seconds. It now opens right away.
-- **Lighter on resources**: Each copy triggers fewer database queries, so bursts of copying use noticeably less background work.
-- **Redesigned settings sidebar**: The settings sidebar now uses the native macOS style, with a colored icon for each section and accent-colored selection. Icons follow the system sidebar size setting, and the update badge for "About" now sits on its icon.
-
-]]></description>
-            <enclosure url="https://github.com/gangz1o/Clipaste/releases/download/v2.2.26/Clipaste-v2.2.26.zip" length="8375051" type="application/octet-stream" sparkle:edSignature="TPsFAQpHx7ETm6kZDdbzC2KbRLUK+yEPgQMVV3QtXh0Dm1nnnyUrWsejTPmLMJv/AlFneEKcDOdkPWS2S4y7Bw=="/>
         </item>
     </channel>
 </rss>
