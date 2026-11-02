@@ -8,7 +8,9 @@ struct ColorParser {
     /// 从文本中提取颜色。仅当文本内容**完整**匹配已知颜色格式时才返回，否则返回 nil。
     /// - 支持格式：`#RRGGBB`、`RRGGBB`、`rgb(255, 255, 255)`
     nonisolated static func extractColor(from text: String) -> Color? {
-        // 去除首尾空格换行，严格限制长度，防止长篇文章误触发
+        // 去除首尾空格换行，严格限制长度，防止长篇文章误触发。
+        // 先按 UTF-16 长度粗筛（桥接字符串上是 O(1)），避免对超大文本逐字 trim / count。
+        guard text.utf16.count <= 256 else { return nil }
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.count <= 25 else { return nil }
 

@@ -25,8 +25,16 @@ extension ClipboardMonitor {
         _ payload: ClipboardRecordPayload,
         overImageFrom pasteboardItem: NSPasteboardItem
     ) -> Bool {
-        guard let text = payload.text?.trimmingCharacters(in: .whitespacesAndNewlines),
-              text.isEmpty == false else {
+        guard let rawText = payload.text else { return false }
+
+        // 运行在主线程：超长文本按 UTF-16 长度（桥接字符串上 O(1)）直接判定，
+        // 不再对整段文本 trim / count。
+        if rawText.utf16.count > ClipboardContentClassifier.maxAnalyzedCharacters {
+            return true
+        }
+
+        let text = rawText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard text.isEmpty == false else {
             return false
         }
 

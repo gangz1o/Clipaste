@@ -3,7 +3,17 @@ import Foundation
 enum ClipboardContentClassifier {
     nonisolated static let repairVersion = 2
 
+    /// 录入在主线程同步分类。剪贴板读出的是桥接 NSString，逐字遍历（count、URL 解析）
+    /// 与全文长度成正比，超大文本会卡住主线程数秒，所以只看有界的前缀。
+    nonisolated static let maxAnalyzedCharacters = 4_000
+    /// 超过此 UTF-16 长度的文本不可能是颜色或链接；`utf16.count` 对桥接字符串是 O(1)。
+    nonisolated static let maxLinkUTF16Length = 8_192
+
     nonisolated static func classify(_ text: String) -> ClipboardContentType {
+        guard text.utf16.count <= maxLinkUTF16Length else {
+            return isLikelyCode(text) ? .code : .text
+        }
+
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed.isEmpty == false else { return .text }
 
@@ -28,7 +38,8 @@ enum ClipboardContentClassifier {
     }
 
     nonisolated static func isLikelyLink(_ text: String) -> Bool {
-        guard let url = URL(string: text),
+        guard text.utf16.count <= maxLinkUTF16Length,
+              let url = URL(string: text),
               let scheme = url.scheme?.lowercased(),
               (scheme == "http" || scheme == "https"),
               url.host != nil else {
@@ -39,10 +50,11 @@ enum ClipboardContentClassifier {
     }
 
     nonisolated private static func analyze(_ text: String) -> Analysis {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.count >= 2 else { return Analysis() }
+        // 先截前缀再裁空白：prefix 只走前 N 个字符，避免对整段文本 count / trim。
+        let candidate = String(text.prefix(maxAnalyzedCharacters))
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard candidate.count >= 2 else { return Analysis() }
 
-        let candidate = trimmed.count > 4_000 ? String(trimmed.prefix(4_000)) : trimmed
         let lowercased = candidate.lowercased()
         let tokenSet = Set(tokenize(lowercased))
         let lines = candidate.split(whereSeparator: \.isNewline).prefix(24)
